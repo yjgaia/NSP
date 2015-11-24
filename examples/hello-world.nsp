@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html>
+	<body>
+		<h1>My first NSP page</h1>
+		<%
+			print('Hello World!');
+		%>
+	</body>
+</html>
