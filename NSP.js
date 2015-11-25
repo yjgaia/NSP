@@ -5,24 +5,53 @@ INIT_OBJECTS();
 
 var
 //IMPORT: path
-path = require('path'),
+__path = require('path'),
 
-// config
-config = PARSE_STR(READ_FILE({
-	path : 'config.json',
-	isSync : true
-}).toString()),
+// ERROR
+__ERROR = {};
 
-// port
-port = config.port,
+function __responseError(path, e, response) {
+	
+	var
+	// first error line
+	firstErrorLine = e.stack.split('\n')[1];
+	
+	response({
+		statusCode : 500,
+		content : 
+'<!doctype html><html><head><meta charset="UTF-8"></head><body>' +
+'<p>오류가 발생했습니다.</p>' +
+'<b>경로: </b>' + path + '<br>' +
+'<b>내용: </b>' + e +
+'</body></html>',
+		contentType : 'text/html'
+	});
+}
 
-// root path
-rootPath = config.rootPath;
+function __responseNotFound(path, response) {
+	
+	response({
+		statusCode : 404,
+		content : 
+'<!doctype html><html><head><meta charset="UTF-8"></head><body>' +
+'<p>페이지가 존재하지 않습니다.</p>' +
+'<b>경로: </b>' + path +
+'</body></html>',
+		contentType : 'text/html'
+	});
+}
 
-// dev mode가 true일 때는 리소스 캐싱을 하지 않습니다.
-CONFIG.isDevMode = config.isDevMode;
+function __run(__sourcePath, __code, __response) {
+	
+	try {
+		return eval(__code);
+	} catch (e) {
+		__responseError(__sourcePath, e, __response);
+		return __ERROR;
+	}
+}
 
-function parse(self, __folderPath, __source, __response) {
+function parse(self, __sourcePath, __source, __response) {
 	
 	var
 	// html
@@ -41,7 +70,7 @@ function parse(self, __folderPath, __source, __response) {
 	__isPaused,
 	
 	// ohters
-	__i, __ch;
+	__i, __ch, __output;
 	
 	function print(content) {
 		if (typeof content === 'string') {
@@ -53,16 +82,20 @@ function parse(self, __folderPath, __source, __response) {
 	
 	function include(__uri, __callback) {
 		
+		var
+		// fullPath
+		fullPath = __path.dirname(__sourcePath) + '/' + __uri;
+		
 		pause();
 		
-		READ_FILE(__folderPath + '/' + __uri, function(__buffer) {
+		READ_FILE(fullPath, function(__buffer) {
 			
 			var
 			// ext
-			ext = path.extname(__uri).toLowerCase();
+			ext = __path.extname(__uri).toLowerCase();
 			
 			if (ext === '.nsp') {
-				parse(self, path.dirname(__folderPath + '/' + __uri), __buffer.toString(), function(res) {
+				parse(self, __path.dirname(fullPath), __buffer.toString(), function(res) {
 					print(res.content);
 					if (__callback !== undefined) {
 						__callback();
@@ -72,7 +105,9 @@ function parse(self, __folderPath, __source, __response) {
 			}
 			
 			else if (ext === '.js') {
-				eval(__buffer.toString());
+				if (__run(fullPath, __buffer.toString(), __response) === __ERROR) {
+					return;
+				}
 				if (__callback !== undefined) {
 					__callback();
 				}
@@ -115,7 +150,9 @@ function parse(self, __folderPath, __source, __response) {
 				else if (__ch === '>' && __source[__i - 1] === '%') {
 					if (__startCodeIndex !== -1 && __startPstrIndex === -1) {
 						
-						eval(__source.substring(__lastIndex, __i - 1));
+						if (__run(__sourcePath, __source.substring(__lastIndex, __i - 1), __response) === __ERROR) {
+							return;
+						}
 						
 						__startCodeIndex = -1;
 						__lastIndex = __i + 1;
@@ -148,7 +185,13 @@ function parse(self, __folderPath, __source, __response) {
 				else if (__ch === '}' && __source[__i - 1] === '}') {
 					if (__startCodeIndex === -1 && __startPstrIndex !== -1) {
 					
-						print(eval(__source.substring(__lastIndex, __i - 1)));
+						__output = __run(__sourcePath, __source.substring(__lastIndex, __i - 1), __response);
+						
+						if (__output === __ERROR) {
+							return;
+						}
+						
+						print(__output);
 						
 						__startPstrIndex = -1;
 						__lastIndex = __i + 1;
@@ -160,8 +203,10 @@ function parse(self, __folderPath, __source, __response) {
 				}
 			}
 		}
-	
-		print(__source.substring(__lastIndex));
+		
+		if (__startCodeIndex !== -1 && __startPstrIndex !== -1) {
+			print(__source.substring(__lastIndex));
+		}
 		
 		__response({
 			content : __html,
@@ -172,38 +217,24 @@ function parse(self, __folderPath, __source, __response) {
 	resume();
 }
 
-function requestListener(requestInfo, response, onDisconnected) {
-
-	var
-	// uri
-	uri = requestInfo.uri;
-	
-	if (uri === '') {
-		uri = 'index.nsp';
-	}
-
-	if (path.extname(uri).toLowerCase() === '.nsp') {
-
-		READ_FILE(rootPath + '/' + uri, {
-			notExists : function() {
-				response(404);
-			},
-			error : function() {
-				response(500);
-			},
-			success : function(buffer) {
-				parse({
-					params : requestInfo.params
-				}, path.dirname(rootPath + '/' + uri), buffer.toString(), response);
-			}
-		});
-
-		return false;
-	}
-}
-
 // 멀티코어 CPU 지원
 CPU_CLUSTERING(function() {
+	
+	var
+	// config
+	config = PARSE_STR(READ_FILE({
+		path : 'config.json',
+		isSync : true
+	}).toString()),
+	
+	// port
+	port = config.port,
+	
+	// root path
+	rootPath = config.rootPath;
+	
+	// dev mode가 true일 때는 리소스 캐싱을 하지 않습니다.
+	CONFIG.isDevMode = config.isDevMode;
 
 	// run web server
 	RESOURCE_SERVER({
@@ -212,10 +243,40 @@ CPU_CLUSTERING(function() {
 	}, {
 		
 		notExistsResource : function(resourcePath, requestInfo, response) {
-			response(404);
+			response({
+				statusCode : 404
+			});
 		},
 		
-		requestListener : requestListener
+		requestListener : function(requestInfo, response, onDisconnected) {
+		
+			var
+			// uri
+			uri = requestInfo.uri;
+			
+			if (uri === '') {
+				uri = 'index.nsp';
+			}
+		
+			if (__path.extname(uri).toLowerCase() === '.nsp') {
+		
+				READ_FILE(rootPath + '/' + uri, {
+					notExists : function() {
+						__responseNotFound(rootPath + '/' + uri, response);
+					},
+					error : function(e) {
+						__responseError(rootPath + '/' + uri, e, response);
+					},
+					success : function(buffer) {
+						parse({
+							params : requestInfo.params
+						}, rootPath + '/' + uri, buffer.toString(), response);
+					}
+				});
+		
+				return false;
+			}
+		}
 	});
 
 	console.log('NSP 서버가 실행되었습니다. http://localhost:' + port + '로 접속해보세요.');
