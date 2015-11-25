@@ -22,118 +22,138 @@ rootPath = config.rootPath;
 // dev mode가 true일 때는 리소스 캐싱을 하지 않습니다.
 CONFIG.isDevMode = config.isDevMode;
 
-function parse(self, folderPath, source, response) {
+function parse(self, __folderPath, __source, __response) {
 	
 	var
 	// html
-	html = '',
+	__html = '',
 	
 	// last index
-	lastIndex = 0,
+	__lastIndex = 0,
 	
 	// start code index
-	startCodeIndex = -1,
+	__startCodeIndex = -1,
 	
 	// start pstr index
-	startPstrIndex = -1,
+	__startPstrIndex = -1,
 	
 	// is paused
-	isPaused,
+	__isPaused,
 	
 	// ohters
-	i, ch;
+	__i, __ch;
 	
 	function print(content) {
 		if (typeof content === 'string') {
-			html += content;
+			__html += content;
 		} else {
-			html += JSON.stringify(content);
+			__html += JSON.stringify(content);
 		}
 	}
 	
-	function include(uri) {
+	function include(__uri, __callback) {
 		
 		pause();
 		
-		READ_FILE(folderPath + '/' + uri, function(buffer) {
-			parse(self, path.dirname(folderPath + '/' + uri), buffer.toString(), function(res) {
-				print(res.content);
+		READ_FILE(__folderPath + '/' + __uri, function(__buffer) {
+			
+			var
+			// ext
+			ext = path.extname(__uri).toLowerCase();
+			
+			if (ext === '.nsp') {
+				parse(self, path.dirname(__folderPath + '/' + __uri), __buffer.toString(), function(res) {
+					print(res.content);
+					if (__callback !== undefined) {
+						__callback();
+					}
+					resume();
+				});
+			}
+			
+			else if (ext === '.js') {
+				eval(__buffer.toString());
+				if (__callback !== undefined) {
+					__callback();
+				}
 				resume();
-			});
+			}
 		});
 	}
 	
 	function pause() {
-		isPaused = true;
+		__isPaused = true;
 	}
 	
 	function resume() {
-		isPaused = false;
+		__isPaused = false;
 		
-		for (i = lastIndex; i <= source.length; i += 1) {
-			ch = source[i];
+		for (__i = __lastIndex; __i <= __source.length; __i += 1) {
+			__ch = __source[__i];
 			
-			if (i > 0) {
+			if (__i > 0) {
 				
 				// Node.js용 코드 시작
-				if (ch === '%' && source[i - 1] === '<') {
-					if (startCodeIndex === -1 && startPstrIndex === -1) {
-						if (i > 2 && source[i - 3] === '\\' && source[i - 2] === '\\') {
-							print(source.substring(lastIndex, i - 2));
-							startCodeIndex = i + 1;
-							lastIndex = i + 1;
-						} else if (i > 1 && source[i - 2] === '\\') {
+				if (__ch === '%' && __source[__i - 1] === '<') {
+					if (__startCodeIndex === -1 && __startPstrIndex === -1) {
+						if (__i > 2 && __source[__i - 3] === '\\' && __source[__i - 2] === '\\') {
+							print(__source.substring(__lastIndex, __i - 2));
+							__startCodeIndex = __i + 1;
+						} else if (__i > 1 && __source[__i - 2] === '\\') {
 							// Node.js용 코드 아님, 무시
+							print(__source.substring(__lastIndex, __i - 2));
+							print(__source.substring(__i - 1, __i + 1));
 						} else {
-							print(source.substring(lastIndex, i - 1));
-							startCodeIndex = i + 1;
-							lastIndex = i + 1;
+							print(__source.substring(__lastIndex, __i - 1));
+							__startCodeIndex = __i + 1;
 						}
+						__lastIndex = __i + 1;
 					}
 				}
 				
 				// Node.js용 코드 끝
-				else if (ch === '>' && source[i - 1] === '%') {
-					if (startCodeIndex !== -1 && startPstrIndex === -1) {
+				else if (__ch === '>' && __source[__i - 1] === '%') {
+					if (__startCodeIndex !== -1 && __startPstrIndex === -1) {
 						
-						eval(source.substring(lastIndex, i - 1));
+						eval(__source.substring(__lastIndex, __i - 1));
 						
-						startCodeIndex = -1;
-						lastIndex = i + 1;
+						__startCodeIndex = -1;
+						__lastIndex = __i + 1;
 						
-						if (isPaused === true) {
+						if (__isPaused === true) {
 							return;
 						}
 					}
 				}
 				
 				// 출력 코드 시작
-				else if (ch === '{' && source[i - 1] === '{') {
-					if (startCodeIndex === -1 && startPstrIndex === -1) {
-						if (i > 2 && source[i - 3] === '\\' && source[i - 2] === '\\') {
-							print(source.substring(lastIndex, i - 2));
-							startPstrIndex = i + 1;
-							lastIndex = i + 1;
-						} else if (i > 1 && source[i - 2] === '\\') {
+				else if (__ch === '{' && __source[__i - 1] === '{') {
+					if (__startCodeIndex === -1 && __startPstrIndex === -1) {
+						if (__i > 2 && __source[__i - 3] === '\\' && __source[__i - 2] === '\\') {
+							print(__source.substring(__lastIndex, __i - 2));
+							__startPstrIndex = __i + 1;
+						} else if (__i > 1 && __source[__i - 2] === '\\') {
 							// Node.js용 코드 아님, 무시
+							print(__source.substring(__lastIndex, __i - 2));
+							print(__source.substring(__i - 1, __i + 1));
 						} else {
-							print(source.substring(lastIndex, i - 1));
-							startPstrIndex = i + 1;
-							lastIndex = i + 1;
+							print(__source.substring(__lastIndex, __i - 1));
+							__startPstrIndex = __i + 1;
 						}
+						__lastIndex = __i + 1;
 					}
 				}
 				
 				// 출력 코드 끝
-				else if (ch === '}' && source[i - 1] === '}') {
-					if (startCodeIndex === -1 && startPstrIndex !== -1) {
+				else if (__ch === '}' && __source[__i - 1] === '}') {
+					if (__startCodeIndex === -1 && __startPstrIndex !== -1) {
 					
-						print(eval(source.substring(lastIndex, i - 1)));
+						print(eval(__source.substring(__lastIndex, __i - 1)));
 						
-						startPstrIndex = -1;
-						lastIndex = i + 1;
+						__startPstrIndex = -1;
+						__lastIndex = __i + 1;
 						
-						if (isPaused === true) {
+						if (__isPaused === true) {
 							return;
 						}
 					}
@@ -141,10 +161,10 @@ function parse(self, folderPath, source, response) {
 			}
 		}
 	
-		print(source.substring(lastIndex));
+		print(__source.substring(__lastIndex));
 		
-		response({
-			content : html,
+		__response({
+			content : __html,
 			contentType : 'text/html'
 		});
 	}
@@ -172,7 +192,9 @@ function requestListener(requestInfo, response, onDisconnected) {
 				response(500);
 			},
 			success : function(buffer) {
-				parse({}, path.dirname(rootPath + '/' + uri), buffer.toString(), response);
+				parse({
+					params : requestInfo.params
+				}, path.dirname(rootPath + '/' + uri), buffer.toString(), response);
 			}
 		});
 

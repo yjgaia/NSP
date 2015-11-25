@@ -1,5 +1,5 @@
 <%
-	var local = 'Welcome!';
+	var local = 'Welcome!'; // 오직 여기서만 사용할 수 있습니다.
 	
 	self.msg = 'Hello World! ' + local;
 %>

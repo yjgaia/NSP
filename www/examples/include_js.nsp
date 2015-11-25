@@ -1,0 +1,8 @@
+<!DOCTYPE html>
+<html>
+	<body>
+		콘솔을 확인해보세요.
+		<% include('include/common.js'); %>
+		<script src="include/common.js"></script>
+	</body>
+</html>
