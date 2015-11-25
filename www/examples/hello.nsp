@@ -3,7 +3,8 @@
 	<body>
 		<h1>My first NSP page</h1>
 		<%
-			print('Hello World!');
+			var msg = 'Hello World!';
 		%>
+		<p>{{msg}}</p>
 	</body>
 </html>

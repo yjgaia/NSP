@@ -32,7 +32,10 @@ function parse(source, response) {
 	lastIndex = 0,
 	
 	// start code index
-	startCodeIndex,
+	startCodeIndex = -1,
+	
+	// start pstr index
+	startPstrIndex = -1,
 	
 	// is paused
 	isPaused;
@@ -59,22 +62,68 @@ function parse(source, response) {
 			ch = source[i];
 			
 			if (i > 0) {
-				// 코드 시작
+				
+				// Node.js용 코드 시작
 				if (ch === '%' && source[i - 1] === '<') {
-					print(source.substring(lastIndex, i - 1));
-					startCodeIndex = i + 1;
-					lastIndex = i + 1;
+					if (startCodeIndex === -1 && startPstrIndex === -1) {
+						if (i > 2 && source[i - 3] === '\\' && source[i - 2] === '\\') {
+							print(source.substring(lastIndex, i - 2));
+							startCodeIndex = i + 1;
+							lastIndex = i + 1;
+						} else if (i > 1 && source[i - 2] === '\\') {
+							// Node.js용 코드 아님, 무시
+						} else {
+							print(source.substring(lastIndex, i - 1));
+							startCodeIndex = i + 1;
+							lastIndex = i + 1;
+						}
+					}
 				}
-				// 코드 끝
+				
+				// Node.js용 코드 끝
 				else if (ch === '>' && source[i - 1] === '%') {
+					if (startCodeIndex !== -1 && startPstrIndex === -1) {
+						
+						eval(source.substring(lastIndex, i - 1));
+						
+						startCodeIndex = -1;
+						lastIndex = i + 1;
+						
+						if (isPaused === true) {
+							return;
+						}
+					}
+				}
+				
+				// 출력 코드 시작
+				else if (ch === '{' && source[i - 1] === '{') {
+					if (startCodeIndex === -1 && startPstrIndex === -1) {
+						if (i > 2 && source[i - 3] === '\\' && source[i - 2] === '\\') {
+							print(source.substring(lastIndex, i - 2));
+							startPstrIndex = i + 1;
+							lastIndex = i + 1;
+						} else if (i > 1 && source[i - 2] === '\\') {
+							// Node.js용 코드 아님, 무시
+						} else {
+							print(source.substring(lastIndex, i - 1));
+							startPstrIndex = i + 1;
+							lastIndex = i + 1;
+						}
+					}
+				}
+				
+				// 출력 코드 끝
+				else if (ch === '}' && source[i - 1] === '}') {
+					if (startCodeIndex === -1 && startPstrIndex !== -1) {
 					
-					eval(source.substring(lastIndex, i - 1));
-					
-					startCodeIndex = i + 1;
-					lastIndex = i + 1;
-					
-					if (isPaused === true) {
-						return;
+						print(eval(source.substring(lastIndex, i - 1)));
+						
+						startPstrIndex = -1;
+						lastIndex = i + 1;
+						
+						if (isPaused === true) {
+							return;
+						}
 					}
 				}
 			}
