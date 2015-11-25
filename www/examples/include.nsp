@@ -1,0 +1,8 @@
+<!DOCTYPE html>
+<html>
+	<body>
+		<% include('include/top.nsp'); %>
+		<h1>My first NSP page</h1>
+		<% include('include/bottom.nsp'); %>
+	</body>
+</html>

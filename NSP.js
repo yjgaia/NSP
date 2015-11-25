@@ -22,7 +22,7 @@ rootPath = config.rootPath;
 // dev mode가 true일 때는 리소스 캐싱을 하지 않습니다.
 CONFIG.isDevMode = config.isDevMode;
 
-function parse(source, response) {
+function parse(self, folderPath, source, response) {
 	
 	var
 	// html
@@ -38,7 +38,10 @@ function parse(source, response) {
 	startPstrIndex = -1,
 	
 	// is paused
-	isPaused;
+	isPaused,
+	
+	// ohters
+	i, ch;
 	
 	function print(content) {
 		if (typeof content === 'string') {
@@ -48,14 +51,23 @@ function parse(source, response) {
 		}
 	}
 	
+	function include(uri) {
+		
+		pause();
+		
+		READ_FILE(folderPath + '/' + uri, function(buffer) {
+			parse(self, path.dirname(folderPath + '/' + uri), buffer.toString(), function(res) {
+				print(res.content);
+				resume();
+			});
+		});
+	}
+	
 	function pause() {
 		isPaused = true;
 	}
 	
 	function resume() {
-		
-		var i, ch;
-		
 		isPaused = false;
 		
 		for (i = lastIndex; i <= source.length; i += 1) {
@@ -160,7 +172,7 @@ function requestListener(requestInfo, response, onDisconnected) {
 				response(500);
 			},
 			success : function(buffer) {
-				parse(buffer.toString(), response);
+				parse({}, path.dirname(rootPath + '/' + uri), buffer.toString(), response);
 			}
 		});
 
@@ -184,5 +196,5 @@ CPU_CLUSTERING(function() {
 		requestListener : requestListener
 	});
 
-	console.log('NSP 서버가 실행되었습니다. http://localhost:' + port + ' 로 접속해보세요.');
+	console.log('NSP 서버가 실행되었습니다. http://localhost:' + port + '로 접속해보세요.');
 });

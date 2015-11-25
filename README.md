@@ -78,6 +78,37 @@ JSON 객체도 출력할 수 있습니다. 이를 통해 JSON 기반 API를 만�
 {"a":1,"b":2,"c":3}
 ```
 
+### include
+`include` 함수로 다른 `.nsp` 파일을 포함할 수 있습니다.
+- `var` 키워드로 변수를 등록한 경우, 해당 페이지에서만 변수를 사용할 수 있습니다.
+- `include` 등으로 여러 페이지에서 변수를 공유하는 경우에는, 현재 요청에서 해석중인 페이지들이 공유하는 `self` 객체에 값을 대입하여 사용할 수 있습니다.
+
+`include.nsp`
+```nsp
+<!DOCTYPE html>
+<html>
+	<body>
+		<% include('include/top.nsp'); %>
+		<h1>My first NSP page</h1>
+		<% include('include/bottom.nsp'); %>
+	</body>
+</html>
+```
+
+`include/top.nsp`
+```nsp
+<%
+	var local = 'Welcome!';
+	
+	self.msg = 'Hello World! ' + local;
+%>
+```
+
+`include/bottom.nsp`
+```nsp
+<p>{{self.msg}}</p>
+```
+
 ### pause/resume
 데이터베이스 등을 조작하다 `callback` 처리로 들어갈 경우 `pause` 함수로 문서 해석을 잠시 중단할 수 있습니다. `resume` 함수로 문서 해석을 다시 진행할 수 있습니다.
 ```nsp

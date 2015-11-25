@@ -1,0 +1,5 @@
+<%
+	var local = 'Welcome!';
+	
+	self.msg = 'Hello World! ' + local;
+%>
