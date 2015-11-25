@@ -22,7 +22,7 @@ rootPath = config.rootPath;
 // dev mode가 true일 때는 리소스 캐싱을 하지 않습니다.
 CONFIG.isDevMode = config.isDevMode;
 
-function parse(source) {
+function parse(source, response) {
 	
 	var
 	// html
@@ -32,30 +32,63 @@ function parse(source) {
 	lastIndex = 0,
 	
 	// start code index
-	startCodeIndex;
+	startCodeIndex,
+	
+	// is paused
+	isPaused;
 	
 	function print(content) {
-		html += content;
+		if (typeof content === 'string') {
+			html += content;
+		} else {
+			html += JSON.stringify(content);
+		}
 	}
 	
-	EACH(source, function(ch, i) {
-		if (i > 0) {
-			// 코드 시작
-			if (ch === '%' && source[i - 1] === '<') {
-				print(source.substring(lastIndex, i - 1));
-				startCodeIndex = i + 1;
-				lastIndex = i + 1;
-			}
-			// 코드 끝
-			else if (ch === '>' && source[i - 1] === '%') {
-				eval(source.substring(lastIndex, i - 1));
-				startCodeIndex = i + 1;
-				lastIndex = i + 1;
+	function pause() {
+		isPaused = true;
+	}
+	
+	function resume() {
+		
+		var i, ch;
+		
+		isPaused = false;
+		
+		for (i = lastIndex; i <= source.length; i += 1) {
+			ch = source[i];
+			
+			if (i > 0) {
+				// 코드 시작
+				if (ch === '%' && source[i - 1] === '<') {
+					print(source.substring(lastIndex, i - 1));
+					startCodeIndex = i + 1;
+					lastIndex = i + 1;
+				}
+				// 코드 끝
+				else if (ch === '>' && source[i - 1] === '%') {
+					
+					eval(source.substring(lastIndex, i - 1));
+					
+					startCodeIndex = i + 1;
+					lastIndex = i + 1;
+					
+					if (isPaused === true) {
+						return;
+					}
+				}
 			}
 		}
-	});
 	
-	return html;
+		print(source.substring(lastIndex));
+		
+		response({
+			content : html,
+			contentType : 'text/html'
+		});
+	}
+	
+	resume();
 }
 
 function requestListener(requestInfo, response, onDisconnected) {
@@ -78,10 +111,7 @@ function requestListener(requestInfo, response, onDisconnected) {
 				response(500);
 			},
 			success : function(buffer) {
-				response({
-					content : parse(buffer.toString()),
-					contentType : 'text/html'
-				});
+				parse(buffer.toString(), response);
 			}
 		});
 
