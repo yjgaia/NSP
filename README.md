@@ -271,25 +271,9 @@ end
 - 8GB Ram
 - Windows 10
 
-단순 비교 결과 위 사양에서 아래와 같이 NSP가 PHP 대비 약 두배정도 성능이 높습니다. 이는 멀티코어를 지원하지 않는 PHP 대비 NSP가 멀티코어를 지원하기 때문으로 보입니다.
+단순 비교 결과
 
 #### NSP 결과
-```
-Max requests:        1000
-Concurrency level:   1
-Agent:               none
-Completed requests:  1000
-Total errors:        0
-Total time:          93.007305635 s
-Requests per second: 11
-Total time:          93.007305635 s
-Percentage of the requests served within a certain time
-  50%      91 ms
-  90%      94 ms
-  95%      98 ms
-  99%      113 ms
- 100%      126 ms (longest request)
-```
 
 #### PHP 결과
 
