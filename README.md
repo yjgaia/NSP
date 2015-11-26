@@ -235,48 +235,6 @@ end
 </html>
 ```
 
-### 벤치마크
-아래와 같이 간단한 두 페이지를 대상으로 1000번의 호출을 수행해 보았습니다.
-
-`hello.nsp`
-```nsp
-<!DOCTYPE html>
-<html>
-	<body>
-		<h1>My first NSP page</h1>
-		<%
-			var msg = 'Hello World!';
-		%>
-		<p>{{msg}}</p>
-	</body>
-</html>
-```
-
-`hello.php`
-```php
-<!DOCTYPE html>
-<html>
-	<body>
-		<h1>My first PHP page</h1>
-		<?
-			$msg = 'Hello World!';
-		?>
-		<p><?=$msg ?></p>
-	</body>
-</html>
-```
-
-#### 시스템 사양
-- Intel Core i7-4500U CPU 1.8GHz
-- 8GB Ram
-- Windows 10
-
-단순 비교 결과
-
-#### NSP 결과
-
-#### PHP 결과
-
 ## 라이센스
 [MIT](../../LICENSE)
 

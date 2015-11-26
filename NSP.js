@@ -5,10 +5,7 @@ INIT_OBJECTS();
 
 var
 //IMPORT: path
-__path = require('path'),
-
-// ERROR
-__ERROR = {};
+__path = require('path');
 
 function __responseError(path, e, response) {
 	
@@ -41,16 +38,6 @@ function __responseNotFound(path, response) {
 	});
 }
 
-function __run(__sourcePath, __code, __response) {
-	
-	try {
-		return eval(__code);
-	} catch (e) {
-		__responseError(__sourcePath, e, __response);
-		return __ERROR;
-	}
-}
-
 function parse(self, __sourcePath, __source, __response) {
 	
 	var
@@ -70,7 +57,7 @@ function parse(self, __sourcePath, __source, __response) {
 	__isPaused,
 	
 	// ohters
-	__i, __ch, __output;
+	__i, __ch;
 	
 	function print(content) {
 		if (typeof content === 'string') {
@@ -84,18 +71,18 @@ function parse(self, __sourcePath, __source, __response) {
 		
 		var
 		// fullPath
-		fullPath = __path.dirname(__sourcePath) + '/' + __uri;
+		__fullPath = __path.dirname(__sourcePath) + '/' + __uri;
 		
 		pause();
 		
-		READ_FILE(fullPath, function(__buffer) {
+		READ_FILE(__fullPath, function(__buffer) {
 			
 			var
 			// ext
 			ext = __path.extname(__uri).toLowerCase();
 			
 			if (ext === '.nsp') {
-				parse(self, __path.dirname(fullPath), __buffer.toString(), function(res) {
+				parse(self, __path.dirname(__fullPath), __buffer.toString(), function(res) {
 					print(res.content);
 					if (__callback !== undefined) {
 						__callback();
@@ -105,9 +92,14 @@ function parse(self, __sourcePath, __source, __response) {
 			}
 			
 			else if (ext === '.js') {
-				if (__run(fullPath, __buffer.toString(), __response) === __ERROR) {
+				
+				try {
+					eval(__buffer.toString());
+				} catch (e) {
+					__responseError(__fullPath, e, __response);
 					return;
 				}
+				
 				if (__callback !== undefined) {
 					__callback();
 				}
@@ -150,7 +142,10 @@ function parse(self, __sourcePath, __source, __response) {
 				else if (__ch === '>' && __source[__i - 1] === '%') {
 					if (__startCodeIndex !== -1 && __startPstrIndex === -1) {
 						
-						if (__run(__sourcePath, __source.substring(__lastIndex, __i - 1), __response) === __ERROR) {
+						try {
+							eval(__source.substring(__lastIndex, __i - 1));
+						} catch (e) {
+							__responseError(__sourcePath, e, __response);
 							return;
 						}
 						
@@ -184,14 +179,13 @@ function parse(self, __sourcePath, __source, __response) {
 				// 출력 코드 끝
 				else if (__ch === '}' && __source[__i - 1] === '}') {
 					if (__startCodeIndex === -1 && __startPstrIndex !== -1) {
-					
-						__output = __run(__sourcePath, __source.substring(__lastIndex, __i - 1), __response);
 						
-						if (__output === __ERROR) {
+						try {
+							print(eval(__source.substring(__lastIndex, __i - 1)));
+						} catch (e) {
+							__responseError(__sourcePath, e, __response);
 							return;
 						}
-						
-						print(__output);
 						
 						__startPstrIndex = -1;
 						__lastIndex = __i + 1;
@@ -204,8 +198,8 @@ function parse(self, __sourcePath, __source, __response) {
 			}
 		}
 		
-		if (__startCodeIndex !== -1 && __startPstrIndex !== -1) {
-			print(__source.substring(__lastIndex));
+		if (__startCodeIndex !== -1 || __startPstrIndex !== -1) {
+			print(__source.substring(__lastIndex - 2));
 		}
 		
 		__response({
