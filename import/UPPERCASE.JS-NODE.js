@@ -4370,7 +4370,7 @@ global.RESOURCE_SERVER = CLASS(function(cls) {
 				port = portOrParams.port;
 				securedPort = portOrParams.securedPort;
 				originRootPath = portOrParams.rootPath;
-				version = portOrParams.version;
+				version = String(portOrParams.version);
 			}
 
 			if (requestListenerOrHandlers !== undefined) {
@@ -4539,7 +4539,9 @@ global.RESOURCE_SERVER = CLASS(function(cls) {
 											// not found file, so serve index.
 											READ_FILE(rootPath + (uri === '' ? '' : ('/' + uri)) + '/index.html', {
 
-												notExists : responseNotFound,
+												notExists : function() {
+													responseNotFound(rootPath + '/' + uri);
+												},
 												error : responseError,
 
 												success : function(buffer) {

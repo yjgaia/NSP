@@ -200,6 +200,8 @@ function parse(self, __sourcePath, __source, __response) {
 		
 		if (__startCodeIndex !== -1 || __startPstrIndex !== -1) {
 			print(__source.substring(__lastIndex - 2));
+		} else {
+			print(__source.substring(__lastIndex));
 		}
 		
 		__response({
@@ -225,7 +227,10 @@ CPU_CLUSTERING(function() {
 	port = config.port,
 	
 	// root path
-	rootPath = config.rootPath;
+	rootPath = config.rootPath,
+	
+	// cached file infos
+	cachedFileInfos = {};
 	
 	// dev mode가 true일 때는 리소스 캐싱을 하지 않습니다.
 	CONFIG.isDevMode = config.isDevMode;
@@ -233,38 +238,73 @@ CPU_CLUSTERING(function() {
 	// run web server
 	RESOURCE_SERVER({
 		port : port,
-		rootPath : rootPath
+		rootPath : rootPath,
+		version : Date.now()
 	}, {
 		
 		notExistsResource : function(resourcePath, requestInfo, response) {
-			response({
-				statusCode : 404
-			});
+			__responseNotFound(resourcePath, response);
 		},
 		
 		requestListener : function(requestInfo, response, onDisconnected) {
 		
 			var
 			// uri
-			uri = requestInfo.uri;
+			uri = requestInfo.uri,
+			
+			// path
+			path = rootPath + '/' + uri;
 			
 			if (uri === '') {
 				uri = 'index.nsp';
 			}
 		
 			if (__path.extname(uri).toLowerCase() === '.nsp') {
-		
-				READ_FILE(rootPath + '/' + uri, {
-					notExists : function() {
-						__responseNotFound(rootPath + '/' + uri, response);
-					},
-					error : function(e) {
-						__responseError(rootPath + '/' + uri, e, response);
-					},
-					success : function(buffer) {
+				
+				GET_FILE_INFO(path, function(fileInfo) {
+					
+					var
+					// cached file info
+					cachedFileInfo = cachedFileInfos[path];
+					
+					// 캐시된 파일 제공
+					if (cachedFileInfo !== undefined
+						&& (
+							(fileInfo.lastUpdateTime !== undefined && cachedFileInfo.lastUpdateTime.getTime() === fileInfo.lastUpdateTime.getTime())
+							|| (fileInfo.createTime !== undefined && cachedFileInfo.lastUpdateTime.getTime() === fileInfo.createTime.getTime())
+						)
+					) {
+						
 						parse({
 							params : requestInfo.params
-						}, rootPath + '/' + uri, buffer.toString(), response);
+						}, path, cachedFileInfo.content, response);
+					}
+					
+					else {
+						
+						READ_FILE(path, {
+							notExists : function() {
+								__responseNotFound(path, response);
+							},
+							error : function(e) {
+								__responseError(path, e, response);
+							},
+							success : function(buffer) {
+								
+								var
+								// content
+								content = buffer.toString();
+								
+								cachedFileInfos[path] = {
+									content : content,
+									lastUpdateTime : fileInfo.lastUpdateTime === undefined ? fileInfo.createTime : fileInfo.lastUpdateTime
+								};
+								
+								parse({
+									params : requestInfo.params
+								}, path, content, response);
+							}
+						});
 					}
 				});
 		
