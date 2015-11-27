@@ -1,11 +1,124 @@
 // import UPPERCASE.JS.
 require('./import/UPPERCASE.JS-COMMON.js');
 require('./import/UPPERCASE.JS-NODE.js');
+
+// import UPPERCASE-TRANSPORT.
+require('./import/UPPERCASE-TRANSPORT/NODE.js');
+
+// import UPPERCASE-UTIL.
+require('./import/UPPERCASE-UTIL/NODE.js');
+
+// import UPPERCASE-UPLOAD.
+require('./import/UPPERCASE-UPLOAD/NODE.js');
+
 INIT_OBJECTS();
 
 var
 //IMPORT: path
-__path = require('path');
+__path = require('path'),
+
+// resume func str
+__resumeFuncStr = function resume() {
+	
+	eval(__resumeFuncStr);
+	
+	__isPaused = false;
+	
+	for (__i = __lastIndex; __i <= __source.length; __i += 1) {
+		__ch = __source[__i];
+		
+		if (__i > 0) {
+			
+			// Node.js용 코드 시작
+			if (__ch === '%' && __source[__i - 1] === '<') {
+				if (__startCodeIndex === -1 && __startPstrIndex === -1) {
+					if (__i > 2 && __source[__i - 3] === '\\' && __source[__i - 2] === '\\') {
+						print(__source.substring(__lastIndex, __i - 2));
+						__startCodeIndex = __i + 1;
+					} else if (__i > 1 && __source[__i - 2] === '\\') {
+						// Node.js용 코드 아님, 무시
+						print(__source.substring(__lastIndex, __i - 2));
+						print(__source.substring(__i - 1, __i + 1));
+					} else {
+						print(__source.substring(__lastIndex, __i - 1));
+						__startCodeIndex = __i + 1;
+					}
+					__lastIndex = __i + 1;
+				}
+			}
+			
+			// Node.js용 코드 끝
+			else if (__ch === '>' && __source[__i - 1] === '%') {
+				if (__startCodeIndex !== -1 && __startPstrIndex === -1) {
+					
+					try {
+						eval(__source.substring(__lastIndex, __i - 1));
+					} catch (e) {
+						__responseError(__sourcePath, e, __response);
+						return;
+					}
+					
+					__startCodeIndex = -1;
+					__lastIndex = __i + 1;
+					
+					if (__isPaused === true) {
+						return;
+					}
+				}
+			}
+			
+			// 출력 코드 시작
+			else if (__ch === '{' && __source[__i - 1] === '{') {
+				if (__startCodeIndex === -1 && __startPstrIndex === -1) {
+					if (__i > 2 && __source[__i - 3] === '\\' && __source[__i - 2] === '\\') {
+						print(__source.substring(__lastIndex, __i - 2));
+						__startPstrIndex = __i + 1;
+					} else if (__i > 1 && __source[__i - 2] === '\\') {
+						// Node.js용 코드 아님, 무시
+						print(__source.substring(__lastIndex, __i - 2));
+						print(__source.substring(__i - 1, __i + 1));
+					} else {
+						print(__source.substring(__lastIndex, __i - 1));
+						__startPstrIndex = __i + 1;
+					}
+					__lastIndex = __i + 1;
+				}
+			}
+			
+			// 출력 코드 끝
+			else if (__ch === '}' && __source[__i - 1] === '}') {
+				if (__startCodeIndex === -1 && __startPstrIndex !== -1) {
+					
+					try {
+						print(eval(__source.substring(__lastIndex, __i - 1)));
+					} catch (e) {
+						__responseError(__sourcePath, e, __response);
+						return;
+					}
+					
+					__startPstrIndex = -1;
+					__lastIndex = __i + 1;
+					
+					if (__isPaused === true) {
+						return;
+					}
+				}
+			}
+		}
+	}
+	
+	if (__startCodeIndex !== -1 || __startPstrIndex !== -1) {
+		print(__source.substring(__lastIndex - 2));
+	} else {
+		print(__source.substring(__lastIndex));
+	}
+	
+	__response({
+		content : __html,
+		contentType : 'text/html'
+	});
+	
+}.toString();
 
 function __responseError(path, e, response) {
 	
@@ -38,7 +151,7 @@ function __responseNotFound(path, response) {
 	});
 }
 
-function parse(self, __sourcePath, __source, __response) {
+function __parse(__requestInfo, __sourcePath, __source, __response, self) {
 	
 	var
 	// html
@@ -82,13 +195,13 @@ function parse(self, __sourcePath, __source, __response) {
 			ext = __path.extname(__uri).toLowerCase();
 			
 			if (ext === '.nsp') {
-				parse(self, __path.dirname(__fullPath), __buffer.toString(), function(res) {
+				__parse(__requestInfo, __path.dirname(__fullPath), __buffer.toString(), function(res) {
 					print(res.content);
 					if (__callback !== undefined) {
 						__callback();
 					}
 					resume();
-				});
+				}, self);
 			}
 			
 			else if (ext === '.js') {
@@ -108,107 +221,41 @@ function parse(self, __sourcePath, __source, __response) {
 		});
 	}
 	
+	function upload(uploadPath, callbackOrHandlers) {
+		
+		var
+		// callback
+		callback,
+
+		// error handler
+		errorHandler,
+
+		// over file size handler
+		overFileSizeHandler;
+
+		if (CHECK_IS_DATA(callbackOrHandlers) !== true) {
+			callback = callbackOrHandlers;
+		} else {
+			callback = callbackOrHandlers.success;
+			errorHandler = callbackOrHandlers.error;
+			overFileSizeHandler = callbackOrHandlers.overFileSize;
+		}
+		
+		UPLOAD_REQUEST({
+			requestInfo : __requestInfo,
+			uploadPath : __path.dirname(__sourcePath) + '/' + uploadPath
+		}, {
+			error : errorHandler,
+			overFileSize : overFileSizeHandler,
+			success : callback
+		});
+	}
+	
 	function pause() {
 		__isPaused = true;
 	}
 	
-	function resume() {
-		__isPaused = false;
-		
-		for (__i = __lastIndex; __i <= __source.length; __i += 1) {
-			__ch = __source[__i];
-			
-			if (__i > 0) {
-				
-				// Node.js용 코드 시작
-				if (__ch === '%' && __source[__i - 1] === '<') {
-					if (__startCodeIndex === -1 && __startPstrIndex === -1) {
-						if (__i > 2 && __source[__i - 3] === '\\' && __source[__i - 2] === '\\') {
-							print(__source.substring(__lastIndex, __i - 2));
-							__startCodeIndex = __i + 1;
-						} else if (__i > 1 && __source[__i - 2] === '\\') {
-							// Node.js용 코드 아님, 무시
-							print(__source.substring(__lastIndex, __i - 2));
-							print(__source.substring(__i - 1, __i + 1));
-						} else {
-							print(__source.substring(__lastIndex, __i - 1));
-							__startCodeIndex = __i + 1;
-						}
-						__lastIndex = __i + 1;
-					}
-				}
-				
-				// Node.js용 코드 끝
-				else if (__ch === '>' && __source[__i - 1] === '%') {
-					if (__startCodeIndex !== -1 && __startPstrIndex === -1) {
-						
-						try {
-							eval(__source.substring(__lastIndex, __i - 1));
-						} catch (e) {
-							__responseError(__sourcePath, e, __response);
-							return;
-						}
-						
-						__startCodeIndex = -1;
-						__lastIndex = __i + 1;
-						
-						if (__isPaused === true) {
-							return;
-						}
-					}
-				}
-				
-				// 출력 코드 시작
-				else if (__ch === '{' && __source[__i - 1] === '{') {
-					if (__startCodeIndex === -1 && __startPstrIndex === -1) {
-						if (__i > 2 && __source[__i - 3] === '\\' && __source[__i - 2] === '\\') {
-							print(__source.substring(__lastIndex, __i - 2));
-							__startPstrIndex = __i + 1;
-						} else if (__i > 1 && __source[__i - 2] === '\\') {
-							// Node.js용 코드 아님, 무시
-							print(__source.substring(__lastIndex, __i - 2));
-							print(__source.substring(__i - 1, __i + 1));
-						} else {
-							print(__source.substring(__lastIndex, __i - 1));
-							__startPstrIndex = __i + 1;
-						}
-						__lastIndex = __i + 1;
-					}
-				}
-				
-				// 출력 코드 끝
-				else if (__ch === '}' && __source[__i - 1] === '}') {
-					if (__startCodeIndex === -1 && __startPstrIndex !== -1) {
-						
-						try {
-							print(eval(__source.substring(__lastIndex, __i - 1)));
-						} catch (e) {
-							__responseError(__sourcePath, e, __response);
-							return;
-						}
-						
-						__startPstrIndex = -1;
-						__lastIndex = __i + 1;
-						
-						if (__isPaused === true) {
-							return;
-						}
-					}
-				}
-			}
-		}
-		
-		if (__startCodeIndex !== -1 || __startPstrIndex !== -1) {
-			print(__source.substring(__lastIndex - 2));
-		} else {
-			print(__source.substring(__lastIndex));
-		}
-		
-		__response({
-			content : __html,
-			contentType : 'text/html'
-		});
-	}
+	eval(__resumeFuncStr);
 	
 	resume();
 }
@@ -239,7 +286,8 @@ CPU_CLUSTERING(function() {
 	RESOURCE_SERVER({
 		port : port,
 		rootPath : rootPath,
-		version : Date.now()
+		version : Date.now(),
+		noParsingParamsURI : config.uploadURI
 	}, {
 		
 		notExistsResource : function(resourcePath, requestInfo, response) {
@@ -253,11 +301,13 @@ CPU_CLUSTERING(function() {
 			uri = requestInfo.uri,
 			
 			// path
-			path = rootPath + '/' + uri;
+			path;
 			
 			if (uri === '') {
 				uri = 'index.nsp';
 			}
+			
+			path = rootPath + '/' + uri;
 		
 			if (__path.extname(uri).toLowerCase() === '.nsp') {
 				
@@ -275,9 +325,9 @@ CPU_CLUSTERING(function() {
 						)
 					) {
 						
-						parse({
+						__parse(requestInfo, path, cachedFileInfo.content, response, {
 							params : requestInfo.params
-						}, path, cachedFileInfo.content, response);
+						});
 					}
 					
 					else {
@@ -300,9 +350,9 @@ CPU_CLUSTERING(function() {
 									lastUpdateTime : fileInfo.lastUpdateTime === undefined ? fileInfo.createTime : fileInfo.lastUpdateTime
 								};
 								
-								parse({
+								__parse(requestInfo, path, content, response, {
 									params : requestInfo.params
-								}, path, content, response);
+								});
 							}
 						});
 					}

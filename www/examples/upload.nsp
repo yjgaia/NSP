@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+	<body>
+		<h1>Upload Example</h1>
+		<form action="upload_result.nsp" method="POST" enctype="multipart/form-data">
+			First name: <input type="text" name="fname"><br>
+			Last name: <input type="text" name="lname"><br>
+			File: <input type="file" name="file" multiple="multiple"><br>
+			<input type="submit" value="Submit">
+		</form>
+	</body>
+</html>

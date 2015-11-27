@@ -256,7 +256,7 @@ Install [php.js](https://github.com/kvz/phpjs) and use it together with NSP.
 ### Benchmark
 Benchmarekd for two simple pages below.
 ```
-loadtest -n 10000 -c 100 <url>
+loadtest -n 100000 -c 100 <url>
 ```
 
 `hello.nsp`
@@ -296,51 +296,44 @@ NSP was a little bit faster.
 
 #### NSP Result
 ```
-Requests: 0 (0%), requests per second: 0, mean latency: 0 ms
-Requests: 5157 (52%), requests per second: 1030, mean latency: 100 ms
-
-Target URL:          http://127.0.0.1:8124/examples/hello.nsp
-Max requests:        10000
+Target URL:          http://127.0.0.1:8123/examples/hello.nsp
+Max requests:        100000
 Concurrency level:   100
 Agent:               none
 
-Completed requests:  10000
+Completed requests:  100000
 Total errors:        0
-Total time:          9.509117789 s
-Requests per second: 1052
-Total time:          9.509117789 s
+Total time:          112.43470760199999 s
+Requests per second: 889
+Total time:          112.43470760199999 s
 
 Percentage of the requests served within a certain time
-  50%      89 ms
-  90%      105 ms
-  95%      119 ms
-  99%      182 ms
- 100%      267 ms (longest request)
+  50%      109 ms
+  90%      126 ms
+  95%      136 ms
+  99%      166 ms
+ 100%      398 ms (longest request)
 ```
 
 #### PHP Result
 ```
-INFO Requests: 0 (0%), requests per second: 0, mean latency: 0 ms
-Requests: 4001 (40%), requests per second: 795, mean latency: 120 ms
-Requests: 8514 (85%), requests per second: 908, mean latency: 110 ms
-
 Target URL:          http://127.0.0.1/hello.php
-Max requests:        10000
+Max requests:        100000
 Concurrency level:   100
 Agent:               none
 
-Completed requests:  10000
+Completed requests:  100000
 Total errors:        0
-Total time:          11.779867863 s
-Requests per second: 849
-Total time:          11.779867863 s
+Total time:          118.630713735 s
+Requests per second: 843
+Total time:          118.630713735 s
 
 Percentage of the requests served within a certain time
-  50%      112 ms
-  90%      137 ms
-  95%      144 ms
-  99%      222 ms
- 100%      292 ms (longest request)
+  50%      115 ms
+  90%      130 ms
+  95%      141 ms
+  99%      157 ms
+ 100%      301 ms (longest request)
 ```
 
 ## License

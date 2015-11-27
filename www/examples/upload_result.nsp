@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+	<body>
+		<h1>Upload Example</h1>
+		<p><%
+			
+			var paramsList;
+			
+			upload('upload_temp_files', function(_paramsList) {
+				paramsList = _paramsList;
+				
+				var params = paramsList[0];
+				
+				print(params);
+				
+				GET_FILE_INFO(params.path, function(fileInfo) {
+					
+					print(fileInfo);
+					
+					resume();
+				});
+			});
+			pause();
+		%></p>
+		{{paramsList}}
+		<a href="upload.nsp">Back</a>
+	</body>
+</html>

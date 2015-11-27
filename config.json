@@ -1,5 +1,6 @@
 {
 	"port": 8123,
 	"isDevMode": true,
-	"rootPath": "./www"
+	"rootPath": "./www",
+	"uploadURI": ["examples/upload_result.nsp"]
 }
