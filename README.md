@@ -18,12 +18,14 @@ Node Server Pages is a server-side script to create dynamic web pages based on N
 {
 	"port": 8080,
 	"isDevMode": true,
-	"rootPath": "./"
+	"rootPath": "./",
+    "uploadURI": ["examples/upload_result.nsp"]
 }
 ```
 - `port` is the port of the web server.
 - `idDevMode` `true` means development mode. In development mode, resources such as images are not cached.
 - `rootPath` specified the root path where `.nsp` files or resources are saved.
+- `uploadURI` points to the `URI` to upload to.
 
 ## Run
 ```
@@ -42,6 +44,55 @@ node NSP.js
 		<p>{{msg}}</p>
 	</body>
 </html>
+```
+
+## Syntax
+### `<%`, `%>`
+Allows server-side JavaScript codes to be embedded.
+
+### `{{`, `}}`
+Prints formatted expressions, e.g., `{{expression}}`. It is equivalent to `<% print(expression); %>`.
+
+### `<? expression>`, `</?>`
+Interprets statements only if `expression` is `true`.
+
+```nsp
+<%
+    var a = true, b = false;
+%>
+<? a>
+    I'm printed.
+</?>
+<? b>
+    I'm not printed.
+</?>
+```
+
+### `<~ array -> value>`, `</~>`
+Iterates over an array.
+
+```nsp
+<%
+    var arr = [1, 2];
+%>
+<~ arr -> v>
+    {{v}}
+</~>
+```
+
+### `<~ data -> value>`, `<~ data -> name: value>`, `</~>`
+Iterates over an object.
+
+```nsp
+<%
+    var data = {
+        a : 1,
+        b : 2
+    };
+%>
+<~ data -> n: v>
+    {{n}} : {{v}}
+</~>
 ```
 
 ## Built-in functions
@@ -172,6 +223,26 @@ start
 	pause();
 %>
 end
+```
+
+### upload
+Uploads a file to the `URI` that's specified by `uploadURI` in `config.json`.
+
+```nsp
+<%
+    var paramsList;
+    
+    // Uploaded file is saved in 'upload_temp_files' folder.
+	upload('upload_temp_files', function(_paramsList) {
+		paramsList = _paramsList;
+		resume();
+	});
+	
+	pause();
+%>
+<~ paramsList -> params>
+	<p>{{params}}</p>
+</~>
 ```
 
 ## escape
