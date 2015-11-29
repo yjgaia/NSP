@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+	<body>
+		<h1>My first NSP page</h1>
+		<%
+			var arr = [1, 2, 3, 4, 5];
+		%>
+		<~ arr -> v>
+			{{v}}
+		</~>
+		<%
+			var data = {
+				a : 1,
+				b : 2,
+				c : 3
+			};
+		%>
+		<~ data -> n: v>
+			<p>{{n}} : {{v}}</p>
+		</~>
+	</body>
+</html>

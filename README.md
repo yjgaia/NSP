@@ -292,8 +292,6 @@ loadtest -n 100000 -c 100 <url>
 - 8GB Ram
 - Windows 10
 
-NSP was a little bit faster.
-
 #### NSP Result
 ```
 Target URL:          http://127.0.0.1:8123/examples/hello.nsp

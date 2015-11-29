@@ -3,26 +3,19 @@
 	<body>
 		<h1>Upload Example</h1>
 		<p><%
-			
 			var paramsList;
 			
+			// 업로드 파일이 upload_temp_files 폴더에 저장됩니다.
 			upload('upload_temp_files', function(_paramsList) {
 				paramsList = _paramsList;
-				
-				var params = paramsList[0];
-				
-				print(params);
-				
-				GET_FILE_INFO(params.path, function(fileInfo) {
-					
-					print(fileInfo);
-					
-					resume();
-				});
+				resume();
 			});
+			
 			pause();
 		%></p>
-		{{paramsList}}
+		<~ paramsList -> params>
+			<p>{{params}}</p>
+		</~>
 		<a href="upload.nsp">Back</a>
 	</body>
 </html>

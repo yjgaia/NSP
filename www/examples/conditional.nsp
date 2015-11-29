@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+	<body>
+		<h1>My first NSP page</h1>
+		<%
+		    var a = true, b = false;
+		%>
+		<? a>
+		    출력됩니다.
+		</?>
+		<? b>
+		    출력되지 않습니다.
+		</?>
+	</body>
+</html>

@@ -19,13 +19,15 @@ Node Server Pages는 Node.js를 기반으로 동적 웹페이지를 생성하기
 {
 	"port": 8080,
 	"isDevMode": true,
-	"rootPath": "./"
+	"rootPath": "./",
+	"uploadURI": ["examples/upload_result.nsp"]
 }
 ```
 
 - `port` 웹 서버의 포트입니다.
 - `idDevMode` `true`로 지정하면 개발 모드가 활성화됩니다. 개발 모드에서는 이미지 등의 리소스를 캐싱하지 않습니다.
 - `rootPath` `.nsp` 파일 혹은 리소스 등이 저장된 경로를 지정합니다.
+- `uploadURI` 업로드 처리를 할 `URI`를 입력합니다.
 
 ## 실행
 ```
@@ -44,6 +46,52 @@ node NSP.js
 		<p>{{msg}}</p>
 	</body>
 </html>
+```
+
+## 문법
+### `<%`, `>%`
+서버 측 JavaScript 코드를 삽입할 수 있습니다.
+
+### `{{`, `}}`
+`{{value}}`와 같은 형식으로 페이지에 출력할 변수를 지정할 수 있습니다. 이는 `<% print(value); %>`와 동일한 역할을 수행합니다.
+
+### `<? value>`, `</?>`
+`value`에 들어갈 변수가 `true`일 때만 내용을 해석합니다.
+```nsp
+<%
+    var a = true, b = false;
+%>
+<? a>
+    출력됩니다.
+</?>
+<? b>
+    출력되지 않습니다.
+</?>
+```
+
+### `<~ array -> value>`, `</~>`
+배열의 값들을 각각 불러와 반복합니다.
+```nsp
+<%
+    var arr = [1, 2];
+%>
+<~ arr -> v>
+    {{v}}
+</~>
+```
+
+### `<~ data -> value>`, `<~ data -> name: value>`, `</~>`
+객체의 멤버들을 각각 불러와 반복합니다.
+```nsp
+<%
+    var data = {
+        a : 1,
+        b : 2
+    };
+%>
+<~ data -> n: v>
+    {{n}} : {{v}}
+</~>
 ```
 
 ## 내장 함수
@@ -169,6 +217,25 @@ start
 end
 ```
 
+### upload
+`config.json`에서 `uploadURI`로 지정한 `URI`로 접속했을 때 업로드 파일 처리를 수행하는 함수입니다.
+```nsp
+<%
+    var paramsList;
+    
+    // 업로드 파일이 upload_temp_files 폴더에 저장됩니다.
+	upload('upload_temp_files', function(_paramsList) {
+		paramsList = _paramsList;
+		resume();
+	});
+	
+	pause();
+%>
+<~ paramsList -> params>
+	<p>{{params}}</p>
+</~>
+```
+
 ## escape
 `<%`나 `{{` 앞에 역슬래시(\\)를 붙히면 해당 구문은 해석하지 않습니다. 또한 `<%` 나 `{{` 앞에 역슬래시를 두개(\\\\) 붙히면 하나의 역슬래시로 판단하고, 코드 구문을 해석합니다.
 ```nsp
@@ -283,8 +350,6 @@ loadtest -n 100000 -c 100 <url>
 - Intel Core i7-4500U CPU 1.8GHz
 - 8GB Ram
 - Windows 10
-
-단순 비교 결과 NSP가 약간 더 빠른 것을 알 수 있습니다.
 
 #### NSP 결과
 ```

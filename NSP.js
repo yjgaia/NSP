@@ -31,7 +31,14 @@ __resumeFuncStr = function resume() {
 			
 			// Node.js용 코드 시작
 			if (__ch === '%' && __source[__i - 1] === '<') {
-				if (__startCodeIndex === -1 && __startPstrIndex === -1) {
+				
+				if (
+				__isIgnored !== true &&
+				__startCodeIndex === -1 &&
+				__startPstrIndex === -1 &&
+				__startCondIndex === -1 &&
+				__startEachIndex === -1) {
+				
 					if (__i > 2 && __source[__i - 3] === '\\' && __source[__i - 2] === '\\') {
 						print(__source.substring(__lastIndex, __i - 2));
 						__startCodeIndex = __i + 1;
@@ -49,7 +56,13 @@ __resumeFuncStr = function resume() {
 			
 			// Node.js용 코드 끝
 			else if (__ch === '>' && __source[__i - 1] === '%') {
-				if (__startCodeIndex !== -1 && __startPstrIndex === -1) {
+				
+				if (
+				__isIgnored !== true &&
+				__startCodeIndex !== -1 &&
+				__startPstrIndex === -1 &&
+				__startCondIndex === -1 &&
+				__startEachIndex === -1) {
 					
 					try {
 						eval(__source.substring(__lastIndex, __i - 1));
@@ -69,7 +82,14 @@ __resumeFuncStr = function resume() {
 			
 			// 출력 코드 시작
 			else if (__ch === '{' && __source[__i - 1] === '{') {
-				if (__startCodeIndex === -1 && __startPstrIndex === -1) {
+				
+				if (
+				__isIgnored !== true &&
+				__startCodeIndex === -1 &&
+				__startPstrIndex === -1 &&
+				__startCondIndex === -1 &&
+				__startEachIndex === -1) {
+					
 					if (__i > 2 && __source[__i - 3] === '\\' && __source[__i - 2] === '\\') {
 						print(__source.substring(__lastIndex, __i - 2));
 						__startPstrIndex = __i + 1;
@@ -87,7 +107,13 @@ __resumeFuncStr = function resume() {
 			
 			// 출력 코드 끝
 			else if (__ch === '}' && __source[__i - 1] === '}') {
-				if (__startCodeIndex === -1 && __startPstrIndex !== -1) {
+				
+				if (
+				__isIgnored !== true &&
+				__startCodeIndex === -1 &&
+				__startPstrIndex !== -1 &&
+				__startCondIndex === -1 &&
+				__startEachIndex === -1) {
 					
 					try {
 						print(eval(__source.substring(__lastIndex, __i - 1)));
@@ -101,6 +127,302 @@ __resumeFuncStr = function resume() {
 					
 					if (__isPaused === true) {
 						return;
+					}
+				}
+			}
+			
+			// 조건 코드 시작
+			else if (__ch === '?' && __source[__i - 1] === '<') {
+				
+				if (
+				__isIgnored !== true &&
+				__startCodeIndex === -1 &&
+				__startPstrIndex === -1 &&
+				__startCondIndex === -1 &&
+				__startEachIndex === -1) {
+					
+					if (__i > 2 && __source[__i - 3] === '\\' && __source[__i - 2] === '\\') {
+						print(__source.substring(__lastIndex, __i - 2));
+						__startCondIndex = __i + 1;
+					} else if (__i > 1 && __source[__i - 2] === '\\') {
+						// Node.js용 코드 아님, 무시
+						print(__source.substring(__lastIndex, __i - 2));
+						print(__source.substring(__i - 1, __i + 1));
+					} else {
+						print(__source.substring(__lastIndex, __i - 1));
+						__startCondIndex = __i + 1;
+					}
+					__lastIndex = __i + 1;
+				}
+			}
+			
+			// 조건 코드 끝
+			else if (__i > 3 && __ch === '>' && __source[__i - 1] === '?' && __source[__i - 2] === '/' && __source[__i - 3] === '<') {
+				
+				if (
+				__startCodeIndex === -1 &&
+				__startPstrIndex === -1 &&
+				__startCondIndex === -1 &&
+				__startEachIndex === -1) {
+					
+					if (__i > 5 && __source[__i - 5] === '\\' && __source[__i - 4] === '\\') {
+						if (__isIgnored !== true) {
+							print(__source.substring(__lastIndex, __i - 4));
+						}
+						__isIgnoreStack.pop();
+						__isIgnored = __isIgnoreStack[__isIgnoreStack.length - 1];
+					} else if (__i > 3 && __source[__i - 4] === '\\') {
+						// Node.js용 코드 아님, 무시
+						print(__source.substring(__lastIndex, __i - 4));
+						print(__source.substring(__i - 3, __i + 1));
+					} else {
+						if (__isIgnored !== true) {
+							print(__source.substring(__lastIndex, __i - 3));
+						}
+						__isIgnoreStack.pop();
+						__isIgnored = __isIgnoreStack[__isIgnoreStack.length - 1];
+					}
+					__lastIndex = __i + 1;
+				}
+			}
+			
+			// 반복 코드 시작
+			else if (__ch === '~' && __source[__i - 1] === '<') {
+				
+				if (
+				__isIgnored !== true &&
+				__startCodeIndex === -1 &&
+				__startPstrIndex === -1 &&
+				__startCondIndex === -1 &&
+				__startEachIndex === -1) {
+					
+					if (__i > 2 && __source[__i - 3] === '\\' && __source[__i - 2] === '\\') {
+						print(__source.substring(__lastIndex, __i - 2));
+						__startEachIndex = __i + 1;
+					} else if (__i > 1 && __source[__i - 2] === '\\') {
+						// Node.js용 코드 아님, 무시
+						print(__source.substring(__lastIndex, __i - 2));
+						print(__source.substring(__i - 1, __i + 1));
+					} else {
+						print(__source.substring(__lastIndex, __i - 1));
+						__startEachIndex = __i + 1;
+					}
+					__lastIndex = __i + 1;
+				}
+			}
+			
+			// 반복 코드 끝
+			else if (__i > 3 && __ch === '>' && __source[__i - 1] === '~' && __source[__i - 2] === '/' && __source[__i - 3] === '<') {
+				
+				if (
+				__isIgnored !== true &&
+				__startCodeIndex === -1 &&
+				__startPstrIndex === -1 &&
+				__startCondIndex === -1 &&
+				__startEachIndex === -1) {
+					
+					if (__i > 5 && __source[__i - 5] === '\\' && __source[__i - 4] === '\\') {
+						
+						print(__source.substring(__lastIndex, __i - 4));
+						
+						if (__repeatInfo !== undefined) {
+							
+							__repeatTarget = __repeatInfo.target;
+							__repeatTargetName = __repeatInfo.targetName;
+							__repeatTargetFirstKey = __repeatInfo.key;
+							__repeatItemName = __repeatInfo.name;
+							__repeatItemValue = __repeatInfo.value;
+							
+							// find next key
+							__repeatTargetBeforeKey = undefined;
+							for (__repeatTargetNowKey in __repeatTarget) {
+								if (__repeatTarget.hasOwnProperty(__repeatTargetNowKey) === true) {
+									if (__repeatTargetBeforeKey === __repeatTargetFirstKey) {
+										__repeatInfo.key = __repeatTargetNowKey;
+										break;
+									}
+									__repeatTargetBeforeKey = __repeatTargetNowKey;
+								}
+							}
+							
+							if (__repeatTargetNowKey !== __repeatTargetFirstKey) {
+								
+								__i = __repeatInfo.startIndex - 1;
+								
+								if (__repeatItemName === undefined) {
+									eval('var ' + __repeatItemValue + ' = ' + __repeatTargetName + '[\'' + __repeatTargetNowKey + '\'];');
+								} else {
+									eval(
+										'var ' + __repeatItemName + ' = \'' + __repeatTargetNowKey + '\';' +
+										'var ' + __repeatItemValue + ' = ' + __repeatTargetName + '[\'' + __repeatTargetNowKey + '\'];'
+									);
+								}
+							}
+							
+							else {
+								__isRepeatStack.pop();
+								__repeatInfo = __isRepeatStack[__isRepeatStack.length - 1];
+							}
+						}
+					}
+					
+					else if (__i > 3 && __source[__i - 4] === '\\') {
+						// Node.js용 코드 아님, 무시
+						print(__source.substring(__lastIndex, __i - 4));
+						print(__source.substring(__i - 3, __i + 1));
+					}
+					
+					else {
+						
+						print(__source.substring(__lastIndex, __i - 3));
+						
+						if (__repeatInfo !== undefined) {
+							
+							__repeatTarget = __repeatInfo.target;
+							__repeatTargetName = __repeatInfo.targetName;
+							__repeatTargetFirstKey = __repeatInfo.key;
+							__repeatItemName = __repeatInfo.name;
+							__repeatItemValue = __repeatInfo.value;
+							
+							// find next key
+							__repeatTargetBeforeKey = undefined;
+							for (__repeatTargetNowKey in __repeatTarget) {
+								if (__repeatTarget.hasOwnProperty(__repeatTargetNowKey) === true) {
+									if (__repeatTargetBeforeKey === __repeatTargetFirstKey) {
+										__repeatInfo.key = __repeatTargetNowKey;
+										break;
+									}
+									__repeatTargetBeforeKey = __repeatTargetNowKey;
+								}
+							}
+							
+							if (__repeatTargetNowKey !== __repeatTargetFirstKey) {
+								
+								__i = __repeatInfo.startIndex - 1;
+								
+								if (__repeatItemName === undefined) {
+									eval('var ' + __repeatItemValue + ' = ' + __repeatTargetName + '[\'' + __repeatTargetNowKey + '\'];');
+								} else {
+									eval(
+										'var ' + __repeatItemName + ' = \'' + __repeatTargetNowKey + '\';' +
+										'var ' + __repeatItemValue + ' = ' + __repeatTargetName + '[\'' + __repeatTargetNowKey + '\'];'
+									);
+								}
+							}
+							
+							else {
+								__isRepeatStack.pop();
+								__repeatInfo = __isRepeatStack[__isRepeatStack.length - 1];
+							}
+						}
+					}
+					
+					__lastIndex = __i + 1;
+				}
+			}
+			
+			// 조건 코드나 반복 코드 시작의 끝
+			else if (__ch === '>') {
+				
+				if (
+				__isIgnored !== true &&
+				__startCodeIndex === -1 &&
+				__startPstrIndex === -1) {
+					
+					if (
+					__startCondIndex !== -1 &&
+					__startEachIndex === -1) {
+						
+						try {
+							if (eval(__source.substring(__lastIndex, __i)) === false) {
+								__isIgnored = true;
+								__isIgnoreStack.push(true);
+							} else {
+								__isIgnoreStack.push(false);
+							}
+						} catch (e) {
+							__responseError(__sourcePath, e, __response);
+							return;
+						}
+						
+						__startEachIndex = -1;
+						__lastIndex = __i + 1;
+						
+						if (__isPaused === true) {
+							return;
+						}
+					}
+					
+					else if (
+					__startCondIndex === -1 &&
+					__startEachIndex !== -1 &&
+					__source[__i - 1] !== '-') {
+						
+						try {
+							__repeatSplits = __source.substring(__lastIndex, __i).split('->');
+							__repeatTargetName = __repeatSplits[0];
+							__repeatTarget = eval(__repeatTargetName);
+							__repeatItemStr = __repeatSplits[1];
+							
+							// name이 없을 때
+							if (__repeatItemStr.indexOf(':') === -1) {
+								
+								// find first key
+								for (__repeatTargetFirstKey in __repeatTarget) {
+									if (__repeatTarget.hasOwnProperty(__repeatTargetFirstKey) === true) {
+										break;
+									}
+								}
+								
+								__isRepeatStack.push(__repeatInfo = {
+									target : __repeatTarget,
+									targetName : __repeatTargetName,
+									key : __repeatTargetFirstKey,
+									value : __repeatItemStr,
+									startIndex : __i + 1
+								});
+								
+								eval('var ' + __repeatItemStr + ' = ' + __repeatTargetName + '[\'' + __repeatTargetFirstKey + '\'];');
+							}
+							
+							// name이 있을 때
+							else {
+								__repeatItemSplits = __repeatItemStr.split(':');
+								__repeatItemName = __repeatItemSplits[0];
+								__repeatItemValue = __repeatItemSplits[1];
+								
+								// find first key
+								for (__repeatTargetFirstKey in __repeatTarget) {
+									if (__repeatTarget.hasOwnProperty(__repeatTargetFirstKey) === true) {
+										break;
+									}
+								}
+								
+								__isRepeatStack.push(__repeatInfo = {
+									target : __repeatTarget,
+									targetName : __repeatTargetName,
+									key : __repeatTargetFirstKey,
+									name : __repeatItemName,
+									value : __repeatItemValue,
+									startIndex : __i + 1
+								});
+								
+								eval(
+									'var ' + __repeatItemName + ' = \'' + __repeatTargetFirstKey + '\';' +
+									'var ' + __repeatItemValue + ' = ' + __repeatTargetName + '[\'' + __repeatTargetFirstKey + '\'];'
+								);
+							}
+						} catch (e) {
+							__responseError(__sourcePath, e, __response);
+							return;
+						}
+						
+						__startEachIndex = -1;
+						__lastIndex = __i + 1;
+						
+						if (__isPaused === true) {
+							return;
+						}
 					}
 				}
 			}
@@ -166,8 +488,31 @@ function __parse(__requestInfo, __sourcePath, __source, __response, self) {
 	// start pstr index
 	__startPstrIndex = -1,
 	
+	// start conditional index
+	__startCondIndex = -1,
+	
+	// start each index
+	__startEachIndex = -1,
+	
 	// is paused
 	__isPaused,
+	
+	// is ignored
+	__isIgnored,
+	
+	// is ignore stack
+	__isIgnoreStack = [],
+	
+	// is repeat stack
+	__isRepeatStack = [],
+	
+	// repeat info
+	__repeatInfo,
+	
+	// for repeat
+	__repeatSplits,
+	__repeatTarget, __repeatTargetName, __repeatTargetNowKey, __repeatTargetBeforeKey, __repeatTargetFirstKey,
+	__repeatItemStr, __repeatItemSplits, __repeatItemName, __repeatItemValue,
 	
 	// ohters
 	__i, __ch;
