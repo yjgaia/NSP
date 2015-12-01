@@ -67,7 +67,7 @@ __resumeFuncStr = function resume() {
 					try {
 						eval(__source.substring(__lastIndex, __i - 1));
 					} catch (e) {
-						__responseError(__sourcePath, e, __response);
+						__responseError(__sourcePath, e, __source.substring(__lastIndex, __i - 1), __line, __column, __response);
 						return;
 					}
 					
@@ -118,7 +118,7 @@ __resumeFuncStr = function resume() {
 					try {
 						print(eval(__source.substring(__lastIndex, __i - 1)));
 					} catch (e) {
-						__responseError(__sourcePath, e, __response);
+						__responseError(__sourcePath, e, __source.substring(__lastIndex, __i - 1), __line, __column - 1, __response);
 						return;
 					}
 					
@@ -248,6 +248,8 @@ __resumeFuncStr = function resume() {
 							if (__repeatTargetNowKey !== __repeatTargetFirstKey) {
 								
 								__i = __repeatInfo.startIndex - 1;
+								__line = __repeatInfo.line;
+								__column = __repeatInfo.column;
 								
 								if (__repeatItemName === undefined) {
 									eval('var ' + __repeatItemValue + ' = ' + __repeatTargetName + '[\'' + __repeatTargetNowKey + '\'];');
@@ -299,6 +301,8 @@ __resumeFuncStr = function resume() {
 							if (__repeatTargetNowKey !== __repeatTargetFirstKey) {
 								
 								__i = __repeatInfo.startIndex - 1;
+								__line = __repeatInfo.line;
+								__column = __repeatInfo.column;
 								
 								if (__repeatItemName === undefined) {
 									eval('var ' + __repeatItemValue + ' = ' + __repeatTargetName + '[\'' + __repeatTargetNowKey + '\'];');
@@ -325,7 +329,6 @@ __resumeFuncStr = function resume() {
 			else if (__ch === '>') {
 				
 				if (
-				__isIgnored !== true &&
 				__startCodeIndex === -1 &&
 				__startPstrIndex === -1) {
 					
@@ -341,11 +344,11 @@ __resumeFuncStr = function resume() {
 								__isIgnoreStack.push(false);
 							}
 						} catch (e) {
-							__responseError(__sourcePath, e, __response);
+							__responseError(__sourcePath, e, __source.substring(__lastIndex, __i), __line, __column, __response);
 							return;
 						}
 						
-						__startEachIndex = -1;
+						__startCondIndex = -1;
 						__lastIndex = __i + 1;
 						
 						if (__isPaused === true) {
@@ -354,6 +357,7 @@ __resumeFuncStr = function resume() {
 					}
 					
 					else if (
+					__isIgnored !== true &&
 					__startCondIndex === -1 &&
 					__startEachIndex !== -1 &&
 					__source[__i - 1] !== '-') {
@@ -379,7 +383,9 @@ __resumeFuncStr = function resume() {
 									targetName : __repeatTargetName,
 									key : __repeatTargetFirstKey,
 									value : __repeatItemStr,
-									startIndex : __i + 1
+									startIndex : __i + 1,
+									line : __line,
+									column : __column
 								});
 								
 								eval('var ' + __repeatItemStr + ' = ' + __repeatTargetName + '[\'' + __repeatTargetFirstKey + '\'];');
@@ -404,7 +410,9 @@ __resumeFuncStr = function resume() {
 									key : __repeatTargetFirstKey,
 									name : __repeatItemName,
 									value : __repeatItemValue,
-									startIndex : __i + 1
+									startIndex : __i + 1,
+									line : __line,
+									column : __column
 								});
 								
 								eval(
@@ -413,7 +421,7 @@ __resumeFuncStr = function resume() {
 								);
 							}
 						} catch (e) {
-							__responseError(__sourcePath, e, __response);
+							__responseError(__sourcePath, e, __source.substring(__lastIndex, __i), __line, __column, __response);
 							return;
 						}
 						
@@ -426,6 +434,13 @@ __resumeFuncStr = function resume() {
 					}
 				}
 			}
+		}
+		
+		if (__ch === '\n') {
+			__line += 1;
+			__column = 1;
+		} else {
+			__column += 1;
 		}
 	}
 	
@@ -442,11 +457,30 @@ __resumeFuncStr = function resume() {
 	
 }.toString();
 
-function __responseError(path, e, response) {
+function __responseError(path, e, code, line, column, response) {
 	
 	var
-	// first error line
-	firstErrorLine = e.stack.split('\n')[1];
+	// code splits
+	codeSplits,
+	
+	// code line
+	codeLine = 0,
+	
+	// code column
+	codeColumn = 0;
+	
+	if (code !== undefined) {
+		codeSplits = code.split('\n');
+		codeLine = codeSplits.length - 1;
+		codeColumn = codeSplits[0].length;
+	}
+	
+	if (line === -1) {
+		line = codeLine + 1;
+	}
+	if (column === -1) {
+		column = codeColumn + 1;
+	}
 	
 	response({
 		statusCode : 500,
@@ -454,7 +488,9 @@ function __responseError(path, e, response) {
 '<!doctype html><html><head><meta charset="UTF-8"></head><body>' +
 '<p>오류가 발생했습니다.</p>' +
 '<b>경로: </b>' + path + '<br>' +
-'<b>내용: </b>' + e +
+'<b>내용: </b>' + e + '<br>' +
+'<b>위치: </b>' + (line - codeLine) + ':' + (column - codeColumn) +
+(code === undefined ? '' : '<br><b>코드: </b>' + code) +
 '</body></html>',
 		contentType : 'text/html'
 	});
@@ -515,7 +551,7 @@ function __parse(__requestInfo, __sourcePath, __source, __response, self) {
 	__repeatItemStr, __repeatItemSplits, __repeatItemName, __repeatItemValue,
 	
 	// ohters
-	__i, __ch;
+	__i, __ch, __line = 1, __column = 1;
 	
 	function print(content) {
 		if (typeof content === 'string') {
@@ -529,39 +565,49 @@ function __parse(__requestInfo, __sourcePath, __source, __response, self) {
 		
 		var
 		// fullPath
-		__fullPath = __path.dirname(__sourcePath) + '/' + __uri;
+		__fullPath = __path.dirname(__sourcePath) + '/' + __uri,
+		
+		// saved last index
+		savedLastIndex = __lastIndex;
 		
 		pause();
 		
-		READ_FILE(__fullPath, function(__buffer) {
+		READ_FILE(__fullPath, {
 			
-			var
-			// ext
-			ext = __path.extname(__uri).toLowerCase();
+			notExists : function() {
+				__responseError(__fullPath, 'File not exists.', __source.substring(savedLastIndex, __i - 1), __line, __column - 1, __response);
+			},
 			
-			if (ext === '.nsp') {
-				__parse(__requestInfo, __path.dirname(__fullPath), __buffer.toString(), function(res) {
-					print(res.content);
+			success : function(__buffer) {
+				
+				var
+				// ext
+				ext = __path.extname(__uri).toLowerCase();
+				
+				if (ext === '.nsp') {
+					__parse(__requestInfo, __fullPath, __buffer.toString(), function(res) {
+						print(res.content);
+						if (__callback !== undefined) {
+							__callback();
+						}
+						resume();
+					}, self);
+				}
+				
+				else if (ext === '.js') {
+					
+					try {
+						eval(__buffer.toString());
+					} catch (e) {
+						__responseError(__fullPath, e, __buffer.toString(), -1, -1, __response);
+						return;
+					}
+					
 					if (__callback !== undefined) {
 						__callback();
 					}
 					resume();
-				}, self);
-			}
-			
-			else if (ext === '.js') {
-				
-				try {
-					eval(__buffer.toString());
-				} catch (e) {
-					__responseError(__fullPath, e, __response);
-					return;
 				}
-				
-				if (__callback !== undefined) {
-					__callback();
-				}
-				resume();
 			}
 		});
 	}
@@ -682,7 +728,7 @@ CPU_CLUSTERING(function() {
 								__responseNotFound(path, response);
 							},
 							error : function(e) {
-								__responseError(path, e, response);
+								__responseError(path, e, undefined, 0, 0, response);
 							},
 							success : function(buffer) {
 								

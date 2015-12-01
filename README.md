@@ -4,11 +4,11 @@ Node Server Pages is a server-side script to create dynamic web pages based on N
 ***Node Server Pages is NOT a template engine!***
 
 ## Features
-- You can instantly start developing server programming with basic knowledge of JavaScript language.
+- You can instantly start developing server programming with basic knowledge of JavaScript.
 - You can use all the [APIs of Node.js](https://nodejs.org/api/).
 - You can use hundreds of [npm modules](https://www.npmjs.com/) out-of-box.
 - You can use [COMMON](https://github.com/Hanul/UPPERCASE.JS/blob/master/DOC/UPPERCASE.JS-COMMON.md) and [NODE](https://github.com/Hanul/UPPERCASE.JS/blob/master/DOC/UPPERCASE.JS-NODE.md) of [UPPERCASE.JS](https://github.com/Hanul/UPPERCASE.JS).
-- Pages change instantly once you modify `.nsp` codes.
+- Pages change instantly once you modify `.nsp` pages.
 - Built-in support for multi-core CPUs.
 
 ## Install
@@ -322,87 +322,6 @@ Install [php.js](https://github.com/kvz/phpjs) and use it together with NSP.
 		%>
 	</body>
 </html>
-```
-
-### Benchmark
-Benchmarekd for two simple pages below.
-```
-loadtest -n 100000 -c 100 <url>
-```
-
-`hello.nsp`
-```nsp
-<!DOCTYPE html>
-<html>
-	<body>
-		<h1>My first NSP page</h1>
-		<%
-			var msg = 'Hello World!';
-		%>
-		<p>{{msg}}</p>
-	</body>
-</html>
-```
-
-`hello.php`
-```php
-<!DOCTYPE html>
-<html>
-	<body>
-		<h1>My first PHP page</h1>
-		<?
-			$msg = 'Hello World!';
-		?>
-		<p><?=$msg ?></p>
-	</body>
-</html>
-```
-
-#### System Spec
-- Intel Core i7-4500U CPU 1.8GHz
-- 8GB Ram
-- Windows 10
-
-#### NSP Result
-```
-Target URL:          http://127.0.0.1:8123/examples/hello.nsp
-Max requests:        100000
-Concurrency level:   100
-Agent:               none
-
-Completed requests:  100000
-Total errors:        0
-Total time:          112.43470760199999 s
-Requests per second: 889
-Total time:          112.43470760199999 s
-
-Percentage of the requests served within a certain time
-  50%      109 ms
-  90%      126 ms
-  95%      136 ms
-  99%      166 ms
- 100%      398 ms (longest request)
-```
-
-#### PHP Result
-```
-Target URL:          http://127.0.0.1/hello.php
-Max requests:        100000
-Concurrency level:   100
-Agent:               none
-
-Completed requests:  100000
-Total errors:        0
-Total time:          118.630713735 s
-Requests per second: 843
-Total time:          118.630713735 s
-
-Percentage of the requests served within a certain time
-  50%      115 ms
-  90%      130 ms
-  95%      141 ms
-  99%      157 ms
- 100%      301 ms (longest request)
 ```
 
 ## License

@@ -4,11 +4,11 @@ Node Server Pages는 Node.js를 기반으로 동적 웹페이지를 생성하기
 ***Node Server Pages는 템플릿 엔진이 아닙니다!***
 
 ## 특징
-- JavaScript 언어만 알면 서버 프로그래밍에 익숙하지 않아도 즉시 서버 개발이 가능합니다.
+- JavaScript만 알면 서버 프로그래밍에 익숙하지 않아도 즉시 서버 개발이 가능합니다.
 - [Node.js의 API](https://nodejs.org/api/)를 모두 사용할 수 있습니다.
 - 수많은 [npm 모듈들](https://www.npmjs.com/)을 즉시 사용할 수 있습니다.
 - [UPPERCASE.JS](https://github.com/Hanul/UPPERCASE.JS)의 [COMMON](https://github.com/Hanul/UPPERCASE.JS/blob/master/DOC/UPPERCASE.JS-COMMON.md)과 [NODE](https://github.com/Hanul/UPPERCASE.JS/blob/master/DOC/UPPERCASE.JS-NODE.md)를 사용할 수 있습니다.
-- `.nsp` 코드 수정 즉시 반영됩니다.
+- `.nsp` 페이지가 수정 즉시 반영됩니다.
 - 멀티코어 CPU를 지원을 내장하고 있습니다.
 
 ## 설치
@@ -310,87 +310,6 @@ end
 		%>
 	</body>
 </html>
-```
-
-### 벤치마크
-아래와 같이 간단한 두 페이지를 대상으로 벤치마크를 수행해 보았습니다.
-```
-loadtest -n 100000 -c 100 <url>
-```
-
-`hello.nsp`
-```nsp
-<!DOCTYPE html>
-<html>
-	<body>
-		<h1>My first NSP page</h1>
-		<%
-			var msg = 'Hello World!';
-		%>
-		<p>{{msg}}</p>
-	</body>
-</html>
-```
-
-`hello.php`
-```php
-<!DOCTYPE html>
-<html>
-	<body>
-		<h1>My first PHP page</h1>
-		<?
-			$msg = 'Hello World!';
-		?>
-		<p><?=$msg ?></p>
-	</body>
-</html>
-```
-
-#### 시스템 사양
-- Intel Core i7-4500U CPU 1.8GHz
-- 8GB Ram
-- Windows 10
-
-#### NSP 결과
-```
-Target URL:          http://127.0.0.1:8123/examples/hello.nsp
-Max requests:        100000
-Concurrency level:   100
-Agent:               none
-
-Completed requests:  100000
-Total errors:        0
-Total time:          112.43470760199999 s
-Requests per second: 889
-Total time:          112.43470760199999 s
-
-Percentage of the requests served within a certain time
-  50%      109 ms
-  90%      126 ms
-  95%      136 ms
-  99%      166 ms
- 100%      398 ms (longest request)
-```
-
-#### PHP 결과
-```
-Target URL:          http://127.0.0.1/hello.php
-Max requests:        100000
-Concurrency level:   100
-Agent:               none
-
-Completed requests:  100000
-Total errors:        0
-Total time:          118.630713735 s
-Requests per second: 843
-Total time:          118.630713735 s
-
-Percentage of the requests served within a certain time
-  50%      115 ms
-  90%      130 ms
-  95%      141 ms
-  99%      157 ms
- 100%      301 ms (longest request)
 ```
 
 ## 라이센스
