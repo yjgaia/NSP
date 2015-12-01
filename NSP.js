@@ -708,5 +708,5 @@ CPU_CLUSTERING(function() {
 		}
 	});
 
-	console.log('NSP 서버가 실행되었습니다. http://localhost:' + port + '로 접속해보세요.');
+	console.log('NSP server started. - http://localhost:' + port);
 });
