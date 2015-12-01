@@ -18,5 +18,6 @@
 		<~ data -> n: v>
 			<p>{{n}} : {{v}}</p>
 		</~>
+		<a href="/">Home</a>
 	</body>
 </html>

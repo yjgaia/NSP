@@ -7,5 +7,25 @@
 	</head>
 	<body>
 		<h1>Node Server Pages</h1>
+		<div>
+			<h2>Example</h2>
+			<ul>
+				<li><a href="examples/hello.nsp">Hello World!</a></li>
+				<li><a href="examples/json.nsp">JSON</a></li>
+				<li><a href="examples/conditional.nsp">Conditional</a></li>
+				<li><a href="examples/each.nsp">Each</a></li>
+				<li><a href="examples/params.nsp">Parameter</a></li>
+				<li><a href="examples/error.nsp">Error</a></li>
+			</ul>
+		</div>
+		<div>
+			<h2>Built-in Function</h2>
+			<ul>
+				<li><a href="examples/include.nsp">include .nsp</a></li>
+				<li><a href="examples/include_js.nsp">include .js</a></li>
+				<li><a href="examples/callback.nsp">pause/resume</a></li>
+				<li><a href="examples/upload.nsp">upload</a></li>
+			</ul>
+		</div>
 	</body>
 </html>

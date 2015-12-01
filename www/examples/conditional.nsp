@@ -6,10 +6,11 @@
 		    var a = true, b = false;
 		%>
 		<? a>
-		    출력됩니다.
+		    <p>I'm printed.</p>
 		</?>
 		<? b>
-		    출력되지 않습니다.
+		    <p>I'm not printed.</p>
 		</?>
+		<a href="/">Home</a>
 	</body>
 </html>

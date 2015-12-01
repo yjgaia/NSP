@@ -10,3 +10,4 @@ start
 	pause();
 %>
 end
+<a href="/">Home</a>

@@ -14,5 +14,6 @@
 			var msg = 'Hello World!';
 		%>
 		\\{{msg}}
+		<a href="/">Home</a>
 	</body>
 </html>

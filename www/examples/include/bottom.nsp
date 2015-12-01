@@ -1,1 +1,2 @@
 <p>{{self.msg}}</p>
+<a href="/">Home</a>

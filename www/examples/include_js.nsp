@@ -4,5 +4,6 @@
 		콘솔을 확인해보세요.
 		<% include('include/common.js'); %>
 		<script src="include/common.js"></script>
+		<a href="/">Home</a>
 	</body>
 </html>
