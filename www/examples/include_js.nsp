@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 	<body>
-		콘솔을 확인해보세요.
+		Open JavaScript console.
 		<% include('include/common.js'); %>
 		<script src="include/common.js"></script>
 		<a href="/">Home</a>

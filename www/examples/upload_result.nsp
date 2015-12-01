@@ -5,7 +5,7 @@
 		<p><%
 			var paramsList;
 			
-			// 업로드 파일이 upload_temp_files 폴더에 저장됩니다.
+			// Uploaded file is saved in 'upload_temp_files' folder.
 			upload('upload_temp_files', function(_paramsList) {
 				paramsList = _paramsList;
 				resume();

@@ -485,12 +485,10 @@ function __responseError(path, e, code, line, column, response) {
 	response({
 		statusCode : 500,
 		content : 
-'<!doctype html><html><head><meta charset="UTF-8"></head><body>' +
-'<p>오류가 발생했습니다.</p>' +
-'<b>경로: </b>' + path + '<br>' +
-'<b>내용: </b>' + e + '<br>' +
-'<b>위치: </b>' + (line - codeLine) + ':' + (column - codeColumn) +
-(code === undefined ? '' : '<br><b>코드: </b>' + code) +
+'<!doctype html><html><head><meta charset="UTF-8"><title>' + e + '</title></head><body>' +
+'<p><b>' + e + '</b></p>' +
+'<b>path: </b>' + path + ' (' + (line - codeLine) + ':' + (column - codeColumn) + ')' +
+(code === undefined ? '' : '<br><b>code: </b>' + code) +
 '</body></html>',
 		contentType : 'text/html'
 	});
@@ -501,9 +499,9 @@ function __responseNotFound(path, response) {
 	response({
 		statusCode : 404,
 		content : 
-'<!doctype html><html><head><meta charset="UTF-8"></head><body>' +
-'<p>페이지가 존재하지 않습니다.</p>' +
-'<b>경로: </b>' + path +
+'<!doctype html><html><head><meta charset="UTF-8"><title>Page not found.</title></head><body>' +
+'<p><b>Page not found.</b></p>' +
+'<b>path: </b>' + path +
 '</body></html>',
 		contentType : 'text/html'
 	});
@@ -702,50 +700,57 @@ CPU_CLUSTERING(function() {
 		
 			if (__path.extname(uri).toLowerCase() === '.nsp') {
 				
-				GET_FILE_INFO(path, function(fileInfo) {
+				GET_FILE_INFO(path, {
 					
-					var
-					// cached file info
-					cachedFileInfo = cachedFileInfos[path];
+					notExists : function() {
+						__responseNotFound(path, response);
+					},
 					
-					// 캐시된 파일 제공
-					if (cachedFileInfo !== undefined
-						&& (
-							(fileInfo.lastUpdateTime !== undefined && cachedFileInfo.lastUpdateTime.getTime() === fileInfo.lastUpdateTime.getTime())
-							|| (fileInfo.createTime !== undefined && cachedFileInfo.lastUpdateTime.getTime() === fileInfo.createTime.getTime())
-						)
-					) {
+					success : function(fileInfo) {
 						
-						__parse(requestInfo, path, cachedFileInfo.content, response, {
-							params : requestInfo.params
-						});
-					}
-					
-					else {
+						var
+						// cached file info
+						cachedFileInfo = cachedFileInfos[path];
 						
-						READ_FILE(path, {
-							notExists : function() {
-								__responseNotFound(path, response);
-							},
-							error : function(e) {
-								__responseError(path, e, undefined, 0, 0, response);
-							},
-							success : function(buffer) {
-								
-								var
-								// content
-								content = buffer.toString();
-								
-								cachedFileInfos[path] = {
-									content : content,
-									lastUpdateTime : fileInfo.lastUpdateTime === undefined ? fileInfo.createTime : fileInfo.lastUpdateTime
-								};
-								
-								__parse(requestInfo, path, content, response, {
-									params : requestInfo.params
-								});
-							}
-						});
+						// 캐시된 파일 제공
+						if (cachedFileInfo !== undefined
+							&& (
+								(fileInfo.lastUpdateTime !== undefined && cachedFileInfo.lastUpdateTime.getTime() === fileInfo.lastUpdateTime.getTime())
+								|| (fileInfo.createTime !== undefined && cachedFileInfo.lastUpdateTime.getTime() === fileInfo.createTime.getTime())
+							)
+						) {
+							
+							__parse(requestInfo, path, cachedFileInfo.content, response, {
+								params : requestInfo.params
+							});
+						}
+						
+						else {
+							
+							READ_FILE(path, {
+								notExists : function() {
+									__responseNotFound(path, response);
+								},
+								error : function(e) {
+									__responseError(path, e, undefined, 0, 0, response);
+								},
+								success : function(buffer) {
+									
+									var
+									// content
+									content = buffer.toString();
+									
+									cachedFileInfos[path] = {
+										content : content,
+										lastUpdateTime : fileInfo.lastUpdateTime === undefined ? fileInfo.createTime : fileInfo.lastUpdateTime
+									};
+									
+									__parse(requestInfo, path, content, response, {
+										params : requestInfo.params
+									});
+								}
+							});
+						}
 					}
 				});
 		

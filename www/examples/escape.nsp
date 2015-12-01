@@ -4,13 +4,13 @@
 		<h1>My first NSP page</h1>
 		
 		\<%
-			// 이 구문을 해석하지 않음
+			// yes
 			var msg = 'Hello World!';
 		%>
 		\{{msg}}
 		
 		\\<%
-			// 이 구문은 해석됨
+			// no
 			var msg = 'Hello World!';
 		%>
 		\\{{msg}}
