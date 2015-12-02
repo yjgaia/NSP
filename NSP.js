@@ -23,6 +23,57 @@ __sharedStore = SHARED_STORE('__NSP_SHARED_STORE'),
 // resume func str
 __resumeFuncStr = function resume() {
 	
+	function include(__uri, __callback) {
+		
+		var
+		// fullPath
+		__fullPath = __path.dirname(__sourcePath) + '/' + __uri,
+		
+		// saved last index
+		savedLastIndex = __lastIndex;
+		
+		pause();
+		
+		READ_FILE(__fullPath, {
+			
+			notExists : function() {
+				__responseError(__fullPath, 'File not exists.', __source.substring(savedLastIndex, __i - 1), __lastLine, __lastColumn, __response);
+			},
+			
+			success : function(__buffer) {
+				
+				var
+				// ext
+				ext = __path.extname(__uri).toLowerCase();
+				
+				if (ext === '.nsp') {
+					__parse(__requestInfo, __fullPath, __buffer.toString(), function(res) {
+						print(res.content);
+						if (__callback !== undefined) {
+							__callback();
+						}
+						resume();
+					}, self);
+				}
+				
+				else if (ext === '.js') {
+					
+					try {
+						eval(__buffer.toString());
+					} catch (e) {
+						__responseError(__fullPath, e, __buffer.toString(), 1, 1, __response);
+						return;
+					}
+					
+					if (__callback !== undefined) {
+						__callback();
+					}
+					resume();
+				}
+			}
+		});
+	}
+	
 	eval(__resumeFuncStr);
 	
 	__isPaused = false;
@@ -554,57 +605,6 @@ function __parse(__requestInfo, __sourcePath, __source, __response, self) {
 		} else {
 			__html += JSON.stringify(content);
 		}
-	}
-	
-	function include(__uri, __callback) {
-		
-		var
-		// fullPath
-		__fullPath = __path.dirname(__sourcePath) + '/' + __uri,
-		
-		// saved last index
-		savedLastIndex = __lastIndex;
-		
-		pause();
-		
-		READ_FILE(__fullPath, {
-			
-			notExists : function() {
-				__responseError(__fullPath, 'File not exists.', __source.substring(savedLastIndex, __i - 1), __lastLine, __lastColumn, __response);
-			},
-			
-			success : function(__buffer) {
-				
-				var
-				// ext
-				ext = __path.extname(__uri).toLowerCase();
-				
-				if (ext === '.nsp') {
-					__parse(__requestInfo, __fullPath, __buffer.toString(), function(res) {
-						print(res.content);
-						if (__callback !== undefined) {
-							__callback();
-						}
-						resume();
-					}, self);
-				}
-				
-				else if (ext === '.js') {
-					
-					try {
-						eval(__buffer.toString());
-					} catch (e) {
-						__responseError(__fullPath, e, __buffer.toString(), 1, 1, __response);
-						return;
-					}
-					
-					if (__callback !== undefined) {
-						__callback();
-					}
-					resume();
-				}
-			}
-		});
 	}
 	
 	function save(name, value) {
