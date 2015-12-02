@@ -494,14 +494,13 @@ function __responseError(path, e, code, line, column, response) {
 	});
 }
 
-function __responseNotFound(path, response) {
+function __responseNotFound(response) {
 	
 	response({
 		statusCode : 404,
 		content : 
 '<!doctype html><html><head><meta charset="UTF-8"><title>Page not found.</title></head><body>' +
 '<p><b>Page not found.</b></p>' +
-'<b>path: </b>' + path +
 '</body></html>',
 		contentType : 'text/html'
 	});
@@ -680,7 +679,7 @@ CPU_CLUSTERING(function() {
 	}, {
 		
 		notExistsResource : function(resourcePath, requestInfo, response) {
-			__responseNotFound(resourcePath, response);
+			__responseNotFound(response);
 		},
 		
 		requestListener : function(requestInfo, response, onDisconnected) {
@@ -703,7 +702,7 @@ CPU_CLUSTERING(function() {
 				GET_FILE_INFO(path, {
 					
 					notExists : function() {
-						__responseNotFound(path, response);
+						__responseNotFound(response);
 					},
 					
 					success : function(fileInfo) {
@@ -729,7 +728,7 @@ CPU_CLUSTERING(function() {
 							
 							READ_FILE(path, {
 								notExists : function() {
-									__responseNotFound(path, response);
+									__responseNotFound(response);
 								},
 								error : function(e) {
 									__responseError(path, e, undefined, 0, 0, response);
