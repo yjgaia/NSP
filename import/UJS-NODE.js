@@ -1,6 +1,6 @@
 /*
 
-Welcome to UPPERCASE.JS! (http://uppercase.io)
+Welcome to UJS! (http://uppercase.io)
 
 */
 
@@ -65,7 +65,7 @@ global.CPU_CLUSTERING = METHOD(function(m) {
 					});
 
 					cluster.on('exit', function(worker, code, signal) {
-						console.log(CONSOLE_RED('[UPPERCASE.JS-CPU_CLUSTERING] WORKER #' + worker.id + ' died. (' + (signal !== undefined ? signal : code) + '). restarting...'));
+						console.log(CONSOLE_RED('[UJS-CPU_CLUSTERING] WORKER #' + worker.id + ' died. (' + (signal !== undefined ? signal : code) + '). restarting...'));
 						fork();
 					});
 				});
@@ -177,7 +177,7 @@ global.CPU_CLUSTERING = METHOD(function(m) {
 
 					work();
 
-					console.log(CONSOLE_GREEN('[UPPERCASE.JS-CPU_CLUSTERING] RUNNING WORKER... (ID:' + workerId + ')'));
+					console.log(CONSOLE_GREEN('[UJS-CPU_CLUSTERING] RUNNING WORKER... (ID:' + workerId + ')'));
 				});
 			}
 		}
@@ -997,7 +997,7 @@ global.SERVER_CLUSTERING = METHOD(function(m) {
 								delete isConnectings[serverName];
 							});
 
-							console.log('[UPPERCASE.JS-SERVER_CLUSTERING] CONNECTED CLUSTERING SERVER. (SERVER NAME:' + serverName + ')');
+							console.log('[UJS-SERVER_CLUSTERING] CONNECTED CLUSTERING SERVER. (SERVER NAME:' + serverName + ')');
 
 							if (CPU_CLUSTERING.broadcast !== undefined) {
 
@@ -1149,7 +1149,7 @@ global.SERVER_CLUSTERING = METHOD(function(m) {
 				work();
 			}
 
-			console.log(CONSOLE_BLUE('[UPPERCASE.JS-SERVER_CLUSTERING] RUNNING CLUSTERING SERVER... (THIS SERVER NAME:' + thisServerName + ', PORT:' + port + ')'));
+			console.log(CONSOLE_BLUE('[UJS-SERVER_CLUSTERING] RUNNING CLUSTERING SERVER... (THIS SERVER NAME:' + thisServerName + ', PORT:' + port + ')'));
 		}
 	};
 });
@@ -2164,7 +2164,7 @@ global.CONNECT_TO_SOCKET_SERVER = METHOD({
 				if (errorListener !== undefined) {
 					errorListener(errorMsg);
 				} else {
-					console.log(CONSOLE_RED('[UPPERCASE.JS-CONNECT_TO_SOCKET_SERVER] CONNECT TO SOCKET SERVER FAILED: ' + errorMsg));
+					console.log(CONSOLE_RED('[UJS-CONNECT_TO_SOCKET_SERVER] CONNECT TO SOCKET SERVER FAILED: ' + errorMsg));
 				}
 
 			} else {
@@ -2434,7 +2434,7 @@ global.COPY_FILE = METHOD(function() {
 									if (errorHandler !== undefined) {
 										errorHandler(errorMsg);
 									} else {
-										console.log(CONSOLE_RED('[UPPERCASE.JS-COPY_FILE] ERROR:' + errorMsg));
+										console.log(CONSOLE_RED('[UJS-COPY_FILE] ERROR:' + errorMsg));
 									}
 								});
 
@@ -2449,7 +2449,7 @@ global.COPY_FILE = METHOD(function() {
 								if (notExistsHandler !== undefined) {
 									notExistsHandler(from);
 								} else {
-									console.log(CONSOLE_YELLOW('[UPPERCASE.JS-COPY_FILE] NOT EXISTS! <' + from + '>'));
+									console.log(CONSOLE_YELLOW('[UJS-COPY_FILE] NOT EXISTS! <' + from + '>'));
 								}
 							}
 						});
@@ -2478,7 +2478,7 @@ global.COPY_FILE = METHOD(function() {
 									if (notExistsHandler !== undefined) {
 										notExistsHandler(from);
 									} else {
-										console.log(CONSOLE_YELLOW('[UPPERCASE.JS-COPY_FILE] NOT EXISTS! <' + from + '>'));
+										console.log(CONSOLE_YELLOW('[UJS-COPY_FILE] NOT EXISTS! <' + from + '>'));
 									}
 
 									// do not run callback.
@@ -2494,7 +2494,7 @@ global.COPY_FILE = METHOD(function() {
 									if (errorHandler !== undefined) {
 										errorHandler(errorMsg);
 									} else {
-										console.log(CONSOLE_RED('[UPPERCASE.JS-COPY_FILE] ERROR: ' + errorMsg));
+										console.log(CONSOLE_RED('[UJS-COPY_FILE] ERROR: ' + errorMsg));
 									}
 								}
 							}
@@ -2598,7 +2598,7 @@ global.CREATE_FOLDER = METHOD(function() {
 										if (errorHandler !== undefined) {
 											errorHandler(errorMsg);
 										} else {
-											console.log(CONSOLE_RED('[UPPERCASE.JS-CREATE_FOLDER] ERROR: ' + errorMsg));
+											console.log(CONSOLE_RED('[UJS-CREATE_FOLDER] ERROR: ' + errorMsg));
 										}
 
 									} else {
@@ -2666,7 +2666,7 @@ global.CREATE_FOLDER = METHOD(function() {
 							if (errorHandler !== undefined) {
 								errorHandler(errorMsg);
 							} else {
-								console.log(CONSOLE_RED('[UPPERCASE.JS-CREATE_FOLDER] ERROR: ' + errorMsg));
+								console.log(CONSOLE_RED('[UJS-CREATE_FOLDER] ERROR: ' + errorMsg));
 							}
 						}
 					}
@@ -2761,7 +2761,7 @@ global.FIND_FILE_NAMES = METHOD(function() {
 								if (errorHandler !== undefined) {
 									errorHandler(errorMsg);
 								} else {
-									console.log(CONSOLE_RED('[UPPERCASE.JS-FIND_FILE_NAMES] ERROR:' + errorMsg));
+									console.log(CONSOLE_RED('[UJS-FIND_FILE_NAMES] ERROR:' + errorMsg));
 								}
 
 							} else if (callback !== undefined) {
@@ -2784,7 +2784,7 @@ global.FIND_FILE_NAMES = METHOD(function() {
 												if (errorHandler !== undefined) {
 													errorHandler(errorMsg);
 												} else {
-													console.log(CONSOLE_RED('[UPPERCASE.JS-FIND_FILE_NAMES] ERROR:' + errorMsg));
+													console.log(CONSOLE_RED('[UJS-FIND_FILE_NAMES] ERROR:' + errorMsg));
 												}
 
 											} else {
@@ -2815,7 +2815,7 @@ global.FIND_FILE_NAMES = METHOD(function() {
 						if (notExistsHandler !== undefined) {
 							notExistsHandler(path);
 						} else {
-							console.log(CONSOLE_YELLOW('[UPPERCASE.JS-FIND_FOLDER_NAMES] NOT EXISTS! <' + path + '>'));
+							console.log(CONSOLE_YELLOW('[UJS-FIND_FOLDER_NAMES] NOT EXISTS! <' + path + '>'));
 						}
 					}
 				});
@@ -2853,7 +2853,7 @@ global.FIND_FILE_NAMES = METHOD(function() {
 							if (notExistsHandler !== undefined) {
 								notExistsHandler(path);
 							} else {
-								console.log(CONSOLE_YELLOW('[UPPERCASE.JS-FIND_FILE_NAMES] NOT EXISTS! <' + path + '>'));
+								console.log(CONSOLE_YELLOW('[UJS-FIND_FILE_NAMES] NOT EXISTS! <' + path + '>'));
 							}
 
 							// do not run callback.
@@ -2869,7 +2869,7 @@ global.FIND_FILE_NAMES = METHOD(function() {
 							if (errorHandler !== undefined) {
 								errorHandler(errorMsg);
 							} else {
-								console.log(CONSOLE_RED('[UPPERCASE.JS-FIND_FILE_NAMES] ERROR: ' + errorMsg));
+								console.log(CONSOLE_RED('[UJS-FIND_FILE_NAMES] ERROR: ' + errorMsg));
 							}
 						}
 					}
@@ -2966,7 +2966,7 @@ global.FIND_FOLDER_NAMES = METHOD(function() {
 								if (errorHandler !== undefined) {
 									errorHandler(errorMsg);
 								} else {
-									console.log(CONSOLE_RED('[UPPERCASE.JS-FIND_FOLDER_NAMES] ERROR:' + errorMsg));
+									console.log(CONSOLE_RED('[UJS-FIND_FOLDER_NAMES] ERROR:' + errorMsg));
 								}
 
 							} else if (callback !== undefined) {
@@ -2989,7 +2989,7 @@ global.FIND_FOLDER_NAMES = METHOD(function() {
 												if (errorHandler !== undefined) {
 													errorHandler(errorMsg);
 												} else {
-													console.log(CONSOLE_RED('[UPPERCASE.JS-FIND_FOLDER_NAMES] ERROR:' + errorMsg));
+													console.log(CONSOLE_RED('[UJS-FIND_FOLDER_NAMES] ERROR:' + errorMsg));
 												}
 
 											} else {
@@ -3020,7 +3020,7 @@ global.FIND_FOLDER_NAMES = METHOD(function() {
 						if (notExistsHandler !== undefined) {
 							notExistsHandler(path);
 						} else {
-							console.log(CONSOLE_YELLOW('[UPPERCASE.JS-FIND_FOLDER_NAMES] NOT EXISTS! <' + path + '>'));
+							console.log(CONSOLE_YELLOW('[UJS-FIND_FOLDER_NAMES] NOT EXISTS! <' + path + '>'));
 						}
 					}
 				});
@@ -3058,7 +3058,7 @@ global.FIND_FOLDER_NAMES = METHOD(function() {
 							if (notExistsHandler !== undefined) {
 								notExistsHandler(path);
 							} else {
-								console.log(CONSOLE_YELLOW('[UPPERCASE.JS-FIND_FOLDER_NAMES] NOT EXISTS! <' + path + '>'));
+								console.log(CONSOLE_YELLOW('[UJS-FIND_FOLDER_NAMES] NOT EXISTS! <' + path + '>'));
 							}
 
 							// do not run callback.
@@ -3074,7 +3074,7 @@ global.FIND_FOLDER_NAMES = METHOD(function() {
 							if (errorHandler !== undefined) {
 								errorHandler(errorMsg);
 							} else {
-								console.log(CONSOLE_RED('[UPPERCASE.JS-FIND_FOLDER_NAMES] ERROR: ' + errorMsg));
+								console.log(CONSOLE_RED('[UJS-FIND_FOLDER_NAMES] ERROR: ' + errorMsg));
 							}
 						}
 					}
@@ -3165,7 +3165,7 @@ global.GET_FILE_INFO = METHOD(function() {
 								if (errorHandler !== undefined) {
 									errorHandler(errorMsg);
 								} else {
-									console.log(CONSOLE_RED('[UPPERCASE.JS-GET_FILE_INFO] ERROR: ' + errorMsg));
+									console.log(CONSOLE_RED('[UJS-GET_FILE_INFO] ERROR: ' + errorMsg));
 								}
 
 							} else if (stat.isDirectory() === true) {
@@ -3173,7 +3173,7 @@ global.GET_FILE_INFO = METHOD(function() {
 								if (notExistsHandler !== undefined) {
 									notExistsHandler(path);
 								} else {
-									console.log(CONSOLE_YELLOW('[UPPERCASE.JS-GET_FILE_INFO] NOT EXISTS! <' + path + '>'));
+									console.log(CONSOLE_YELLOW('[UJS-GET_FILE_INFO] NOT EXISTS! <' + path + '>'));
 								}
 
 							} else if (callback !== undefined) {
@@ -3190,7 +3190,7 @@ global.GET_FILE_INFO = METHOD(function() {
 						if (notExistsHandler !== undefined) {
 							notExistsHandler(path);
 						} else {
-							console.log(CONSOLE_YELLOW('[UPPERCASE.JS-GET_FILE_INFO] NOT EXISTS! <' + path + '>'));
+							console.log(CONSOLE_YELLOW('[UJS-GET_FILE_INFO] NOT EXISTS! <' + path + '>'));
 						}
 					}
 				});
@@ -3222,7 +3222,7 @@ global.GET_FILE_INFO = METHOD(function() {
 								if (notExistsHandler !== undefined) {
 									notExistsHandler(path);
 								} else {
-									console.log(CONSOLE_YELLOW('[UPPERCASE.JS-GET_FILE_INFO] NOT EXISTS! <' + path + '>'));
+									console.log(CONSOLE_YELLOW('[UJS-GET_FILE_INFO] NOT EXISTS! <' + path + '>'));
 								}
 								
 							} else {
@@ -3247,7 +3247,7 @@ global.GET_FILE_INFO = METHOD(function() {
 							if (notExistsHandler !== undefined) {
 								notExistsHandler(path);
 							} else {
-								console.log(CONSOLE_YELLOW('[UPPERCASE.JS-GET_FILE_INFO] NOT EXISTS! <' + path + '>'));
+								console.log(CONSOLE_YELLOW('[UJS-GET_FILE_INFO] NOT EXISTS! <' + path + '>'));
 							}
 						}
 
@@ -3260,7 +3260,7 @@ global.GET_FILE_INFO = METHOD(function() {
 							if (errorHandler !== undefined) {
 								errorHandler(errorMsg);
 							} else {
-								console.log(CONSOLE_RED('[UPPERCASE.JS-GET_FILE_INFO] ERROR: ' + errorMsg));
+								console.log(CONSOLE_RED('[UJS-GET_FILE_INFO] ERROR: ' + errorMsg));
 							}
 						}
 					}
@@ -3406,7 +3406,7 @@ global.READ_FILE = METHOD(function() {
 								if (errorHandler !== undefined) {
 									errorHandler(errorMsg);
 								} else {
-									console.log(CONSOLE_RED('[UPPERCASE.JS-READ_FILE] ERROR: ' + errorMsg));
+									console.log(CONSOLE_RED('[UJS-READ_FILE] ERROR: ' + errorMsg));
 								}
 
 							} else if (stat.isDirectory() === true) {
@@ -3414,7 +3414,7 @@ global.READ_FILE = METHOD(function() {
 								if (notExistsHandler !== undefined) {
 									notExistsHandler(path);
 								} else {
-									console.log(CONSOLE_YELLOW('[UPPERCASE.JS-READ_FILE] NOT EXISTS! <' + path + '>'));
+									console.log(CONSOLE_YELLOW('[UJS-READ_FILE] NOT EXISTS! <' + path + '>'));
 								}
 
 							} else {
@@ -3432,7 +3432,7 @@ global.READ_FILE = METHOD(function() {
 										if (errorHandler !== undefined) {
 											errorHandler(errorMsg);
 										} else {
-											console.log(CONSOLE_RED('[UPPERCASE.JS-READ_FILE] ERROR: ' + errorMsg));
+											console.log(CONSOLE_RED('[UJS-READ_FILE] ERROR: ' + errorMsg));
 										}
 
 									} else if (callback !== undefined) {
@@ -3447,7 +3447,7 @@ global.READ_FILE = METHOD(function() {
 						if (notExistsHandler !== undefined) {
 							notExistsHandler(path);
 						} else {
-							console.log(CONSOLE_YELLOW('[UPPERCASE.JS-READ_FILE] NOT EXISTS! <' + path + '>'));
+							console.log(CONSOLE_YELLOW('[UJS-READ_FILE] NOT EXISTS! <' + path + '>'));
 						}
 					}
 				});
@@ -3477,7 +3477,7 @@ global.READ_FILE = METHOD(function() {
 								if (notExistsHandler !== undefined) {
 									notExistsHandler(path);
 								} else {
-									console.log(CONSOLE_YELLOW('[UPPERCASE.JS-READ_FILE] NOT EXISTS! <' + path + '>'));
+									console.log(CONSOLE_YELLOW('[UJS-READ_FILE] NOT EXISTS! <' + path + '>'));
 								}
 								
 							} else {
@@ -3496,7 +3496,7 @@ global.READ_FILE = METHOD(function() {
 							if (notExistsHandler !== undefined) {
 								notExistsHandler(path);
 							} else {
-								console.log(CONSOLE_YELLOW('[UPPERCASE.JS-READ_FILE] NOT EXISTS! <' + path + '>'));
+								console.log(CONSOLE_YELLOW('[UJS-READ_FILE] NOT EXISTS! <' + path + '>'));
 							}
 						}
 
@@ -3509,7 +3509,7 @@ global.READ_FILE = METHOD(function() {
 							if (errorHandler !== undefined) {
 								errorHandler(errorMsg);
 							} else {
-								console.log(CONSOLE_RED('[UPPERCASE.JS-READ_FILE] ERROR: ' + errorMsg));
+								console.log(CONSOLE_RED('[UJS-READ_FILE] ERROR: ' + errorMsg));
 							}
 						}
 					}
@@ -3595,7 +3595,7 @@ global.REMOVE_FILE = METHOD(function() {
 								if (errorHandler !== undefined) {
 									errorHandler(errorMsg);
 								} else {
-									console.log(CONSOLE_RED('[UPPERCASE.JS-REMOVE_FILE] ERROR: ' + errorMsg));
+									console.log(CONSOLE_RED('[UJS-REMOVE_FILE] ERROR: ' + errorMsg));
 								}
 
 							} else {
@@ -3611,7 +3611,7 @@ global.REMOVE_FILE = METHOD(function() {
 						if (notExistsHandler !== undefined) {
 							notExistsHandler(path);
 						} else {
-							console.log(CONSOLE_YELLOW('[UPPERCASE.JS-REMOVE_FILE] NOT EXISTS! <' + path + '>'));
+							console.log(CONSOLE_YELLOW('[UJS-REMOVE_FILE] NOT EXISTS! <' + path + '>'));
 						}
 					}
 				});
@@ -3640,7 +3640,7 @@ global.REMOVE_FILE = METHOD(function() {
 							if (notExistsHandler !== undefined) {
 								notExistsHandler(path);
 							} else {
-								console.log(CONSOLE_YELLOW('[UPPERCASE.JS-REMOVE_FILE] NOT EXISTS! <' + path + '>'));
+								console.log(CONSOLE_YELLOW('[UJS-REMOVE_FILE] NOT EXISTS! <' + path + '>'));
 							}
 
 							// do not run callback.
@@ -3656,7 +3656,7 @@ global.REMOVE_FILE = METHOD(function() {
 							if (errorHandler !== undefined) {
 								errorHandler(errorMsg);
 							} else {
-								console.log(CONSOLE_RED('[UPPERCASE.JS-REMOVE_FILE] ERROR: ' + errorMsg));
+								console.log(CONSOLE_RED('[UJS-REMOVE_FILE] ERROR: ' + errorMsg));
 							}
 						}
 					}
@@ -3744,7 +3744,7 @@ global.WRITE_FILE = METHOD(function() {
 							if (errorHandler !== undefined) {
 								errorHandler(errorMsg);
 							} else {
-								console.log(CONSOLE_RED('[UPPERCASE.JS-WRITE_FILE] ERROR:' + errorMsg));
+								console.log(CONSOLE_RED('[UJS-WRITE_FILE] ERROR:' + errorMsg));
 							}
 
 						} else if (callback !== undefined) {
@@ -3775,7 +3775,7 @@ global.WRITE_FILE = METHOD(function() {
 								if (errorHandler !== undefined) {
 									errorHandler(errorMsg);
 								} else {
-									console.log(CONSOLE_RED('[UPPERCASE.JS-WRITE_FILE] ERROR: ' + errorMsg));
+									console.log(CONSOLE_RED('[UJS-WRITE_FILE] ERROR: ' + errorMsg));
 								}
 							}
 						}
@@ -3966,7 +3966,7 @@ global.DOWNLOAD = METHOD(function() {
 				if (errorHandler !== undefined) {
 					errorHandler(errorMsg);
 				} else {
-					console.log(CONSOLE_RED('[UPPERCASE.JS-NODE] DOWNLOAD FAILED: ' + errorMsg), params);
+					console.log(CONSOLE_RED('[UJS-NODE] DOWNLOAD FAILED: ' + errorMsg), params);
 				}
 			});
 		}
@@ -4220,7 +4220,7 @@ global.REQUEST = METHOD(function() {
 				if (errorListener !== undefined) {
 					errorListener(errorMsg);
 				} else {
-					console.log(CONSOLE_RED('[UPPERCASE.JS-NODE] REQUEST FAILED: ' + errorMsg), params);
+					console.log(CONSOLE_RED('[UJS-NODE] REQUEST FAILED: ' + errorMsg), params);
 				}
 			});
 		}
@@ -4506,7 +4506,7 @@ global.RESOURCE_SERVER = CLASS(function(cls) {
 								if (errorHandler !== undefined) {
 									isGoingOn = errorHandler(errorMsg, requestInfo, response);
 								} else {
-									console.log(CONSOLE_RED('[UPPERCASE.JS-RESOURCE_SERVER] ERROR: ' + errorMsg));
+									console.log(CONSOLE_RED('[UJS-RESOURCE_SERVER] ERROR: ' + errorMsg));
 								}
 
 								if (isGoingOn !== false && requestInfo.isResponsed !== true) {
@@ -4593,7 +4593,7 @@ global.RESOURCE_SERVER = CLASS(function(cls) {
 				}]);
 			});
 
-			console.log('[UPPERCASE.JS-RESOURCE_SERVER] RUNNING RESOURCE SERVER...' + (port === undefined ? '' : (' (PORT:' + port + ')')) + (securedPort === undefined ? '' : (' (SECURED PORT:' + securedPort + ')')));
+			console.log('[UJS-RESOURCE_SERVER] RUNNING RESOURCE SERVER...' + (port === undefined ? '' : (' (PORT:' + port + ')')) + (securedPort === undefined ? '' : (' (SECURED PORT:' + securedPort + ')')));
 
 			self.getNativeHTTPServer = getNativeHTTPServer = function() {
 				return webServer.getNativeHTTPServer();
@@ -4673,7 +4673,7 @@ global.SOCKET_SERVER = METHOD({
 				
 				// if catch error
 				catch(error) {
-					console.log(CONSOLE_RED('[UPPERCASE.JS-SOCEKT_SERVER] ERROR:'), error.toString());
+					console.log(CONSOLE_RED('[UJS-SOCEKT_SERVER] ERROR:'), error.toString());
 				}
 			};
 
@@ -4722,7 +4722,7 @@ global.SOCKET_SERVER = METHOD({
 				// error msg
 				errorMsg = error.toString();
 
-				console.log(CONSOLE_RED('[UPPERCASE.JS-SOCEKT_SERVER] ERROR:'), errorMsg);
+				console.log(CONSOLE_RED('[UJS-SOCEKT_SERVER] ERROR:'), errorMsg);
 
 				runMethods('__ERROR', errorMsg);
 			});
@@ -4818,7 +4818,7 @@ global.SOCKET_SERVER = METHOD({
 		// listen.
 		server.listen(port);
 
-		console.log('[UPPERCASE.JS-SOCKET_SERVER] RUNNING SOCKET SERVER... (PORT:' + port + ')');
+		console.log('[UJS-SOCKET_SERVER] RUNNING SOCKET SERVER... (PORT:' + port + ')');
 	}
 });
 
@@ -4889,7 +4889,7 @@ global.UDP_SERVER = METHOD({
 		});
 		
 		server.on('listening', function() {
-			console.log('[UPPERCASE.JS-UDP_SERVER] RUNNING UDP SERVER... (PORT:' + port + ')');
+			console.log('[UJS-UDP_SERVER] RUNNING UDP SERVER... (PORT:' + port + ')');
 		});
 		
 		server.bind(port);
@@ -5193,22 +5193,27 @@ global.WEB_SERVER = CLASS(function(cls) {
 										headers['ETag'] = version;
 									}
 								}
-
-								// when gzip encoding
-								if (acceptEncoding.match(/\bgzip\b/) !== TO_DELETE) {
-
-									headers['Content-Encoding'] = 'gzip';
-
-									zlib.gzip(buffer !== undefined ? buffer : String(content), function(error, buffer) {
+								
+								if (content === undefined) {
+									nativeRes.end();
+								} else {
+									
+									// when gzip encoding
+									if (acceptEncoding.match(/\bgzip\b/) !== TO_DELETE) {
+	
+										headers['Content-Encoding'] = 'gzip';
+	
+										zlib.gzip(buffer !== undefined ? buffer : String(content), function(error, buffer) {
+											nativeRes.writeHead(statusCode, headers);
+											nativeRes.end(buffer, encoding);
+										});
+									}
+	
+									// when not encoding
+									else {
 										nativeRes.writeHead(statusCode, headers);
-										nativeRes.end(buffer, encoding);
-									});
-								}
-
-								// when not encoding
-								else {
-									nativeRes.writeHead(statusCode, headers);
-									nativeRes.end(buffer !== undefined ? buffer : String(content), encoding);
+										nativeRes.end(buffer !== undefined ? buffer : String(content), encoding);
+									}
 								}
 
 								requestInfo.isResponsed = true;
@@ -5249,7 +5254,7 @@ global.WEB_SERVER = CLASS(function(cls) {
 				}, serve).listen(securedPort);
 			}
 
-			console.log('[UPPERCASE.JS-WEB_SERVER] RUNNING WEB SERVER...' + (port === undefined ? '' : (' (PORT:' + port + ')')) + (securedPort === undefined ? '' : (' (SECURED PORT:' + securedPort + ')')));
+			console.log('[UJS-WEB_SERVER] RUNNING WEB SERVER...' + (port === undefined ? '' : (' (PORT:' + port + ')')) + (securedPort === undefined ? '' : (' (SECURED PORT:' + securedPort + ')')));
 
 			self.getNativeHTTPServer = getNativeHTTPServer = function() {
 				return nativeHTTPServer;
@@ -5306,7 +5311,14 @@ global.CREATE_COOKIE_STR_ARRAY = CREATE_COOKIE_STR_ARRAY = METHOD({
 		strs = [];
 
 		EACH(data, function(value, name) {
-			strs.push(name + '=' + encodeURIComponent(value));
+			if (CHECK_IS_DATA(value) === true) {
+				strs.push(name + '=' + encodeURIComponent(value.value)
+					+ (value.expireSeconds === undefined ? '' : '; expires=' + new Date(Date.now() + value.expireSeconds * 1000).toGMTString())
+					+ (value.path === undefined ? '' : '; path=' + value.path)
+					+ (value.domain === undefined ? '' : '; domain=' + value.domain));
+			} else {
+				strs.push(name + '=' + encodeURIComponent(value));
+			}
 		});
 
 		return strs;

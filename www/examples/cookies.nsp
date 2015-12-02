@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+	<body>
+		<h1>Cookies Example</h1>
+		<p>{{cookie('sample-cookie')}}</p>
+		<p><%
+			cookie('sample-cookie', 'this is example.', 1);
+		%></p>
+		<a href="/">Home</a>
+	</body>
+</html>

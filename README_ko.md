@@ -33,6 +33,7 @@ Node Server Pages는 Node.js를 기반으로 동적 웹페이지를 생성하기
 ```
 node NSP.js
 ```
+이제 `http://localhost:8123`이나 `http://localhost:8123/index.nsp` 혹은 `http://localhost:8123/index`로 접속해보세요. `.nsp` 확장자를 생략할 수 있습니다.
 
 ## 코드 예제
 ```nsp
@@ -200,6 +201,16 @@ JSON 객체도 출력할 수 있습니다. 이를 통해 JSON 기반 API를 만�
 </html>
 ```
 
+### save/load
+변수를 저장/불러옵니다. 이렇게 저장/불러온 변수는 NSP 서버 전체에 공유됩니다.
+```nsp
+<%
+	save('sample', 'this is example.');
+	load('sample'); // this is example.
+	save('sample', undefined); // undefined를 넣으면 변수를 삭제합니다.
+%>
+```
+
 ### pause/resume
 데이터베이스 등을 조작하다 `callback` 처리로 들어갈 경우 `pause` 함수로 문서 해석을 잠시 중단할 수 있습니다. `resume` 함수로 문서 해석을 다시 진행할 수 있습니다.
 ```nsp
@@ -216,6 +227,45 @@ start
 %>
 end
 ```
+
+### cookie
+쿠키를 저장하거나 가져올 수 있는 함수입니다.
+```nsp
+<%
+	// 쿠키를 지정합니다.
+	cookie('sample-cookie', 'this is example.');
+	cookie('sample-cookie', 'this is example.', 10); // 10초 후 삭제
+	cookie('sample-cookie', 'this is example.', 10, '/'); // path를 /로 지정
+	cookie('sample-cookie', 'this is example.', 10, '/', 'www.example'); // domain을 www.example로 지정
+	
+	// 쿠키를 가져옵니다.
+	cookie('sample-cookie');
+%>
+```
+
+#### `cookie`를 이용한 세션 예제
+`cookie` 및 `save/load` 함수를 이용해 세션을 구현하는 예제입니다.
+```nsp
+<%
+	var sessionKey = cookie('session-key');
+	
+	print(sessionKey);
+	
+	if (sessionKey === undefined) {
+		sessionKey = RANDOM_STR(20);
+	}
+	
+	cookie('session-key', sessionKey, 3600);
+%>
+<p>{{load(sessionKey)}}</p>
+<%
+	save(sessionKey, {
+		name : 'YJ Sim',
+		age : 28
+	});
+%>
+```
+이를 발전시켜 세션 정보를 파일 혹은 데이터베이스에 저장하는 등의 방법을 사용할 수 있습니다.
 
 ### upload
 `config.json`에서 `uploadURI`로 지정한 `URI`로 접속했을 때 업로드 파일 처리를 수행하는 함수입니다.
@@ -259,8 +309,18 @@ end
 </html>
 ```
 
-## self.params
-`self` 객체에는 `params` 라는 서브 객체가 존재합니다. 이는 HTML `form` 등에서 넘어온 데이터를 담고 있습니다.
+## 내장 변수
+### self.headers
+HTTP 헤더 정보를 갖고 있습니다.
+
+### self.method
+HTTP Method 정보를 갖고 있습니다. `ex) GET, POST`
+
+### self.ip
+요청자의 IP를 문자열 형태로 갖고 있습니다. `ex) 127.0.0.1`
+
+### self.params
+HTML `form` 등에서 넘어온 데이터를 갖고 있습니다.
 
 `params.nsp`
 ```nsp

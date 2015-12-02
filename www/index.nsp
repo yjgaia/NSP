@@ -14,7 +14,12 @@
 				<li><a href="examples/json.nsp">JSON</a></li>
 				<li><a href="examples/conditional.nsp">Conditional</a></li>
 				<li><a href="examples/each.nsp">Each</a></li>
-				<li><a href="examples/params.nsp">Parameter</a></li>
+				<li><a href="examples/params.nsp">Parameters</a></li>
+				<li><a href="examples/headers.nsp">Headers</a></li>
+				<li><a href="examples/method.nsp">Method</a></li>
+				<li><a href="examples/ip.nsp">IP</a></li>
+				<li><a href="examples/cookies.nsp">Cookies</a></li>
+				<li><a href="examples/session.nsp">Session</a></li>
 				<li><a href="examples/error.nsp">Error</a></li>
 			</ul>
 		</div>
@@ -23,6 +28,7 @@
 			<ul>
 				<li><a href="examples/include.nsp">include .nsp</a></li>
 				<li><a href="examples/include_js.nsp">include .js</a></li>
+				<li><a href="examples/saveload.nsp">save/load</a></li>
 				<li><a href="examples/callback.nsp">pause/resume</a></li>
 				<li><a href="examples/upload.nsp">upload</a></li>
 			</ul>

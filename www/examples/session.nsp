@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+	<body>
+		<h1>Session Example</h1>
+		<%
+			var sessionKey = cookie('session-key');
+			
+			print(sessionKey);
+			
+			if (sessionKey === undefined) {
+				sessionKey = RANDOM_STR(20);
+			}
+			
+			cookie('session-key', sessionKey, 3600);
+		%>
+		<p>{{load(sessionKey)}}</p>
+		<%
+			save(sessionKey, {
+				name : 'YJ Sim',
+				age : 28
+			});
+		%>
+		<a href="/">Home</a>
+	</body>
+</html>

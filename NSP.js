@@ -1,6 +1,6 @@
-// import UPPERCASE.JS.
-require('./import/UPPERCASE.JS-COMMON.js');
-require('./import/UPPERCASE.JS-NODE.js');
+// import UJS.
+require('./import/UJS-COMMON.js');
+require('./import/UJS-NODE.js');
 
 // import UPPERCASE-TRANSPORT.
 require('./import/UPPERCASE-TRANSPORT/NODE.js');
@@ -16,6 +16,9 @@ INIT_OBJECTS();
 var
 //IMPORT: path
 __path = require('path'),
+
+// shared store
+__sharedStore = SHARED_STORE('__NSP_SHARED_STORE'),
 
 // resume func str
 __resumeFuncStr = function resume() {
@@ -51,6 +54,8 @@ __resumeFuncStr = function resume() {
 						__startCodeIndex = __i + 1;
 					}
 					__lastIndex = __i + 1;
+					__lastLine = __line;
+					__lastColumn = __column - 1;
 				}
 			}
 			
@@ -67,7 +72,7 @@ __resumeFuncStr = function resume() {
 					try {
 						eval(__source.substring(__lastIndex, __i - 1));
 					} catch (e) {
-						__responseError(__sourcePath, e, __source.substring(__lastIndex, __i - 1), __line, __column, __response);
+						__responseError(__sourcePath, e, __source.substring(__lastIndex, __i - 1), __lastLine, __lastColumn, __response);
 						return;
 					}
 					
@@ -75,6 +80,7 @@ __resumeFuncStr = function resume() {
 					__lastIndex = __i + 1;
 					
 					if (__isPaused === true) {
+						__column += 1;
 						return;
 					}
 				}
@@ -102,6 +108,8 @@ __resumeFuncStr = function resume() {
 						__startPstrIndex = __i + 1;
 					}
 					__lastIndex = __i + 1;
+					__lastLine = __line;
+					__lastColumn = __column - 1;
 				}
 			}
 			
@@ -118,7 +126,7 @@ __resumeFuncStr = function resume() {
 					try {
 						print(eval(__source.substring(__lastIndex, __i - 1)));
 					} catch (e) {
-						__responseError(__sourcePath, e, __source.substring(__lastIndex, __i - 1), __line, __column - 1, __response);
+						__responseError(__sourcePath, e, __source.substring(__lastIndex, __i - 1), __lastLine, __lastColumn, __response);
 						return;
 					}
 					
@@ -126,6 +134,7 @@ __resumeFuncStr = function resume() {
 					__lastIndex = __i + 1;
 					
 					if (__isPaused === true) {
+						__column += 1;
 						return;
 					}
 				}
@@ -153,6 +162,8 @@ __resumeFuncStr = function resume() {
 						__startCondIndex = __i + 1;
 					}
 					__lastIndex = __i + 1;
+					__lastLine = __line;
+					__lastColumn = __column - 1;
 				}
 			}
 			
@@ -208,6 +219,8 @@ __resumeFuncStr = function resume() {
 						__startEachIndex = __i + 1;
 					}
 					__lastIndex = __i + 1;
+					__lastLine = __line;
+					__lastColumn = __column - 1;
 				}
 			}
 			
@@ -344,7 +357,7 @@ __resumeFuncStr = function resume() {
 								__isIgnoreStack.push(false);
 							}
 						} catch (e) {
-							__responseError(__sourcePath, e, __source.substring(__lastIndex, __i), __line, __column, __response);
+							__responseError(__sourcePath, e, __source.substring(__lastIndex, __i), __lastLine, __lastColumn, __response);
 							return;
 						}
 						
@@ -352,6 +365,7 @@ __resumeFuncStr = function resume() {
 						__lastIndex = __i + 1;
 						
 						if (__isPaused === true) {
+							__column += 1;
 							return;
 						}
 					}
@@ -421,7 +435,7 @@ __resumeFuncStr = function resume() {
 								);
 							}
 						} catch (e) {
-							__responseError(__sourcePath, e, __source.substring(__lastIndex, __i), __line, __column, __response);
+							__responseError(__sourcePath, e, __source.substring(__lastIndex, __i), __lastLine, __lastColumn, __response);
 							return;
 						}
 						
@@ -429,6 +443,7 @@ __resumeFuncStr = function resume() {
 						__lastIndex = __i + 1;
 						
 						if (__isPaused === true) {
+							__column += 1;
 							return;
 						}
 					}
@@ -451,6 +466,9 @@ __resumeFuncStr = function resume() {
 	}
 	
 	__response({
+		headers : {
+			'Set-Cookie' : CREATE_COOKIE_STR_ARRAY(__cookieInfo)
+		},
 		content : __html,
 		contentType : 'text/html'
 	});
@@ -459,35 +477,12 @@ __resumeFuncStr = function resume() {
 
 function __responseError(path, e, code, line, column, response) {
 	
-	var
-	// code splits
-	codeSplits,
-	
-	// code line
-	codeLine = 0,
-	
-	// code column
-	codeColumn = 0;
-	
-	if (code !== undefined) {
-		codeSplits = code.split('\n');
-		codeLine = codeSplits.length - 1;
-		codeColumn = codeSplits[0].length;
-	}
-	
-	if (line === -1) {
-		line = codeLine + 1;
-	}
-	if (column === -1) {
-		column = codeColumn + 1;
-	}
-	
 	response({
 		statusCode : 500,
 		content : 
 '<!doctype html><html><head><meta charset="UTF-8"><title>' + e + '</title></head><body>' +
 '<p><b>' + e + '</b></p>' +
-'<b>path: </b>' + path + ' (' + (line - codeLine) + ':' + (column - codeColumn) + ')' +
+'<b>path: </b>' + path + ' (' + line + ':' + column + ')' +
 (code === undefined ? '' : '<br><b>code: </b>' + code) +
 '</body></html>',
 		contentType : 'text/html'
@@ -547,8 +542,11 @@ function __parse(__requestInfo, __sourcePath, __source, __response, self) {
 	__repeatTarget, __repeatTargetName, __repeatTargetNowKey, __repeatTargetBeforeKey, __repeatTargetFirstKey,
 	__repeatItemStr, __repeatItemSplits, __repeatItemName, __repeatItemValue,
 	
+	// cookie info
+	__cookieInfo = __requestInfo.cookies,
+	
 	// ohters
-	__i, __ch, __line = 1, __column = 1;
+	__i, __ch, __line = 1, __column = 1, __lastLine = 1, __lastColumn = 1;
 	
 	function print(content) {
 		if (typeof content === 'string') {
@@ -572,7 +570,7 @@ function __parse(__requestInfo, __sourcePath, __source, __response, self) {
 		READ_FILE(__fullPath, {
 			
 			notExists : function() {
-				__responseError(__fullPath, 'File not exists.', __source.substring(savedLastIndex, __i - 1), __line, __column - 1, __response);
+				__responseError(__fullPath, 'File not exists.', __source.substring(savedLastIndex, __i - 1), __lastLine, __lastColumn, __response);
 			},
 			
 			success : function(__buffer) {
@@ -596,7 +594,7 @@ function __parse(__requestInfo, __sourcePath, __source, __response, self) {
 					try {
 						eval(__buffer.toString());
 					} catch (e) {
-						__responseError(__fullPath, e, __buffer.toString(), -1, -1, __response);
+						__responseError(__fullPath, e, __buffer.toString(), 1, 1, __response);
 						return;
 					}
 					
@@ -607,6 +605,50 @@ function __parse(__requestInfo, __sourcePath, __source, __response, self) {
 				}
 			}
 		});
+	}
+	
+	function save(name, value) {
+		
+		// 변수 삭제
+		if (value === undefined) {
+			__sharedStore.remove(name);
+		}
+		
+		else {
+			__sharedStore.save({
+				name : name,
+				value : value
+			});
+		}
+	}
+	
+	function load(name) {
+		return __sharedStore.get(name);
+	}
+	
+	function cookie(name, value, expireSeconds, path, domain) {
+		
+		if (value === undefined) {
+			value = __cookieInfo[name];
+			
+			if (CHECK_IS_DATA(value) === true) {
+				return value.value;
+			} else {
+				return value;
+			}
+		}
+		
+		else {
+			
+			__cookieInfo[name] = {
+				value : value,
+				expireSeconds : expireSeconds,
+				path : path,
+				domain : domain
+			};
+			
+			return value;
+		}
 	}
 	
 	function upload(uploadPath, callbackOrHandlers) {
@@ -682,22 +724,20 @@ CPU_CLUSTERING(function() {
 			__responseNotFound(response);
 		},
 		
-		requestListener : function(requestInfo, response, onDisconnected) {
-		
+		requestListener : function(requestInfo, response, onDisconnected, next) {
+			
 			var
 			// uri
 			uri = requestInfo.uri,
 			
 			// path
-			path;
+			path,
 			
-			if (uri === '') {
-				uri = 'index.nsp';
-			}
+			// ext
+			ext,
 			
-			path = rootPath + '/' + uri;
-		
-			if (__path.extname(uri).toLowerCase() === '.nsp') {
+			// run.
+			run = function() {
 				
 				GET_FILE_INFO(path, {
 					
@@ -709,7 +749,15 @@ CPU_CLUSTERING(function() {
 						
 						var
 						// cached file info
-						cachedFileInfo = cachedFileInfos[path];
+						cachedFileInfo = cachedFileInfos[path],
+						
+						// self
+						self = {
+							headers : requestInfo.headers,
+							method : requestInfo.method,
+							params : requestInfo.params,
+							ip : requestInfo.ip
+						};
 						
 						// 캐시된 파일 제공
 						if (cachedFileInfo !== undefined
@@ -718,10 +766,7 @@ CPU_CLUSTERING(function() {
 								|| (fileInfo.createTime !== undefined && cachedFileInfo.lastUpdateTime.getTime() === fileInfo.createTime.getTime())
 							)
 						) {
-							
-							__parse(requestInfo, path, cachedFileInfo.content, response, {
-								params : requestInfo.params
-							});
+							__parse(requestInfo, path, cachedFileInfo.content, response, self);
 						}
 						
 						else {
@@ -731,7 +776,7 @@ CPU_CLUSTERING(function() {
 									__responseNotFound(response);
 								},
 								error : function(e) {
-									__responseError(path, e, undefined, 0, 0, response);
+									__responseError(path, e, undefined, 1, 1, response);
 								},
 								success : function(buffer) {
 									
@@ -744,15 +789,38 @@ CPU_CLUSTERING(function() {
 										lastUpdateTime : fileInfo.lastUpdateTime === undefined ? fileInfo.createTime : fileInfo.lastUpdateTime
 									};
 									
-									__parse(requestInfo, path, content, response, {
-										params : requestInfo.params
-									});
+									__parse(requestInfo, path, content, response, self);
 								}
 							});
 						}
 					}
 				});
-		
+			};
+			
+			if (uri === '') {
+				uri = 'index.nsp';
+			}
+			
+			path = rootPath + '/' + uri;
+			
+			ext = __path.extname(uri).toLowerCase();
+			
+			if (ext === '.nsp') {
+				run();
+				return false;
+			}
+			
+			else if (ext === '') {
+				
+				CHECK_IS_EXISTS_FILE(path, function(isExists) {
+					if (isExists === true) {
+						 next();
+					} else {
+						path += '.nsp';
+						run();
+					}
+				});
+				
 				return false;
 			}
 		}

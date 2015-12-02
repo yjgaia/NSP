@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+	<body>
+		<h1>Method Example</h1>
+		<p>{{self.method}}</p>
+		<form action="method.nsp" method="POST">
+			<input type="submit" value="POST">
+		</form>
+		<a href="/">Home</a>
+	</body>
+</html>

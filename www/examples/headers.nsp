@@ -1,0 +1,8 @@
+<!DOCTYPE html>
+<html>
+	<body>
+		<h1>Headers Example</h1>
+		<p>{{self.headers}}</p>
+		<a href="/">Home</a>
+	</body>
+</html>
