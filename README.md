@@ -31,6 +31,7 @@ Node Server Pages is a server-side script to create dynamic web pages based on N
 ```
 node NSP.js
 ```
+Now type `http://localhost:8123`, `http://localhost:8123/index.nsp` or `http://localhost:8123/index` in your browser. It's okay to emit `.nsp`.
 
 ## Examples
 ```nsp
@@ -207,8 +208,19 @@ You can also contain `.js` file to reuse one `.js` file for both server-side and
 </html>
 ```
 
+### save/load
+Saves or loads a variable. Loaded/saved variables are shared everywhere in the NSP server.
+
+```nsp
+<%
+	save('sample', 'this is an example.');
+	load('sample'); // this is an example.
+	save('sample', undefined); // Saving 'undefined' deletes the variable.
+%>
+```
+
 ### pause/resume
-You can pause document processing for a while in `callback`s with `pause` function when you deal with database, etc.
+Document processing is paused for a while in `callback`s with `pause` function when you deal with database, etc.
 
 ```nsp
 start
@@ -224,6 +236,47 @@ start
 %>
 end
 ```
+
+### cookie
+Saves or loads a cookie.
+
+```nsp
+<%
+	// Saves a cookie
+	cookie('sample-cookie', 'this is example.');
+	cookie('sample-cookie', 'this is example.', 10); // Expired in 10 seconds
+	cookie('sample-cookie', 'this is example.', 10, '/'); // Sets path to '/'
+	cookie('sample-cookie', 'this is example.', 10, '/', 'www.example'); // Sets domain to www.example
+	
+	// Loads a cookie
+	cookie('sample-cookie');
+%>
+```
+
+#### Sessions example using `cookie`
+An example to implement sessions using `cookie` and `save/load`.
+
+```nsp
+<%
+	var sessionKey = cookie('session-key');
+	
+	print(sessionKey);
+	
+	if (sessionKey === undefined) {
+		sessionKey = RANDOM_STR(20);
+	}
+	
+	cookie('session-key', sessionKey, 3600);
+%>
+<p>{{load(sessionKey)}}</p>
+<%
+	save(sessionKey, {
+		name : 'YJ Sim',
+		age : 28
+	});
+%>
+```
+The next step could be saving sessions to a file or a database.
 
 ### upload
 Uploads a file to the `URI` that's specified by `uploadURI` in `config.json`.
@@ -245,7 +298,7 @@ Uploads a file to the `URI` that's specified by `uploadURI` in `config.json`.
 </~>
 ```
 
-## escape
+### escape
 A statement with backslash(\\) in front of `<%` or `{{` is NOT interpreted. However, since two backslashes(\\\\) in front of `<%` or `{{` is recognized as a backslash, that statement is interpreted.
 
 ```nsp
@@ -269,8 +322,18 @@ A statement with backslash(\\) in front of `<%` or `{{` is NOT interpreted. Howe
 </html>
 ```
 
-## self.params
-`self` object has a sub object called `params`. This object has data passed from `form`s, etc.
+## Built-in Variables
+### self.headers
+Holds requested HTTP headers.
+
+### self.method
+Holds requested HTTP Method. `ex) GET, POST`
+
+### self.ip
+Holds requested IP address in String form. `ex) 127.0.0.1`
+
+### self.params
+Holds data passed from `form`s, etc.
 
 `params.nsp`
 
@@ -303,7 +366,7 @@ A statement with backslash(\\) in front of `<%` or `{{` is NOT interpreted. Howe
 </html>
 ```
 
-If you typed `Sam` to `fname` and `Ple` to `lname`, `self.params` should be `{"fname":"Sam","lname":"Ple"}`.
+If you passed `Sam` as `fname` and `Ple` as `lname`, `self.params` should be `{"fname":"Sam","lname":"Ple"}`.
 
 ## Etc.
 ### Are you familiar with PHP?
