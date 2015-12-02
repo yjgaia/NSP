@@ -205,8 +205,8 @@ JSON 객체도 출력할 수 있습니다. 이를 통해 JSON 기반 API를 만�
 변수를 저장/불러옵니다. 이렇게 저장/불러온 변수는 NSP 서버 전체에 공유됩니다.
 ```nsp
 <%
-	save('sample', 'this is example.');
-	load('sample'); // this is example.
+	save('sample', 'this is an example.');
+	load('sample'); // this is an example.
 	save('sample', undefined); // undefined를 넣으면 변수를 삭제합니다.
 %>
 ```
@@ -311,10 +311,10 @@ end
 
 ## 내장 변수
 ### self.headers
-HTTP 헤더 정보를 갖고 있습니다.
+요청 HTTP 헤더 정보를 갖고 있습니다.
 
 ### self.method
-HTTP Method 정보를 갖고 있습니다. `ex) GET, POST`
+요청 HTTP Method 정보를 갖고 있습니다. `ex) GET, POST`
 
 ### self.ip
 요청자의 IP를 문자열 형태로 갖고 있습니다. `ex) 127.0.0.1`
