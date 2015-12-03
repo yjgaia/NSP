@@ -19,13 +19,15 @@ Node Server Pages is a server-side script to create dynamic web pages based on N
 	"port": 8080,
 	"isDevMode": true,
 	"rootPath": "./",
-    "uploadURI": ["examples/upload_result.nsp"]
+    "uploadURI": ["examples/upload_result.nsp"],
+    "isNotUsingDCBN" : false
 }
 ```
 - `port` is the port of the web server.
 - `idDevMode` `true` means development mode. In development mode, resources such as images are not cached.
 - `rootPath` specified the root path where `.nsp` files or resources are saved.
 - `uploadURI` points to the `URI` to upload to.
+- `isNotUsingDCBN` if set to `true`, {{, }} (double curly braces notation) is not allowed.
 
 ## Run
 ```
