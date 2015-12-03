@@ -5168,6 +5168,10 @@ global.WEB_SERVER = CLASS(function(cls) {
 									version = contentOrParams.version;
 									isFinal = contentOrParams.isFinal;
 								}
+								
+								if (content === undefined) {
+									content = '';
+								}
 
 								if (statusCode === undefined) {
 									statusCode = 200;
@@ -5194,26 +5198,21 @@ global.WEB_SERVER = CLASS(function(cls) {
 									}
 								}
 								
-								if (content === undefined) {
-									nativeRes.end();
-								} else {
-									
-									// when gzip encoding
-									if (acceptEncoding.match(/\bgzip\b/) !== TO_DELETE) {
-	
-										headers['Content-Encoding'] = 'gzip';
-	
-										zlib.gzip(buffer !== undefined ? buffer : String(content), function(error, buffer) {
-											nativeRes.writeHead(statusCode, headers);
-											nativeRes.end(buffer, encoding);
-										});
-									}
-	
-									// when not encoding
-									else {
+								// when gzip encoding
+								if (acceptEncoding.match(/\bgzip\b/) !== TO_DELETE) {
+
+									headers['Content-Encoding'] = 'gzip';
+
+									zlib.gzip(buffer !== undefined ? buffer : String(content), function(error, buffer) {
 										nativeRes.writeHead(statusCode, headers);
-										nativeRes.end(buffer !== undefined ? buffer : String(content), encoding);
-									}
+										nativeRes.end(buffer, encoding);
+									});
+								}
+
+								// when not encoding
+								else {
+									nativeRes.writeHead(statusCode, headers);
+									nativeRes.end(buffer !== undefined ? buffer : String(content), encoding);
 								}
 
 								requestInfo.isResponsed = true;
