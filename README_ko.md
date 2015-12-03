@@ -20,7 +20,8 @@ Node Server Pages는 Node.js를 기반으로 동적 웹페이지를 생성하기
 	"port": 8080,
 	"isDevMode": true,
 	"rootPath": "./",
-	"uploadURI": ["examples/upload_result.nsp"]
+	"uploadURI": ["examples/upload_result.nsp"],
+    "isNotUsingDCBN" : false
 }
 ```
 
@@ -28,6 +29,7 @@ Node Server Pages는 Node.js를 기반으로 동적 웹페이지를 생성하기
 - `idDevMode` `true`로 지정하면 개발 모드가 활성화됩니다. 개발 모드에서는 이미지 등의 리소스를 캐싱하지 않습니다.
 - `rootPath` `.nsp` 파일 혹은 리소스 등이 저장된 경로를 지정합니다.
 - `uploadURI` 업로드 처리를 할 `URI`를 입력합니다.
+- `isNotUsingDCBN` 이중 중괄호 표기법 `{{`, `}}`을 사용하지 않습니다.
 
 ## 실행
 ```
@@ -53,8 +55,8 @@ node NSP.js
 ### `<%`, `%>`
 서버 측 JavaScript 코드를 삽입할 수 있습니다.
 
-### `{{`, `}}`
-`{{expression}}`와 같은 형식으로 페이지에 출력할 변수를 지정할 수 있습니다. 이는 `<% print(expression); %>`와 동일한 역할을 수행합니다.
+### `{{`, `}}`, `<%=`, `%>`
+`{{expression}}` 혹은 `<%=expression %>`과 같은 형식으로 페이지에 출력할 변수를 지정할 수 있습니다. 이는 `<% print(expression); %>`와 동일한 역할을 수행합니다.
 
 ### `<? expression>`, `</?>`
 `expression`에 들어갈 표현식이 `true`일 때만 내용을 해석합니다.

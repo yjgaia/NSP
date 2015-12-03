@@ -6,6 +6,7 @@
 			var msg = 'Hello World!';
 		%>
 		<p>{{msg}}</p>
+		<p><%=msg %></p>
 		<a href="/">Home</a>
 	</body>
 </html>

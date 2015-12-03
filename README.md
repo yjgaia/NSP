@@ -51,8 +51,8 @@ Now type `http://localhost:8123`, `http://localhost:8123/index.nsp` or `http://l
 ### `<%`, `%>`
 Allows server-side JavaScript codes to be embedded.
 
-### `{{`, `}}`
-Prints formatted expressions, e.g., `{{expression}}`. It is equivalent to `<% print(expression); %>`.
+### `{{`, `}}`, `<%=`, `%>`
+Prints formatted expressions, e.g., `{{expression}}` or `<%=expression %>`. It is equivalent to `<% print(expression); %>`.
 
 ### `<? expression>`, `</?>`
 Interprets statements only if `expression` is `true`.

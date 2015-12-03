@@ -2,6 +2,7 @@
 <html>
 	<body>
 		<h1>Cookies Example</h1>
+		<a href="cookies.nsp">Refresh</a>
 		<p>{{cookie('sample-cookie')}}</p>
 		<p><%
 			cookie('sample-cookie', 'this is example.', 1);

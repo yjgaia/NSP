@@ -53,7 +53,7 @@ __resumeFuncStr = function resume() {
 							__callback();
 						}
 						resume();
-					}, self);
+					}, self, __isNotUsingDCBN);
 				}
 				
 				else if (ext === '.js') {
@@ -90,23 +90,44 @@ __resumeFuncStr = function resume() {
 				__isIgnored !== true &&
 				__startCodeIndex === -1 &&
 				__startPstrIndex === -1 &&
+				__startPstr2Index === -1 &&
 				__startCondIndex === -1 &&
 				__startEachIndex === -1) {
-				
-					if (__i > 2 && __source[__i - 3] === '\\' && __source[__i - 2] === '\\') {
-						print(__source.substring(__lastIndex, __i - 2));
-						__startCodeIndex = __i + 1;
-					} else if (__i > 1 && __source[__i - 2] === '\\') {
-						// Node.js용 코드 아님, 무시
-						print(__source.substring(__lastIndex, __i - 2));
-						print(__source.substring(__i - 1, __i + 1));
+					
+					if (__source[__i + 1] === '=') {
+						
+						if (__i > 2 && __source[__i - 3] === '\\' && __source[__i - 2] === '\\') {
+							print(__source.substring(__lastIndex, __i - 2));
+							__startPstr2Index = __i + 2;
+						} else if (__i > 1 && __source[__i - 2] === '\\') {
+							// Node.js용 코드 아님, 무시
+							print(__source.substring(__lastIndex, __i - 2));
+							print(__source.substring(__i - 1, __i + 2));
+						} else {
+							print(__source.substring(__lastIndex, __i - 1));
+							__startPstr2Index = __i + 2;
+						}
+						__lastIndex = __i + 2;
+						__lastLine = __line;
+						__lastColumn = __column - 1;
+						
 					} else {
-						print(__source.substring(__lastIndex, __i - 1));
-						__startCodeIndex = __i + 1;
+				
+						if (__i > 2 && __source[__i - 3] === '\\' && __source[__i - 2] === '\\') {
+							print(__source.substring(__lastIndex, __i - 2));
+							__startCodeIndex = __i + 1;
+						} else if (__i > 1 && __source[__i - 2] === '\\') {
+							// Node.js용 코드 아님, 무시
+							print(__source.substring(__lastIndex, __i - 2));
+							print(__source.substring(__i - 1, __i + 1));
+						} else {
+							print(__source.substring(__lastIndex, __i - 1));
+							__startCodeIndex = __i + 1;
+						}
+						__lastIndex = __i + 1;
+						__lastLine = __line;
+						__lastColumn = __column - 1;
 					}
-					__lastIndex = __i + 1;
-					__lastLine = __line;
-					__lastColumn = __column - 1;
 				}
 			}
 			
@@ -115,35 +136,60 @@ __resumeFuncStr = function resume() {
 				
 				if (
 				__isIgnored !== true &&
-				__startCodeIndex !== -1 &&
 				__startPstrIndex === -1 &&
 				__startCondIndex === -1 &&
 				__startEachIndex === -1) {
 					
-					try {
-						eval(__source.substring(__lastIndex, __i - 1));
-					} catch (e) {
-						__responseError(__sourcePath, e, __source.substring(__lastIndex, __i - 1), __lastLine, __lastColumn, __response);
-						return;
+					if (
+					__startCodeIndex !== -1 &&
+					__startPstr2Index === -1) {
+						
+						try {
+							eval(__source.substring(__lastIndex, __i - 1));
+						} catch (e) {
+							__responseError(__sourcePath, e, __source.substring(__lastIndex, __i - 1), __lastLine, __lastColumn, __response);
+							return;
+						}
+						
+						__startCodeIndex = -1;
+						__lastIndex = __i + 1;
+						
+						if (__isPaused === true) {
+							__column += 1;
+							return;
+						}
 					}
 					
-					__startCodeIndex = -1;
-					__lastIndex = __i + 1;
-					
-					if (__isPaused === true) {
-						__column += 1;
-						return;
+					else if (
+					__startCodeIndex === -1 &&
+					__startPstr2Index !== -1) {
+						
+						try {
+							print(eval(__source.substring(__lastIndex, __i - 1)));
+						} catch (e) {
+							__responseError(__sourcePath, e, __source.substring(__lastIndex, __i - 1), __lastLine, __lastColumn, __response);
+							return;
+						}
+						
+						__startPstr2Index = -1;
+						__lastIndex = __i + 1;
+						
+						if (__isPaused === true) {
+							__column += 1;
+							return;
+						}
 					}
 				}
 			}
 			
 			// 출력 코드 시작
-			else if (__ch === '{' && __source[__i - 1] === '{') {
+			else if (__isNotUsingDCBN !== true && __ch === '{' && __source[__i - 1] === '{') {
 				
 				if (
 				__isIgnored !== true &&
 				__startCodeIndex === -1 &&
 				__startPstrIndex === -1 &&
+				__startPstr2Index === -1 &&
 				__startCondIndex === -1 &&
 				__startEachIndex === -1) {
 					
@@ -171,6 +217,7 @@ __resumeFuncStr = function resume() {
 				__isIgnored !== true &&
 				__startCodeIndex === -1 &&
 				__startPstrIndex !== -1 &&
+				__startPstr2Index === -1 &&
 				__startCondIndex === -1 &&
 				__startEachIndex === -1) {
 					
@@ -198,6 +245,7 @@ __resumeFuncStr = function resume() {
 				__isIgnored !== true &&
 				__startCodeIndex === -1 &&
 				__startPstrIndex === -1 &&
+				__startPstr2Index === -1 &&
 				__startCondIndex === -1 &&
 				__startEachIndex === -1) {
 					
@@ -224,6 +272,7 @@ __resumeFuncStr = function resume() {
 				if (
 				__startCodeIndex === -1 &&
 				__startPstrIndex === -1 &&
+				__startPstr2Index === -1 &&
 				__startCondIndex === -1 &&
 				__startEachIndex === -1) {
 					
@@ -255,6 +304,7 @@ __resumeFuncStr = function resume() {
 				__isIgnored !== true &&
 				__startCodeIndex === -1 &&
 				__startPstrIndex === -1 &&
+				__startPstr2Index === -1 &&
 				__startCondIndex === -1 &&
 				__startEachIndex === -1) {
 					
@@ -282,6 +332,7 @@ __resumeFuncStr = function resume() {
 				__isIgnored !== true &&
 				__startCodeIndex === -1 &&
 				__startPstrIndex === -1 &&
+				__startPstr2Index === -1 &&
 				__startCondIndex === -1 &&
 				__startEachIndex === -1) {
 					
@@ -394,7 +445,8 @@ __resumeFuncStr = function resume() {
 				
 				if (
 				__startCodeIndex === -1 &&
-				__startPstrIndex === -1) {
+				__startPstrIndex === -1 &&
+				__startPstr2Index === -1) {
 					
 					if (
 					__startCondIndex !== -1 &&
@@ -552,7 +604,7 @@ function __responseNotFound(response) {
 	});
 }
 
-function __parse(__requestInfo, __sourcePath, __source, __response, self) {
+function __parse(__requestInfo, __sourcePath, __source, __response, self, __isNotUsingDCBN) {
 	
 	var
 	// html
@@ -566,6 +618,9 @@ function __parse(__requestInfo, __sourcePath, __source, __response, self) {
 	
 	// start pstr index
 	__startPstrIndex = -1,
+	
+	// start pstr2 index
+	__startPstr2Index = -1,
 	
 	// start conditional index
 	__startCondIndex = -1,
@@ -706,6 +761,9 @@ CPU_CLUSTERING(function() {
 	// root path
 	rootPath = config.rootPath,
 	
+	// is not using double curly brace notation
+	isNotUsingDCBN = config.isNotUsingDCBN,
+	
 	// cached file infos
 	cachedFileInfos = {};
 	
@@ -766,7 +824,7 @@ CPU_CLUSTERING(function() {
 								|| (fileInfo.createTime !== undefined && cachedFileInfo.lastUpdateTime.getTime() === fileInfo.createTime.getTime())
 							)
 						) {
-							__parse(requestInfo, path, cachedFileInfo.content, response, self);
+							__parse(requestInfo, path, cachedFileInfo.content, response, self, isNotUsingDCBN);
 						}
 						
 						else {
@@ -789,7 +847,7 @@ CPU_CLUSTERING(function() {
 										lastUpdateTime : fileInfo.lastUpdateTime === undefined ? fileInfo.createTime : fileInfo.lastUpdateTime
 									};
 									
-									__parse(requestInfo, path, content, response, self);
+									__parse(requestInfo, path, content, response, self, isNotUsingDCBN);
 								}
 							});
 						}
