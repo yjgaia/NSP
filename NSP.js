@@ -1,5 +1,4 @@
 // import UJS.
-require('./import/UJS-COMMON.js');
 require('./import/UJS-NODE.js');
 
 // import UPPERCASE-TRANSPORT.
