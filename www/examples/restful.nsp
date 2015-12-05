@@ -1,0 +1,49 @@
+<%
+	var id = self.subURI;
+	var data;
+	
+	var order = self.subURI.substring(self.subURI.lastIndexOf('/'));	
+	if (order === 'edit') {
+		id = self.subURI.substring(0, self.subURI.lastIndexOf('/'));
+	}
+	
+	if (self.method === 'POST') {
+		data = self.params;
+	}
+	
+	else {
+		
+		if (id === '1') {
+			data = {
+				name : 'YJ Sim',
+				age : 28
+			};
+		}
+		
+		else if (id === '2') {
+			data = {
+				name : 'DS Hwang',
+				age : 26
+			};
+		}
+	}
+%>
+
+<? self.subURI === 'new' || order === 'edit'>
+<!DOCTYPE html>
+<html>
+	<body>
+		<h1>RESTful Example</h1>
+		<form action="restful" method="POST">
+			name: <input type="text" name="name"><br>
+			age: <input type="text" name="age"><br>
+			<input type="submit" value="Submit">
+		</form>
+		<a href="/">Home</a>
+	</body>
+</html>
+</?>
+
+<? else>
+{{data}}
+</?>

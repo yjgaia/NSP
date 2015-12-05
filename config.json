@@ -2,5 +2,6 @@
 	"port": 8123,
 	"isDevMode": true,
 	"rootPath": "./www",
-	"uploadURI": ["examples/upload_result.nsp"]
+	"uploadURI": ["examples/upload_result.nsp"],
+	"restURI" : ["examples/restful"]
 }

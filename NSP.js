@@ -452,11 +452,20 @@ __resumeFuncStr = function resume() {
 					__startEachIndex === -1) {
 						
 						try {
-							if (eval(__source.substring(__lastIndex, __i)) === false) {
+							if (__source.substring(__lastIndex, __i).trim() === 'else') {
+								if (__lastCond === true) {
+									__isIgnored = true;
+									__isIgnoreStack.push(true);
+								} else {
+									__isIgnoreStack.push(false);
+								}
+							} else if (eval(__source.substring(__lastIndex, __i)) === false) {
 								__isIgnored = true;
 								__isIgnoreStack.push(true);
+								__lastCond = false;
 							} else {
 								__isIgnoreStack.push(false);
+								__lastCond = true;
 							}
 						} catch (e) {
 							__responseError(__sourcePath, e, __source.substring(__lastIndex, __i), __lastLine, __lastColumn, __response);
@@ -633,6 +642,9 @@ function __parse(__requestInfo, __sourcePath, __source, __response, self, __isNo
 	// is ignored
 	__isIgnored,
 	
+	// last cond
+	__lastCond,
+	
 	// is ignore stack
 	__isIgnoreStack = [],
 	
@@ -760,6 +772,9 @@ CPU_CLUSTERING(function() {
 	// root path
 	rootPath = config.rootPath,
 	
+	// rest uri
+	restURI = config.restURI,
+	
 	// is not using double curly brace notation
 	isNotUsingDCBN = config.isNotUsingDCBN,
 	
@@ -787,6 +802,9 @@ CPU_CLUSTERING(function() {
 			// uri
 			uri = requestInfo.uri,
 			
+			// sub uri
+			subURI = '',
+			
 			// path
 			path,
 			
@@ -813,7 +831,8 @@ CPU_CLUSTERING(function() {
 							headers : requestInfo.headers,
 							method : requestInfo.method,
 							params : requestInfo.params,
-							ip : requestInfo.ip
+							ip : requestInfo.ip,
+							subURI : subURI
 						};
 						
 						// 캐시된 파일 제공
@@ -853,6 +872,36 @@ CPU_CLUSTERING(function() {
 					}
 				});
 			};
+			
+			if (CHECK_IS_ARRAY(restURI) === true) {
+				
+				if (CHECK_IS_IN({
+					array : restURI,
+					value : uri
+				}) === true) {
+					uri = restURI + '.nsp';
+				}
+				
+				else {
+					
+					EACH(restURI, function(restURI) {
+						if (restURI + '/' === uri.substring(0, restURI.length + 1)) {
+							subURI = uri.substring(restURI.length + 1);
+							uri = restURI + '.nsp';
+							return false;
+						}
+					});
+				}
+			}
+			
+			else {
+				if (restURI === uri) {
+					uri = restURI + '.nsp';
+				} else if (restURI + '/' === uri.substring(0, restURI.length + 1)) {
+					subURI = uri.substring(restURI.length + 1);
+					uri = restURI + '.nsp';
+				}
+			}
 			
 			if (uri === '') {
 				uri = 'index.nsp';

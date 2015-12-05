@@ -21,6 +21,7 @@ Node Server Pages는 Node.js를 기반으로 동적 웹페이지를 생성하기
 	"isDevMode": true,
 	"rootPath": "./",
 	"uploadURI": ["examples/upload_result.nsp"],
+	"restURI": ["examples/restful"],
     "isNotUsingDCBN" : false
 }
 ```
@@ -29,6 +30,7 @@ Node Server Pages는 Node.js를 기반으로 동적 웹페이지를 생성하기
 - `idDevMode` `true`로 지정하면 개발 모드가 활성화됩니다. 개발 모드에서는 이미지 등의 리소스를 캐싱하지 않습니다.
 - `rootPath` `.nsp` 파일 혹은 리소스 등이 저장된 경로를 지정합니다.
 - `uploadURI` 업로드 처리를 할 `URI`를 입력합니다.
+- `restURI` `REST URI` 디자인을 적용할 `URI`를 입력합니다.
 - `isNotUsingDCBN` 이중 중괄호 표기법 `{{`, `}}`을 사용하지 않습니다.
 
 ## 실행
@@ -58,8 +60,8 @@ node NSP.js
 ### `{{`, `}}`, `<%=`, `%>`
 `{{expression}}` 혹은 `<%=expression %>`과 같은 형식으로 페이지에 출력할 변수를 지정할 수 있습니다. 이는 `<% print(expression); %>`와 동일한 역할을 수행합니다.
 
-### `<? expression>`, `</?>`
-`expression`에 들어갈 표현식이 `true`일 때만 내용을 해석합니다.
+### `<? expression>`, `</?>`, `<? else>`
+`expression`에 들어갈 표현식이 `true`일 때만 내용을 해석합니다. `<? else>`는 바로 위의 `expression`이 `false`일 때만 내용을 해석합니다.
 ```nsp
 <%
     var a = true, b = false;
@@ -69,6 +71,9 @@ node NSP.js
 </?>
 <? b>
     출력되지 않습니다.
+</?>
+<? else>
+    출력됩니다.
 </?>
 ```
 
@@ -354,6 +359,10 @@ HTML `form` 등에서 넘어온 데이터를 갖고 있습니다.
 ```
 
 `fname`을 `Sam`, `lname`을 `Ple`로 지정하면 `self.params`는 `{"fname":"Sam","lname":"Ple"}`가 됩니다.
+
+### self.subURI
+`restURI`에서 지정한 `URI`로 시작하는 `URI`에 접속하였을 때, `restURI`에서 지정한 `URI`를 제외하고 남은 `URI`입니다.
+만약 `restURI`가 `sample`이고 접속 `URI`가 `sample/1/edit`이면, `self.subURI`는 `1/edit`이 됩니다.
 
 ## 기타
 ### PHP에 익숙한 개발자세요?

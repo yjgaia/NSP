@@ -20,6 +20,7 @@ Node Server Pages is a server-side script to create dynamic web pages based on N
 	"isDevMode": true,
 	"rootPath": "./",
     "uploadURI": ["examples/upload_result.nsp"],
+	"restURI": ["examples/restful"],
     "isNotUsingDCBN" : false
 }
 ```

@@ -8,6 +8,16 @@
 	<body>
 		<h1>Node Server Pages</h1>
 		<div>
+			<h2>Built-in Function</h2>
+			<ul>
+				<li><a href="examples/include.nsp">include .nsp</a></li>
+				<li><a href="examples/include_js.nsp">include .js</a></li>
+				<li><a href="examples/saveload.nsp">save/load</a></li>
+				<li><a href="examples/callback.nsp">pause/resume</a></li>
+				<li><a href="examples/upload.nsp">upload</a></li>
+			</ul>
+		</div>
+		<div>
 			<h2>Example</h2>
 			<ul>
 				<li><a href="examples/hello.nsp">Hello World!</a></li>
@@ -24,14 +34,8 @@
 			</ul>
 		</div>
 		<div>
-			<h2>Built-in Function</h2>
-			<ul>
-				<li><a href="examples/include.nsp">include .nsp</a></li>
-				<li><a href="examples/include_js.nsp">include .js</a></li>
-				<li><a href="examples/saveload.nsp">save/load</a></li>
-				<li><a href="examples/callback.nsp">pause/resume</a></li>
-				<li><a href="examples/upload.nsp">upload</a></li>
-			</ul>
+			<h2>RESTful Example</h2>
+			<a href="examples/restful">List</a>
 		</div>
 	</body>
 </html>
