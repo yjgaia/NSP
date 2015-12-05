@@ -28,6 +28,7 @@ Node Server Pages is a server-side script to create dynamic web pages based on N
 - `idDevMode` `true` means development mode. In development mode, resources such as images are not cached.
 - `rootPath` specified the root path where `.nsp` files or resources are saved.
 - `uploadURI` points to the `URI` to upload to.
+- `restURI` specifies the root URI of `REST URI`.
 - `isNotUsingDCBN` if set to `true`, {{, }} (double curly braces notation) is not allowed.
 
 ## Run
@@ -57,8 +58,8 @@ Allows server-side JavaScript codes to be embedded.
 ### `{{`, `}}`, `<%=`, `%>`
 Prints formatted expressions, e.g., `{{expression}}` or `<%=expression %>`. It is equivalent to `<% print(expression); %>`.
 
-### `<? expression>`, `</?>`
-Interprets statements only if `expression` is `true`.
+### `<? expression>`, `</?>`, `<? else>`
+Interprets statements only if `expression` is `true`. Otherwise, `else` is interpreted.
 
 ```nsp
 <%
@@ -69,6 +70,9 @@ Interprets statements only if `expression` is `true`.
 </?>
 <? b>
     I'm not printed.
+</?>
+<? else>
+    I'm printed.
 </?>
 ```
 
@@ -370,6 +374,10 @@ Holds data passed from `form`s, etc.
 ```
 
 If you passed `Sam` as `fname` and `Ple` as `lname`, `self.params` should be `{"fname":"Sam","lname":"Ple"}`.
+
+### self.subURI
+Holds requested sub URI, which is resulted by excluding `restURI` from the request full URI.
+If `restURI` is `sample` and the request URI is `sample/1/edit`, `self.subURI` holds `1/edit`.
 
 ## Etc.
 ### Are you familiar with PHP?
