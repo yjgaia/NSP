@@ -364,6 +364,12 @@ HTML `form` 등에서 넘어온 데이터를 갖고 있습니다.
 `restURI`에서 지정한 `URI`로 시작하는 `URI`에 접속하였을 때, `restURI`에서 지정한 `URI`를 제외하고 남은 `URI`입니다.
 만약 `restURI`가 `sample`이고 접속 `URI`가 `sample/1/edit`이면, `self.subURI`는 `1/edit`이 됩니다.
 
+## 샘플
+- https://github.com/Hanul/nsp-sample-restful
+- https://github.com/Hanul/nsp-sample-bbs
+- https://github.com/Hanul/nsp-sample-bbs-mysql
+- https://github.com/Hanul/nsp-sample-bbs-angularjs
+
 ## 기타
 ### PHP에 익숙한 개발자세요?
 [php.js](https://github.com/kvz/phpjs)를 설치하여 NSP와 함께 사용해보세요.

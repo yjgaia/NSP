@@ -379,6 +379,12 @@ If you passed `Sam` as `fname` and `Ple` as `lname`, `self.params` should be `{"
 Holds requested sub URI, which is resulted by excluding `restURI` from the request full URI.
 If `restURI` is `sample` and the request URI is `sample/1/edit`, `self.subURI` holds `1/edit`.
 
+## Samples
+- https://github.com/Hanul/nsp-sample-restful
+- https://github.com/Hanul/nsp-sample-bbs
+- https://github.com/Hanul/nsp-sample-bbs-mysql
+- https://github.com/Hanul/nsp-sample-bbs-angularjs
+
 ## Etc.
 ### Are you familiar with PHP?
 Install [php.js](https://github.com/kvz/phpjs) and use it together with NSP.
