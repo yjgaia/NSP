@@ -87,6 +87,7 @@ __resumeFuncStr = function resume() {
 				
 				if (
 				__isIgnored !== true &&
+				(__repeatInfo === undefined || __repeatInfo.key !== undefined) &&
 				__startCodeIndex === -1 &&
 				__startPstrIndex === -1 &&
 				__startPstr2Index === -1 &&
@@ -135,6 +136,7 @@ __resumeFuncStr = function resume() {
 				
 				if (
 				__isIgnored !== true &&
+				(__repeatInfo === undefined || __repeatInfo.key !== undefined) &&
 				__startPstrIndex === -1 &&
 				__startCondIndex === -1 &&
 				__startEachIndex === -1) {
@@ -186,6 +188,7 @@ __resumeFuncStr = function resume() {
 				
 				if (
 				__isIgnored !== true &&
+				(__repeatInfo === undefined || __repeatInfo.key !== undefined) &&
 				__startCodeIndex === -1 &&
 				__startPstrIndex === -1 &&
 				__startPstr2Index === -1 &&
@@ -214,6 +217,7 @@ __resumeFuncStr = function resume() {
 				
 				if (
 				__isIgnored !== true &&
+				(__repeatInfo === undefined || __repeatInfo.key !== undefined) &&
 				__startCodeIndex === -1 &&
 				__startPstrIndex !== -1 &&
 				__startPstr2Index === -1 &&
@@ -242,6 +246,7 @@ __resumeFuncStr = function resume() {
 				
 				if (
 				__isIgnored !== true &&
+				(__repeatInfo === undefined || __repeatInfo.key !== undefined) &&
 				__startCodeIndex === -1 &&
 				__startPstrIndex === -1 &&
 				__startPstr2Index === -1 &&
@@ -269,6 +274,7 @@ __resumeFuncStr = function resume() {
 			else if (__i > 3 && __ch === '>' && __source[__i - 1] === '?' && __source[__i - 2] === '/' && __source[__i - 3] === '<') {
 				
 				if (
+				(__repeatInfo === undefined || __repeatInfo.key !== undefined) &&
 				__startCodeIndex === -1 &&
 				__startPstrIndex === -1 &&
 				__startPstr2Index === -1 &&
@@ -301,6 +307,7 @@ __resumeFuncStr = function resume() {
 				
 				if (
 				__isIgnored !== true &&
+				(__repeatInfo === undefined || __repeatInfo.key !== undefined) &&
 				__startCodeIndex === -1 &&
 				__startPstrIndex === -1 &&
 				__startPstr2Index === -1 &&
@@ -337,9 +344,8 @@ __resumeFuncStr = function resume() {
 					
 					if (__i > 5 && __source[__i - 5] === '\\' && __source[__i - 4] === '\\') {
 						
-						print(__source.substring(__lastIndex, __i - 4));
-						
-						if (__repeatInfo !== undefined) {
+						if (__repeatInfo !== undefined && __repeatInfo.key !== undefined) {
+							print(__source.substring(__lastIndex, __i - 4));
 							
 							__repeatTarget = __repeatInfo.target;
 							__repeatTargetName = __repeatInfo.targetName;
@@ -390,9 +396,8 @@ __resumeFuncStr = function resume() {
 					
 					else {
 						
-						print(__source.substring(__lastIndex, __i - 3));
-						
-						if (__repeatInfo !== undefined) {
+						if (__repeatInfo !== undefined && __repeatInfo.key !== undefined) {
+							print(__source.substring(__lastIndex, __i - 3));
 							
 							__repeatTarget = __repeatInfo.target;
 							__repeatTargetName = __repeatInfo.targetName;
@@ -443,6 +448,8 @@ __resumeFuncStr = function resume() {
 			else if (__ch === '>') {
 				
 				if (
+				__isIgnored !== true &&
+				(__repeatInfo === undefined || __repeatInfo.key !== undefined) &&
 				__startCodeIndex === -1 &&
 				__startPstrIndex === -1 &&
 				__startPstr2Index === -1) {
@@ -482,7 +489,6 @@ __resumeFuncStr = function resume() {
 					}
 					
 					else if (
-					__isIgnored !== true &&
 					__startCondIndex === -1 &&
 					__startEachIndex !== -1 &&
 					__source[__i - 1] !== '-') {
@@ -497,6 +503,7 @@ __resumeFuncStr = function resume() {
 							if (__repeatItemStr.indexOf(':') === -1) {
 								
 								// find first key
+								__repeatTargetFirstKey = undefined;
 								for (__repeatTargetFirstKey in __repeatTarget) {
 									if (__repeatTarget.hasOwnProperty(__repeatTargetFirstKey) === true) {
 										break;
@@ -523,6 +530,7 @@ __resumeFuncStr = function resume() {
 								__repeatItemValue = __repeatItemSplits[1];
 								
 								// find first key
+								__repeatTargetFirstKey = undefined;
 								for (__repeatTargetFirstKey in __repeatTarget) {
 									if (__repeatTarget.hasOwnProperty(__repeatTargetFirstKey) === true) {
 										break;
