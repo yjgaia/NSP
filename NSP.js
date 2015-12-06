@@ -927,9 +927,20 @@ CPU_CLUSTERING(function() {
 			else if (ext === '') {
 				
 				CHECK_IS_EXISTS_FILE(path, function(isExists) {
+					
 					if (isExists === true) {
-						 next();
-					} else {
+					
+						CHECK_IS_FOLDER(path, function(isFolder) {
+							if (isFolder === true) {
+								path += '/index.nsp';
+								run();
+							} else {
+								next();
+							}
+						});
+					}
+					
+					else {
 						path += '.nsp';
 						run();
 					}
