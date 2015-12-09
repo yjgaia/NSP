@@ -297,7 +297,7 @@ end
 입력한 URL로 redirect합니다.
 ```nsp
 <%
-    redirect('main.nsp');
+    redirect('/main.nsp');
 %>
 ```
 ```nsp

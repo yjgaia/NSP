@@ -15,6 +15,7 @@
 				<li><a href="examples/saveload.nsp">save/load</a></li>
 				<li><a href="examples/callback.nsp">pause/resume</a></li>
 				<li><a href="examples/upload.nsp">upload</a></li>
+				<li><a href="examples/redirect.nsp">redirect</a></li>
 			</ul>
 		</div>
 		<div>
