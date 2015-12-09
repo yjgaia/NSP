@@ -584,13 +584,24 @@ __resumeFuncStr = function resume() {
 		print(__source.substring(__lastIndex));
 	}
 	
-	__response({
-		headers : {
-			'Set-Cookie' : CREATE_COOKIE_STR_ARRAY(__cookieInfo)
-		},
-		content : __html,
-		contentType : 'text/html'
-	});
+	if (__redirectURL !== undefined) {
+		__response({
+			statusCode : 302,
+			headers : {
+				'Location' : __redirectURL
+			}
+		});
+	}
+	
+	else {
+    	__response({
+    		headers : {
+    			'Set-Cookie' : CREATE_COOKIE_STR_ARRAY(__cookieInfo)
+    		},
+    		content : __html,
+    		contentType : 'text/html'
+    	});
+    }
 	
 }.toString();
 
@@ -625,6 +636,9 @@ function __parse(__requestInfo, __sourcePath, __source, __response, self, __isNo
 	var
 	// html
 	__html = '',
+	
+	// redirect url
+	__redirectURL,
 	
 	// last index
 	__lastIndex = 0,
@@ -674,10 +688,13 @@ function __parse(__requestInfo, __sourcePath, __source, __response, self, __isNo
 	__i, __ch, __line = 1, __column = 1, __lastLine = 1, __lastColumn = 1;
 	
 	function print(content) {
-		if (typeof content === 'string') {
-			__html += content;
-		} else {
-			__html += JSON.stringify(content);
+		
+		if (content !== undefined) {
+			if (typeof content === 'string') {
+				__html += content;
+			} else {
+				__html += JSON.stringify(content);
+			}
 		}
 	}
 	
@@ -753,6 +770,10 @@ function __parse(__requestInfo, __sourcePath, __source, __response, self, __isNo
 			overFileSize : overFileSizeHandler,
 			success : callback
 		});
+	}
+	
+	function redirect(url) {
+		__redirectURL = url;
 	}
 	
 	function pause() {
@@ -881,33 +902,36 @@ CPU_CLUSTERING(function() {
 				});
 			};
 			
-			if (CHECK_IS_ARRAY(restURI) === true) {
+			if (restURI !== undefined) {
 				
-				if (CHECK_IS_IN({
-					array : restURI,
-					value : uri
-				}) === true) {
-					uri = restURI + '.nsp';
+				if (CHECK_IS_ARRAY(restURI) === true) {
+					
+					if (CHECK_IS_IN({
+						array : restURI,
+						value : uri
+					}) === true) {
+						uri = restURI + '.nsp';
+					}
+					
+					else {
+						
+						EACH(restURI, function(restURI) {
+							if (restURI + '/' === uri.substring(0, restURI.length + 1)) {
+								subURI = uri.substring(restURI.length + 1);
+								uri = restURI + '.nsp';
+								return false;
+							}
+						});
+					}
 				}
 				
 				else {
-					
-					EACH(restURI, function(restURI) {
-						if (restURI + '/' === uri.substring(0, restURI.length + 1)) {
-							subURI = uri.substring(restURI.length + 1);
-							uri = restURI + '.nsp';
-							return false;
-						}
-					});
-				}
-			}
-			
-			else {
-				if (restURI === uri) {
-					uri = restURI + '.nsp';
-				} else if (restURI + '/' === uri.substring(0, restURI.length + 1)) {
-					subURI = uri.substring(restURI.length + 1);
-					uri = restURI + '.nsp';
+					if (restURI === uri) {
+						uri = restURI + '.nsp';
+					} else if (restURI + '/' === uri.substring(0, restURI.length + 1)) {
+						subURI = uri.substring(restURI.length + 1);
+						uri = restURI + '.nsp';
+					}
 				}
 			}
 			

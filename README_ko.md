@@ -293,6 +293,19 @@ end
 </~>
 ```
 
+### redirect
+입력한 URL로 redirect합니다.
+```nsp
+<%
+    redirect('main.nsp');
+%>
+```
+```nsp
+<%
+    redirect('https://github.com/Hanul/NSP');
+%>
+```
+
 ## escape
 `<%`나 `{{` 앞에 역슬래시(\\)를 붙히면 해당 구문은 해석하지 않습니다. 또한 `<%` 나 `{{` 앞에 역슬래시를 두개(\\\\) 붙히면 하나의 역슬래시로 판단하고, 코드 구문을 해석합니다.
 ```nsp
