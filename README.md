@@ -305,6 +305,19 @@ Uploads a file to the `URI` that's specified by `uploadURI` in `config.json`.
 </~>
 ```
 
+### redirect
+Redirects the user to the URL specified.
+```nsp
+<%
+    redirect('/main.nsp');
+%>
+```
+```nsp
+<%
+    redirect('https://github.com/Hanul/NSP');
+%>
+```
+
 ### escape
 A statement with backslash(\\) in front of `<%` or `{{` is NOT interpreted. However, since two backslashes(\\\\) in front of `<%` or `{{` is recognized as a backslash, that statement is interpreted.
 
