@@ -81,8 +81,6 @@ __parseFuncStr = function __parse(__requestInfo, __sourcePath, __source, __respo
 		if (content !== undefined) {
 			if (typeof content === 'string') {
 				__html += content;
-			} else if (content.toString !== undefined) {
-				__html += content.toString();
 			} else {
 				__html += JSON.stringify(content);
 			}
@@ -503,13 +501,15 @@ __resumeFuncStr = function resume() {
 					
 					if (__i > 5 && __source[__i - 5] === '\\' && __source[__i - 4] === '\\') {
 						
-						if (__repeatInfo !== undefined) {
+						if (__repeatInfo !== undefined && __repeatInfo.key !== undefined) {
 							
 							__repeatTarget = __repeatInfo.target;
 							__repeatTargetName = __repeatInfo.targetName;
 							__repeatTargetFirstKey = __repeatInfo.key;
 							__repeatItemName = __repeatInfo.name;
 							__repeatItemValue = __repeatInfo.value;
+							
+							print(__source.substring(__lastIndex, __i - 4));
 							
 							// find next key
 							__repeatTargetBeforeKey = undefined;
@@ -524,8 +524,6 @@ __resumeFuncStr = function resume() {
 							}
 							
 							if (__repeatTargetFirstKey !== undefined && __repeatTargetNowKey !== __repeatTargetFirstKey) {
-								
-								print(__source.substring(__lastIndex, __i - 4));
 								
 								__i = __repeatInfo.startIndex - 1;
 								__line = __repeatInfo.line;
@@ -546,6 +544,10 @@ __resumeFuncStr = function resume() {
 								__repeatInfo = __isRepeatStack[__isRepeatStack.length - 1];
 							}
 						}
+						
+						else {
+							__repeatInfo = undefined;
+						}
 					}
 					
 					else if (__i > 3 && __source[__i - 4] === '\\') {
@@ -556,13 +558,15 @@ __resumeFuncStr = function resume() {
 					
 					else {
 						
-						if (__repeatInfo !== undefined) {
+						if (__repeatInfo !== undefined && __repeatInfo.key !== undefined) {
 							
 							__repeatTarget = __repeatInfo.target;
 							__repeatTargetName = __repeatInfo.targetName;
 							__repeatTargetFirstKey = __repeatInfo.key;
 							__repeatItemName = __repeatInfo.name;
 							__repeatItemValue = __repeatInfo.value;
+							
+							print(__source.substring(__lastIndex, __i - 3));
 							
 							// find next key
 							__repeatTargetBeforeKey = undefined;
@@ -576,9 +580,7 @@ __resumeFuncStr = function resume() {
 								}
 							}
 							
-							if (__repeatTargetFirstKey !== undefined && __repeatTargetNowKey !== __repeatTargetFirstKey) {
-								
-								print(__source.substring(__lastIndex, __i - 3));
+							if (__repeatTargetNowKey !== __repeatTargetFirstKey) {
 								
 								__i = __repeatInfo.startIndex - 1;
 								__line = __repeatInfo.line;
@@ -598,6 +600,10 @@ __resumeFuncStr = function resume() {
 								__isRepeatStack.pop();
 								__repeatInfo = __isRepeatStack[__isRepeatStack.length - 1];
 							}
+						}
+						
+						else {
+							__repeatInfo = undefined;
 						}
 					}
 					
