@@ -7,7 +7,7 @@ Node Server Pages는 Node.js를 기반으로 동적 웹페이지를 생성하기
 - JavaScript만 알면 서버 프로그래밍에 익숙하지 않아도 즉시 서버 개발이 가능합니다.
 - [Node.js의 API](https://nodejs.org/api/)를 모두 사용할 수 있습니다.
 - 수많은 [npm 모듈들](https://www.npmjs.com/)을 즉시 사용할 수 있습니다.
-- [UPPERCASE.JS](https://github.com/Hanul/UPPERCASE.JS)의 [COMMON](https://github.com/Hanul/UPPERCASE.JS/blob/master/DOC/UPPERCASE.JS-COMMON.md)과 [NODE](https://github.com/Hanul/UPPERCASE.JS/blob/master/DOC/UPPERCASE.JS-NODE.md)를 사용할 수 있습니다.
+- [UJS](https://github.com/Hanul/UJS)의 [COMMON](https://github.com/Hanul/UJS/blob/master/DOC/UJS-COMMON.md)과 [NODE](https://github.com/Hanul/UJS/blob/master/DOC/UJS-NODE.md)를 사용할 수 있습니다.
 - `.nsp` 페이지가 수정 즉시 반영됩니다.
 - 멀티코어 CPU를 지원을 내장하고 있습니다.
 

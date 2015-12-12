@@ -7,7 +7,7 @@ Node Server Pages is a server-side script to create dynamic web pages based on N
 - You can instantly start developing server programming with basic knowledge of JavaScript.
 - You can use all the [APIs of Node.js](https://nodejs.org/api/).
 - You can use hundreds of [npm modules](https://www.npmjs.com/) out-of-box.
-- You can use [COMMON](https://github.com/Hanul/UPPERCASE.JS/blob/master/DOC/UPPERCASE.JS-COMMON.md) and [NODE](https://github.com/Hanul/UPPERCASE.JS/blob/master/DOC/UPPERCASE.JS-NODE.md) of [UPPERCASE.JS](https://github.com/Hanul/UPPERCASE.JS).
+- You can use [COMMON](https://github.com/Hanul/UJS/blob/master/DOC/UJS-COMMON.md) and [NODE](https://github.com/Hanul/UJS/blob/master/DOC/UJS-NODE.md) of [UJS](https://github.com/Hanul/UJS).
 - Pages change instantly once you modify `.nsp` pages.
 - Built-in support for multi-core CPUs.
 
