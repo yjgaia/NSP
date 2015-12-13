@@ -3,6 +3,8 @@ Node Server Pages is a server-side script to create dynamic web pages based on N
 
 ***Node Server Pages is NOT a template engine!***
 
+- [한국어 문서](README_ko.md)
+
 ## Features
 - You can instantly start developing server programming with basic knowledge of JavaScript.
 - You can use all the [APIs of Node.js](https://nodejs.org/api/).
