@@ -464,7 +464,6 @@ __resumeFuncStr = function resume() {
 				
 				if (
 				__isIgnored !== true &&
-				(__repeatInfo === undefined || __repeatInfo.key !== undefined) &&
 				__startCodeIndex === -1 &&
 				__startPstrIndex === -1 &&
 				__startPstr2Index === -1 &&
@@ -472,14 +471,20 @@ __resumeFuncStr = function resume() {
 				__startEachIndex === -1) {
 					
 					if (__i > 2 && __source[__i - 3] === '\\' && __source[__i - 2] === '\\') {
-						print(__source.substring(__lastIndex, __i - 2));
+						if (__repeatInfo === undefined || __repeatInfo.key !== undefined) {
+							print(__source.substring(__lastIndex, __i - 2));
+						}
 						__startEachIndex = __i + 1;
 					} else if (__i > 1 && __source[__i - 2] === '\\') {
 						// Node.js용 코드 아님, 무시
-						print(__source.substring(__lastIndex, __i - 2));
-						print(__source.substring(__i - 1, __i + 1));
+						if (__repeatInfo === undefined || __repeatInfo.key !== undefined) {
+							print(__source.substring(__lastIndex, __i - 2));
+							print(__source.substring(__i - 1, __i + 1));
+						}
 					} else {
-						print(__source.substring(__lastIndex, __i - 1));
+						if (__repeatInfo === undefined || __repeatInfo.key !== undefined) {
+							print(__source.substring(__lastIndex, __i - 1));
+						}
 						__startEachIndex = __i + 1;
 					}
 					__lastIndex = __i + 1;
@@ -546,7 +551,8 @@ __resumeFuncStr = function resume() {
 						}
 						
 						else {
-							__repeatInfo = undefined;
+							__isRepeatStack.pop();
+							__repeatInfo = __isRepeatStack[__isRepeatStack.length - 1];
 						}
 					}
 					
@@ -603,7 +609,8 @@ __resumeFuncStr = function resume() {
 						}
 						
 						else {
-							__repeatInfo = undefined;
+							__isRepeatStack.pop();
+							__repeatInfo = __isRepeatStack[__isRepeatStack.length - 1];
 						}
 					}
 					
@@ -616,12 +623,12 @@ __resumeFuncStr = function resume() {
 				
 				if (
 				__isIgnored !== true &&
-				(__repeatInfo === undefined || __repeatInfo.key !== undefined) &&
 				__startCodeIndex === -1 &&
 				__startPstrIndex === -1 &&
 				__startPstr2Index === -1) {
 					
 					if (
+					(__repeatInfo === undefined || __repeatInfo.key !== undefined) &&
 					__startCondIndex !== -1 &&
 					__startEachIndex === -1) {
 						
@@ -662,8 +669,15 @@ __resumeFuncStr = function resume() {
 						
 						try {
 							__repeatSplits = __source.substring(__lastIndex, __i).split('->');
-							__repeatTargetName = __repeatSplits[0];
-							__repeatTarget = eval(__repeatTargetName);
+							
+							if (__repeatInfo === undefined || __repeatInfo.key !== undefined) {
+								__repeatTargetName = __repeatSplits[0];
+								__repeatTarget = eval(__repeatTargetName);
+							} else {
+								__repeatTargetName = undefined;
+								__repeatTarget = undefined;
+							}
+							
 							__repeatItemStr = __repeatSplits[1];
 							
 							if (__repeatTarget === undefined) {
@@ -849,7 +863,7 @@ RUN(function() {
 			__responseNotFound(response);
 		},
 		
-		requestListener : function(requestInfo, response, onDisconnected, next) {
+		requestListener : function(requestInfo, response, onDisconnected, setRootPath, next) {
 			
 			var
 			// uri
