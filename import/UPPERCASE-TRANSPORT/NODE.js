@@ -404,6 +404,9 @@ global.WEB_SOCKET_FIX_REQUEST_MANAGER = CLASS(function(cls) {
 				// method map
 				methodMap,
 				
+				// client info
+				clientInfo,
+				
 				// on.
 				on,
 
@@ -451,10 +454,13 @@ global.WEB_SOCKET_FIX_REQUEST_MANAGER = CLASS(function(cls) {
 					connectionListener(
 
 					// client info
-					{
+					clientInfo = {
+						
 						ip : requestInfo.ip,
 
-						headers : requestInfo.headers
+						headers : requestInfo.headers,
+						
+						connectTime : new Date()
 					},
 
 					// on.
@@ -501,7 +507,7 @@ global.WEB_SOCKET_FIX_REQUEST_MANAGER = CLASS(function(cls) {
 					function(params, callback) {
 						//REQUIRED: params
 						//REQUIRED: params.methodName
-						//REQUIRED: params.data
+						//OPTIONAL: params.data
 						//OPTIONAL: callback
 
 						var
@@ -530,6 +536,8 @@ global.WEB_SOCKET_FIX_REQUEST_MANAGER = CLASS(function(cls) {
 						}
 		
 						sendKey += 1;
+						
+						clientInfo.lastReceiveTime = new Date();
 					},
 
 					// disconnect.
@@ -711,6 +719,9 @@ global.WEB_SOCKET_SERVER = METHOD({
 
 			// send key
 			sendKey = 0,
+			
+			// client info
+			clientInfo,
 
 			// ip
 			ip,
@@ -805,10 +816,13 @@ global.WEB_SOCKET_SERVER = METHOD({
 			connectionListener(
 
 			// client info
-			{
+			clientInfo = {
+				
 				ip : ip,
 
-				headers : headers
+				headers : headers,
+				
+				connectTime : new Date()
 			},
 
 			// on.
@@ -890,6 +904,8 @@ global.WEB_SOCKET_SERVER = METHOD({
 				}
 
 				sendKey += 1;
+				
+				clientInfo.lastReceiveTime = new Date();
 			},
 
 			// disconnect.

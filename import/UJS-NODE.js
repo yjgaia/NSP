@@ -1789,7 +1789,8 @@ global.CHECK_IS_ARRAY = METHOD({
  */
 global.CHECK_IS_DATA = METHOD({
 
-	run : function(it) {'use strict';
+	run : function(it) {
+		'use strict';
 		//OPTIONAL: it
 
 		if (it !== undefined && it !== TO_DELETE && CHECK_IS_ARGUMENTS(it) !== true && CHECK_IS_ARRAY(it) !== true && it instanceof Date !== true && it instanceof RegExp !== true && typeof it === 'object') {
@@ -1810,6 +1811,27 @@ global.CHECK_IS_EMPTY_DATA = METHOD({
 		//REQUIRED: data
 
 		return CHECK_ARE_SAME([data, {}]);
+	}
+});
+
+/**
+ * count data's properties
+ */
+global.COUNT_PROPERTIES = METHOD({
+
+	run : function(data) {
+		'use strict';
+		//OPTIONAL: data
+
+		var
+		// count
+		count = 0;
+		
+		EACH(data, function() {
+			count += 1;
+		});
+		
+		return count;
 	}
 });
 
@@ -2611,9 +2633,24 @@ global.DELAY = CLASS({
 		//OPTIONAL: func
 
 		var
+		// milliseconds
+		milliseconds,
+		
+		// start time
+		startTime = Date.now(),
+		
+		// remaining
+		remaining,
+		
 		// timeout
 		timeout,
 
+		// resume.
+		resume,
+		
+		// pause.
+		pause,
+		
 		// remove.
 		remove;
 
@@ -2621,13 +2658,29 @@ global.DELAY = CLASS({
 			func = seconds;
 			seconds = 0;
 		}
-
-		timeout = setTimeout(function() {
-			func(self);
-		}, seconds * 1000);
-
-		self.remove = remove = function() {
+		
+		remaining = milliseconds = seconds * 1000;
+		
+		self.resume = resume = RAR(function() {
+			
+			if (timeout === undefined) {
+				
+				timeout = setTimeout(function() {
+					func(self);
+				}, remaining);
+			}
+		});
+		
+		self.pause = pause = function() {
+			
+			remaining = milliseconds - (Date.now() - startTime);
+			
 			clearTimeout(timeout);
+			timeout = undefined;
+		};
+		
+		self.remove = remove = function() {
+			pause();
 		};
 	}
 });
@@ -2643,8 +2696,23 @@ global.INTERVAL = CLASS({
 		//OPTIONAL: func
 
 		var
+		// milliseconds
+		milliseconds,
+		
+		// start time
+		startTime = Date.now(),
+		
+		// remaining
+		remaining,
+		
 		// interval
 		interval,
+		
+		// resume.
+		resume,
+		
+		// pause.
+		pause,
 
 		// remove.
 		remove;
@@ -2653,15 +2721,35 @@ global.INTERVAL = CLASS({
 			func = seconds;
 			seconds = 0;
 		}
-
-		interval = setInterval(function() {
-			if (func(self) === false) {
-				remove();
+		
+		remaining = milliseconds = seconds === 0 ? 1 : seconds * 1000;
+		
+		self.resume = resume = RAR(function() {
+			
+			if (interval === undefined) {
+				
+				interval = setInterval(function() {
+					
+					if (func(self) === false) {
+						remove();
+					}
+					
+					startTime = Date.now();
+					
+				}, remaining);
 			}
-		}, seconds === 0 ? 1 : seconds * 1000);
-
-		self.remove = remove = function() {
+		});
+		
+		self.pause = pause = function() {
+			
+			remaining = milliseconds - (Date.now() - startTime);
+			
 			clearInterval(interval);
+			interval = undefined;
+		};
+		
+		self.remove = remove = function() {
+			pause();
 		};
 	}
 });
@@ -2737,7 +2825,7 @@ global.LOOP = CLASS(function(cls) {
 							// run interval.
 							interval = loopInfo.interval;
 							for ( j = 0; j < count; j += 1) {
-								interval();
+								interval(loopInfo.fps);
 							}
 
 							// end.
@@ -2799,6 +2887,12 @@ global.LOOP = CLASS(function(cls) {
 
 			// info
 			info,
+			
+			// resume.
+			resume,
+			
+			// pause.
+			pause,
 
 			// change fps.
 			changeFPS,
@@ -2817,21 +2911,20 @@ global.LOOP = CLASS(function(cls) {
 					interval = intervalOrFuncs.interval;
 					end = intervalOrFuncs.end;
 				}
-
-				loopInfos.push( info = {
-					fps : fps,
-					start : start,
-					interval : interval,
-					end : end
+			
+				self.resume = resume = RAR(function() {
+					
+					loopInfos.push( info = {
+						fps : fps,
+						start : start,
+						interval : interval,
+						end : end
+					});
+					
+					fire();
 				});
 
-				self.changeFPS = changeFPS = function(fps) {
-					//REQUIRED: fps
-
-					info.fps = fps;
-				};
-
-				self.remove = remove = function() {
+				self.pause = pause = function() {
 
 					REMOVE({
 						array : loopInfos,
@@ -2840,14 +2933,29 @@ global.LOOP = CLASS(function(cls) {
 
 					stop();
 				};
+
+				self.changeFPS = changeFPS = function(fps) {
+					//REQUIRED: fps
+
+					info.fps = fps;
+				};
+
+				self.remove = remove = function() {
+					pause();
+				};
 			}
 
 			// when fps is run
 			else {
+				
+				self.resume = resume = RAR(function() {
+					
+					runs.push( run = fps);
+					
+					fire();
+				});
 
-				runs.push( run = fps);
-
-				self.remove = remove = function() {
+				self.pause = pause = function() {
 
 					REMOVE({
 						array : runs,
@@ -2856,9 +2964,11 @@ global.LOOP = CLASS(function(cls) {
 
 					stop();
 				};
-			}
 
-			fire();
+				self.remove = remove = function() {
+					pause();
+				};
+			}
 		}
 	};
 });
@@ -3224,7 +3334,7 @@ global.CPU_CLUSTERING = METHOD(function(m) {
 	cluster = require('cluster'),
 
 	// worker id
-	workerId,
+	workerId = 1,
 
 	// get worker id.
 	getWorkerId;
@@ -3343,11 +3453,17 @@ global.CPU_CLUSTERING = METHOD(function(m) {
 					// remove shared value.
 					on('__SHARED_STORE_REMOVE', SHARED_STORE.remove);
 
+					// clear shared store.
+					on('__SHARED_STORE_CLEAR', SHARED_STORE.clear);
+
 					// save cpu shared value.
 					on('__CPU_SHARED_STORE_SAVE', CPU_SHARED_STORE.save);
 
 					// remove cpu shared value.
 					on('__CPU_SHARED_STORE_REMOVE', CPU_SHARED_STORE.remove);
+
+					// clear cpu shared store.
+					on('__CPU_SHARED_STORE_CLEAR', CPU_SHARED_STORE.clear);
 
 					// save shared data.
 					on('__SHARED_DB_SAVE', SHARED_DB.save);
@@ -3358,6 +3474,9 @@ global.CPU_CLUSTERING = METHOD(function(m) {
 					// remove shared data.
 					on('__SHARED_DB_REMOVE', SHARED_DB.remove);
 
+					// clear shared db.
+					on('__SHARED_DB_CLEAR', SHARED_DB.clear);
+
 					// save cpu shared data.
 					on('__CPU_SHARED_DB_SAVE', CPU_SHARED_DB.save);
 					
@@ -3366,6 +3485,9 @@ global.CPU_CLUSTERING = METHOD(function(m) {
 
 					// remove cpu shared data.
 					on('__CPU_SHARED_DB_REMOVE', CPU_SHARED_DB.remove);
+
+					// clear cpu shared db.
+					on('__CPU_SHARED_DB_CLEAR', CPU_SHARED_DB.clear);
 
 					m.off = off = function(methodName) {
 						delete methodMap[methodName];
@@ -3409,12 +3531,18 @@ global.CPU_SHARED_DB = CLASS(function(cls) {
 
 	// get.
 	get,
+
+	// remove.
+	remove,
 	
 	// list.
 	list,
-
-	// remove.
-	remove;
+	
+	// count.
+	count,
+	
+	// clear.
+	clear;
 
 	cls.save = save = function(params, remove) {
 		//REQUIRED: params
@@ -3639,16 +3767,6 @@ global.CPU_SHARED_DB = CLASS(function(cls) {
 			return storage[id];
 		}
 	};
-	
-	cls.list = list = function(dbName) {
-		//REQUIRED: dbName
-		
-		var
-		// storage
-		storage = storages[dbName];
-		
-		return storage === undefined ? {} : storage;
-	};
 
 	cls.remove = remove = function(params) {
 		//REQUIRED: params
@@ -3677,6 +3795,28 @@ global.CPU_SHARED_DB = CLASS(function(cls) {
 			delete removeDelays[id];
 		}
 	};
+	
+	cls.list = list = function(dbName) {
+		//REQUIRED: dbName
+		
+		var
+		// storage
+		storage = storages[dbName];
+		
+		return storage === undefined ? {} : storage;
+	};
+	
+	cls.count = count = function(dbName) {
+		//REQUIRED: dbName
+		
+		return COUNT_PROPERTIES(list(dbName));
+	};
+	
+	cls.clear = clear = function(dbName) {
+		//REQUIRED: dbName
+		
+		delete storages[dbName];
+	};
 
 	return {
 
@@ -3690,11 +3830,20 @@ global.CPU_SHARED_DB = CLASS(function(cls) {
 			// update.
 			update,
 			
-			// list.
-			list,
+			// get.
+			get,
 
 			// remove.
-			remove;
+			remove,
+			
+			// list.
+			list,
+			
+			// count.
+			count,
+			
+			// clear.
+			clear;
 
 			self.save = save = function(params) {
 				//REQUIRED: params
@@ -3778,15 +3927,11 @@ global.CPU_SHARED_DB = CLASS(function(cls) {
 
 			self.get = get = function(id) {
 				//REQUIRED: id
-
+				
 				return cls.get({
 					dbName : dbName,
 					id : id
 				});
-			};
-			
-			self.list = list = function() {
-				return cls.list(dbName);
 			};
 
 			self.remove = remove = function(id) {
@@ -3805,6 +3950,27 @@ global.CPU_SHARED_DB = CLASS(function(cls) {
 							dbName : dbName,
 							id : id
 						}
+					});
+				}
+			};
+			
+			self.list = list = function() {
+				return cls.list(dbName);
+			};
+			
+			self.count = count = function() {
+				return cls.count(dbName);
+			};
+			
+			self.clear = clear = function() {
+				
+				cls.clear(dbName);
+
+				if (CPU_CLUSTERING.broadcast !== undefined) {
+
+					CPU_CLUSTERING.broadcast({
+						methodName : '__CPU_SHARED_DB_CLEAR',
+						data : dbName
 					});
 				}
 			};
@@ -3832,22 +3998,32 @@ FOR_BOX(function(box) {
 
 			// get.
 			get,
+
+			// remove.
+			remove,
 			
 			// list.
 			list,
-
-			// remove.
-			remove;
+			
+			// count.
+			count,
+			
+			// clear.
+			clear;
 
 			self.save = save = sharedDB.save;
 
 			self.update = update = sharedDB.update;
 
 			self.get = get = sharedDB.get;
+
+			self.remove = remove = sharedDB.remove;
 			
 			self.list = list = sharedDB.list;
 
-			self.remove = remove = sharedDB.remove;
+			self.count = count = sharedDB.count;
+
+			self.clear = clear = sharedDB.clear;
 		}
 	});
 });
@@ -3870,12 +4046,18 @@ global.CPU_SHARED_STORE = CLASS(function(cls) {
 
 	// get.
 	get,
+
+	// remove.
+	remove,
 	
 	// list.
 	list,
-
-	// remove.
-	remove;
+	
+	// count.
+	count,
+	
+	// clear.
+	clear;
 
 	cls.save = save = function(params, remove) {
 		//REQUIRED: params
@@ -3943,16 +4125,6 @@ global.CPU_SHARED_STORE = CLASS(function(cls) {
 			return storage[name];
 		}
 	};
-	
-	cls.list = list = function(storeName) {
-		//REQUIRED: storeName
-		
-		var
-		// storage
-		storage = storages[storeName];
-		
-		return storage === undefined ? {} : storage;
-	};
 
 	cls.remove = remove = function(params) {
 		//REQUIRED: params
@@ -3981,6 +4153,28 @@ global.CPU_SHARED_STORE = CLASS(function(cls) {
 			delete removeDelays[name];
 		}
 	};
+	
+	cls.list = list = function(storeName) {
+		//REQUIRED: storeName
+		
+		var
+		// storage
+		storage = storages[storeName];
+		
+		return storage === undefined ? {} : storage;
+	};
+	
+	cls.count = count = function(dbName) {
+		//REQUIRED: dbName
+		
+		return COUNT_PROPERTIES(list(dbName));
+	};
+	
+	cls.clear = clear = function(storeName) {
+		//REQUIRED: storeName
+		
+		delete storages[storeName];
+	};
 
 	return {
 
@@ -3993,12 +4187,18 @@ global.CPU_SHARED_STORE = CLASS(function(cls) {
 
 			// get.
 			get,
+
+			// remove.
+			remove,
 			
 			// list.
 			list,
-
-			// remove.
-			remove;
+			
+			// count.
+			count,
+			
+			// clear.
+			clear;
 
 			self.save = save = function(params) {
 				//REQUIRED: params
@@ -4040,15 +4240,11 @@ global.CPU_SHARED_STORE = CLASS(function(cls) {
 
 			self.get = get = function(name) {
 				//REQUIRED: name
-
+				
 				return cls.get({
 					storeName : storeName,
 					name : name
 				});
-			};
-			
-			self.list = list = function() {
-				return cls.list(storeName);
 			};
 
 			self.remove = remove = function(name) {
@@ -4067,6 +4263,27 @@ global.CPU_SHARED_STORE = CLASS(function(cls) {
 							storeName : storeName,
 							name : name
 						}
+					});
+				}
+			};
+			
+			self.list = list = function() {
+				return cls.list(storeName);
+			};
+			
+			self.count = count = function() {
+				return cls.count(storeName);
+			};
+
+			self.clear = clear = function() {
+
+				cls.clear(storeName);
+
+				if (CPU_CLUSTERING.broadcast !== undefined) {
+
+					CPU_CLUSTERING.broadcast({
+						methodName : '__CPU_SHARED_STORE_CLEAR',
+						data : storeName
 					});
 				}
 			};
@@ -4091,20 +4308,30 @@ FOR_BOX(function(box) {
 
 			// get.
 			get,
+
+			// remove.
+			remove,
 			
 			// list.
 			list,
-
-			// remove.
-			remove;
+			
+			// count.
+			count,
+			
+			// clear.
+			clear;
 
 			self.save = save = sharedStore.save;
 
 			self.get = get = sharedStore.get;
-			
-			self.list = list = sharedStore.list;
 
 			self.remove = remove = sharedStore.remove;
+			
+			self.list = list = sharedStore.list;
+			
+			self.count = count = sharedStore.count;
+			
+			self.clear = clear = sharedStore.clear;
 		}
 	});
 });
@@ -4293,6 +4520,20 @@ global.SERVER_CLUSTERING = METHOD(function(m) {
 				}
 			});
 
+			// clear shared store.
+			on('__SHARED_STORE_CLEAR', function(storeName) {
+
+				SHARED_STORE.clear(storeName);
+
+				if (CPU_CLUSTERING.broadcast !== undefined) {
+
+					CPU_CLUSTERING.broadcast({
+						methodName : '__SHARED_STORE_CLEAR',
+						data : storeName
+					});
+				}
+			});
+
 			// save shared data.
 			on('__SHARED_DB_SAVE', function(params) {
 
@@ -4331,6 +4572,20 @@ global.SERVER_CLUSTERING = METHOD(function(m) {
 					CPU_CLUSTERING.broadcast({
 						methodName : '__SHARED_DB_REMOVE',
 						data : params
+					});
+				}
+			});
+
+			// clear shared db.
+			on('__SHARED_DB_CLEAR', function(dbName) {
+
+				SHARED_DB.clear(dbName);
+
+				if (CPU_CLUSTERING.broadcast !== undefined) {
+
+					CPU_CLUSTERING.broadcast({
+						methodName : '__SHARED_DB_CLEAR',
+						data : dbName
 					});
 				}
 			});
@@ -4379,12 +4634,18 @@ global.SHARED_DB = CLASS(function(cls) {
 
 	// get.
 	get,
+
+	// remove.
+	remove,
 	
 	// list.
 	list,
-
-	// remove.
-	remove;
+	
+	// count.
+	count,
+	
+	// clear.
+	clear;
 
 	cls.save = save = function(params, remove) {
 		//REQUIRED: params
@@ -4609,16 +4870,6 @@ global.SHARED_DB = CLASS(function(cls) {
 			return storage[id];
 		}
 	};
-	
-	cls.list = list = function(dbName) {
-		//REQUIRED: dbName
-		
-		var
-		// storage
-		storage = storages[dbName];
-		
-		return storage === undefined ? {} : storage;
-	};
 
 	cls.remove = remove = function(params) {
 		//REQUIRED: params
@@ -4647,6 +4898,28 @@ global.SHARED_DB = CLASS(function(cls) {
 			delete removeDelays[id];
 		}
 	};
+	
+	cls.list = list = function(dbName) {
+		//REQUIRED: dbName
+		
+		var
+		// storage
+		storage = storages[dbName];
+		
+		return storage === undefined ? {} : storage;
+	};
+	
+	cls.count = count = function(dbName) {
+		//REQUIRED: dbName
+		
+		return COUNT_PROPERTIES(list(dbName));
+	};
+	
+	cls.clear = clear = function(dbName) {
+		//REQUIRED: dbName
+		
+		delete storages[dbName];
+	};
 
 	return {
 
@@ -4662,12 +4935,18 @@ global.SHARED_DB = CLASS(function(cls) {
 
 			// get.
 			get,
+
+			// remove.
+			remove,
 			
 			// list.
 			list,
-
-			// remove.
-			remove;
+			
+			// count.
+			count,
+			
+			// clear.
+			clear;
 
 			self.save = save = function(params) {
 				//REQUIRED: params
@@ -4775,15 +5054,11 @@ global.SHARED_DB = CLASS(function(cls) {
 
 			self.get = get = function(id) {
 				//REQUIRED: id
-
+				
 				return cls.get({
 					dbName : dbName,
 					id : id
 				});
-			};
-			
-			self.list = list = function() {
-				return cls.list(dbName);
 			};
 
 			self.remove = remove = function(id) {
@@ -4816,6 +5091,35 @@ global.SHARED_DB = CLASS(function(cls) {
 					});
 				}
 			};
+			
+			self.list = list = function() {
+				return cls.list(dbName);
+			};
+			
+			self.count = count = function() {
+				return cls.count(dbName);
+			};
+			
+			self.clear = clear = function() {
+				
+				cls.clear(dbName);
+
+				if (CPU_CLUSTERING.broadcast !== undefined) {
+
+					CPU_CLUSTERING.broadcast({
+						methodName : '__SHARED_DB_CLEAR',
+						data : dbName
+					});
+				}
+
+				if (SERVER_CLUSTERING.broadcast !== undefined) {
+
+					SERVER_CLUSTERING.broadcast({
+						methodName : '__SHARED_DB_CLEAR',
+						data : dbName
+					});
+				}
+			};
 		}
 	};
 });
@@ -4840,22 +5144,32 @@ FOR_BOX(function(box) {
 
 			// get.
 			get,
+
+			// remove.
+			remove,
 			
 			// list.
 			list,
-
-			// remove.
-			remove;
+			
+			// count.
+			count,
+			
+			// clear.
+			clear;
 
 			self.save = save = sharedDB.save;
 
 			self.update = update = sharedDB.update;
 
 			self.get = get = sharedDB.get;
+
+			self.remove = remove = sharedDB.remove;
 			
 			self.list = list = sharedDB.list;
 
-			self.remove = remove = sharedDB.remove;
+			self.count = count = sharedDB.count;
+
+			self.clear = clear = sharedDB.clear;
 		}
 	});
 });
@@ -4878,12 +5192,18 @@ global.SHARED_STORE = CLASS(function(cls) {
 
 	// get.
 	get,
+
+	// remove.
+	remove,
 	
 	// list.
 	list,
-
-	// remove.
-	remove;
+	
+	// count.
+	count,
+	
+	// clear.
+	clear;
 
 	cls.save = save = function(params, remove) {
 		//REQUIRED: params
@@ -4951,16 +5271,6 @@ global.SHARED_STORE = CLASS(function(cls) {
 			return storage[name];
 		}
 	};
-	
-	cls.list = list = function(storeName) {
-		//REQUIRED: storeName
-		
-		var
-		// storage
-		storage = storages[storeName];
-		
-		return storage === undefined ? {} : storage;
-	};
 
 	cls.remove = remove = function(params) {
 		//REQUIRED: params
@@ -4989,6 +5299,28 @@ global.SHARED_STORE = CLASS(function(cls) {
 			delete removeDelays[name];
 		}
 	};
+	
+	cls.list = list = function(storeName) {
+		//REQUIRED: storeName
+		
+		var
+		// storage
+		storage = storages[storeName];
+		
+		return storage === undefined ? {} : storage;
+	};
+	
+	cls.count = count = function(dbName) {
+		//REQUIRED: dbName
+		
+		return COUNT_PROPERTIES(list(dbName));
+	};
+	
+	cls.clear = clear = function(storeName) {
+		//REQUIRED: storeName
+		
+		delete storages[storeName];
+	};
 
 	return {
 
@@ -5001,12 +5333,18 @@ global.SHARED_STORE = CLASS(function(cls) {
 
 			// get.
 			get,
+
+			// remove.
+			remove,
 			
 			// list.
 			list,
-
-			// remove.
-			remove;
+			
+			// count.
+			count,
+			
+			// clear.
+			clear;
 
 			self.save = save = function(params) {
 				//REQUIRED: params
@@ -5057,18 +5395,14 @@ global.SHARED_STORE = CLASS(function(cls) {
 					});
 				}
 			};
-
+			
 			self.get = get = function(name) {
 				//REQUIRED: name
-
+				
 				return cls.get({
 					storeName : storeName,
 					name : name
 				});
-			};
-			
-			self.list = list = function() {
-				return cls.list(storeName);
 			};
 
 			self.remove = remove = function(name) {
@@ -5101,6 +5435,35 @@ global.SHARED_STORE = CLASS(function(cls) {
 					});
 				}
 			};
+			
+			self.list = list = function() {
+				return cls.list(storeName);
+			};
+			
+			self.count = count = function() {
+				return cls.count(storeName);
+			};
+
+			self.clear = clear = function() {
+				
+				cls.clear(storeName);
+
+				if (CPU_CLUSTERING.broadcast !== undefined) {
+
+					CPU_CLUSTERING.broadcast({
+						methodName : '__SHARED_STORE_CLEAR',
+						data : storeName
+					});
+				}
+
+				if (SERVER_CLUSTERING.broadcast !== undefined) {
+
+					SERVER_CLUSTERING.broadcast({
+						methodName : '__SHARED_STORE_CLEAR',
+						data : storeName
+					});
+				}
+			};
 		}
 	};
 });
@@ -5122,20 +5485,30 @@ FOR_BOX(function(box) {
 
 			// get.
 			get,
+
+			// remove.
+			remove,
 			
 			// list.
 			list,
-
-			// remove.
-			remove;
+			
+			// count.
+			count,
+			
+			// clear.
+			clear;
 
 			self.save = save = sharedStore.save;
 
 			self.get = get = sharedStore.get;
-			
-			self.list = list = sharedStore.list;
 
 			self.remove = remove = sharedStore.remove;
+			
+			self.list = list = sharedStore.list;
+			
+			self.count = count = sharedStore.count;
+			
+			self.clear = clear = sharedStore.clear;
 		}
 	});
 });
@@ -5285,7 +5658,7 @@ global.CONNECT_TO_SOCKET_SERVER = METHOD({
 			send = function(params, callback) {
 				//REQUIRED: params
 				//REQUIRED: params.methodName
-				//REQUIRED: params.data
+				//OPTIONAL: params.data
 				//OPTIONAL: callback
 				
 				var
@@ -6941,6 +7314,214 @@ global.REMOVE_FILE = METHOD(function() {
 });
 
 /*
+ * remove folder.
+ */
+global.REMOVE_FOLDER = METHOD(function() {
+	'use strict';
+
+	var
+	//IMPORT: fs
+	fs = require('fs');
+
+	return {
+
+		run : function(pathOrParams, callbackOrHandlers) {
+			//REQUIRED: pathOrParams
+			//REQUIRED: pathOrParams.path
+			//OPTIONAL: pathOrParams.isSync
+			//REQUIRED: callbackOrHandlers
+			//REQUIRED: callbackOrHandlers.success
+			//OPTIONAL: callbackOrHandlers.notExists
+			//OPTIONAL: callbackOrHandlers.error
+
+			var
+			// path
+			path,
+
+			// is sync
+			isSync,
+
+			// callback.
+			callback,
+
+			// not eixsts handler.
+			notExistsHandler,
+
+			// error handler.
+			errorHandler;
+
+			// init params.
+			if (CHECK_IS_DATA(pathOrParams) !== true) {
+				path = pathOrParams;
+			} else {
+				path = pathOrParams.path;
+				isSync = pathOrParams.isSync;
+			}
+
+			if (CHECK_IS_DATA(callbackOrHandlers) !== true) {
+				callback = callbackOrHandlers;
+			} else {
+				callback = callbackOrHandlers.success;
+				notExistsHandler = callbackOrHandlers.notExists;
+				errorHandler = callbackOrHandlers.error;
+			}
+
+			// when normal mode
+			if (isSync !== true) {
+
+				CHECK_IS_EXISTS_FILE(path, function(isExists) {
+
+					if (isExists === true) {
+						
+						NEXT([
+						function(next) {
+							
+							FIND_FILE_NAMES(path, function(fileNames) {
+								
+								PARALLEL(fileNames, [
+								function(fileName, done) {
+									REMOVE_FILE(path + '/' + fileName, done);
+								},
+								
+								function() {
+									next();
+								}]);
+							});
+						},
+						
+						function(next) {
+							return function() {
+								
+								FIND_FOLDER_NAMES(path, function(folderNames) {
+									
+									PARALLEL(folderNames, [
+									function(folderName, done) {
+										REMOVE_FOLDER(path + '/' + folderName, done);
+									},
+									
+									function() {
+										next();
+									}]);
+								});
+							};
+						},
+						
+						function(next) {
+							return function() {
+								
+								fs.rmdir(path, function(error) {
+		
+									var
+									// error msg
+									errorMsg;
+		
+									if (error !== TO_DELETE) {
+		
+										errorMsg = error.toString();
+		
+										if (errorHandler !== undefined) {
+											errorHandler(errorMsg);
+										} else {
+											console.log(CONSOLE_RED('[UJS-REMOVE_FOLDER] ERROR: ' + errorMsg));
+										}
+		
+									} else {
+		
+										if (callback !== undefined) {
+											callback();
+										}
+									}
+								});
+							};
+						}]);
+
+					} else {
+
+						if (notExistsHandler !== undefined) {
+							notExistsHandler(path);
+						} else {
+							console.log(CONSOLE_YELLOW('[UJS-REMOVE_FOLDER] NOT EXISTS! <' + path + '>'));
+						}
+					}
+				});
+			}
+
+			// when sync mode
+			else {
+
+				RUN(function() {
+
+					var
+					// error msg
+					errorMsg;
+
+					try {
+
+						if (CHECK_IS_EXISTS_FILE({
+							path : path,
+							isSync : true
+						}) === true) {
+							
+							FIND_FILE_NAMES({
+								path : path,
+								isSync : true
+							}, EACH(function(fileName) {
+								
+								REMOVE_FILE({
+									path : path + '/' + fileName,
+									isSync : true
+								});
+							}));
+							
+							FIND_FOLDER_NAMES({
+								path : path,
+								isSync : true
+							}, EACH(function(folderName) {
+								
+								REMOVE_FOLDER({
+									path : path + '/' + folderName,
+									isSync : true
+								});
+							}));
+							
+							fs.rmdirSync(path);
+
+						} else {
+
+							if (notExistsHandler !== undefined) {
+								notExistsHandler(path);
+							} else {
+								console.log(CONSOLE_YELLOW('[UJS-REMOVE_FOLDER] NOT EXISTS! <' + path + '>'));
+							}
+
+							// do not run callback.
+							return;
+						}
+
+					} catch(error) {
+
+						if (error !== TO_DELETE) {
+
+							errorMsg = error.toString();
+
+							if (errorHandler !== undefined) {
+								errorHandler(errorMsg);
+							} else {
+								console.log(CONSOLE_RED('[UJS-REMOVE_FOLDER] ERROR: ' + errorMsg));
+							}
+						}
+					}
+
+					if (callback !== undefined) {
+						callback();
+					}
+				});
+			}
+		}
+	};
+});
+
+/*
  * write file.
  */
 global.WRITE_FILE = METHOD(function() {
@@ -7898,6 +8479,9 @@ global.SOCKET_SERVER = METHOD({
 
 			// received string
 			receivedStr = '',
+			
+			// client info
+			clientInfo,
 
 			// on.
 			on,
@@ -8000,8 +8584,11 @@ global.SOCKET_SERVER = METHOD({
 			connectionListener(
 
 			// client info
-			{
-				ip : conn.remoteAddress
+			clientInfo = {
+				
+				ip : conn.remoteAddress,
+				
+				connectTime : new Date()
 			},
 
 			// on.
@@ -8077,6 +8664,8 @@ global.SOCKET_SERVER = METHOD({
 				}
 
 				sendKey += 1;
+				
+				clientInfo.lastReceiveTime = new Date();
 			},
 
 			// disconnect.
@@ -8175,6 +8764,12 @@ global.WEB_SERVER = CLASS(function(cls) {
 	var
 	//IMPORT: http
 	http = require('http'),
+	
+	//IMPORT: https
+	https = require('https'),
+	
+	//IMPORT: fs
+	fs = require('fs'),
 
 	//IMPORT: querystring
 	querystring = require('querystring'),
@@ -8592,4 +9187,75 @@ global.CREATE_COOKIE_STR_ARRAY = CREATE_COOKIE_STR_ARRAY = METHOD({
 
 		return strs;
 	}
+});
+
+/**
+ * get cpu usages.
+ */
+global.CPU_USAGES = METHOD(function(m) {
+	
+	var
+	//IMPORT: os
+	os = require('os');
+	
+	return {
+		
+		run : function() {
+			'use strict';
+			
+			var
+			// cpu infos
+			cpuInfos = os.cpus(),
+			
+			// usages
+			usages = [];
+			
+			EACH(cpuInfos, function(cpuInfo) {
+				
+				var
+				// total
+				total = 0,
+				
+				// idle time
+				idleTime;
+				
+				EACH(cpuInfo.times, function(time, type) {
+					total += time;
+					if (type === 'idle') {
+						idleTime = time;
+					}
+				});
+				
+				usages.push((1 - idleTime / total) * 100);
+			});
+			
+			return usages;
+		}
+	};
+});
+
+/**
+ * get memory usage.
+ */
+global.MEMORY_USAGE = METHOD(function(m) {
+	
+	var
+	//IMPORT: os
+	os = require('os'),
+	
+	// total memory
+	totalMemory = os.totalmem();
+	
+	return {
+		
+		run : function() {
+			'use strict';
+			
+			var
+			// free memory
+			freeMemory = os.freemem();
+			
+			return (1 - freeMemory / totalMemory) * 100;
+		}
+	};
 });

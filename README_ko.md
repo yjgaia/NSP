@@ -403,7 +403,7 @@ HTML `form` 등에서 넘어온 데이터를 갖고 있습니다.
 ```
 
 ## 라이센스
-[MIT](../../LICENSE)
+[MIT](LICENSE)
 
 ## 작성자
 [Young Jae Sim](https://github.com/Hanul)

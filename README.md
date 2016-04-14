@@ -420,7 +420,7 @@ Install [php.js](https://github.com/kvz/phpjs) and use it together with NSP.
 ```
 
 ## License
-[MIT](../../LICENSE)
+[MIT](LICENSE)
 
 ## Author
 [Young Jae Sim](https://github.com/Hanul)

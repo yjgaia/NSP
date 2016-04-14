@@ -38,6 +38,7 @@ global.UPLOAD_REQUEST = METHOD(function(m) {
 			//REQUIRED: params.uploadPath
 			//REQUIRED: callbackOrHandlers
 			//REQUIRED: callbackOrHandlers.success
+			//REQUIRED: callbackOrHandlers.progress
 			//OPTIONAL: callbackOrHandlers.error
 			//OPTIONAL: callbackOrHandlers.overFileSize
 
@@ -50,6 +51,9 @@ global.UPLOAD_REQUEST = METHOD(function(m) {
 
 			// callback
 			callback,
+			
+			// progress handler
+			progressHandler,
 
 			// error handler
 			errorHandler,
@@ -61,6 +65,7 @@ global.UPLOAD_REQUEST = METHOD(function(m) {
 				callback = callbackOrHandlers;
 			} else {
 				callback = callbackOrHandlers.success;
+				progressHandler = callbackOrHandlers.progress;
 				errorHandler = callbackOrHandlers.error;
 				overFileSizeHandler = callbackOrHandlers.overFileSize;
 			}
@@ -95,7 +100,13 @@ global.UPLOAD_REQUEST = METHOD(function(m) {
 
 					form.uploadDir = uploadPath;
 
-					form.on('field', function(fieldName, value) {
+					form.on('progress', function(bytesRecieved, bytesExpected) {
+						
+						if (progressHandler !== undefined) {
+							progressHandler(bytesRecieved, bytesExpected);
+						}
+						
+					}).on('field', function(fieldName, value) {
 
 						fieldData[fieldName] = value;
 
