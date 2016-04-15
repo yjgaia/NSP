@@ -241,6 +241,7 @@ end
 <%
 	// 쿠키를 지정합니다.
 	cookie('sample-cookie', 'this is example.');
+	cookie('sample-cookie', '', 0); // 쿠키 제거
 	cookie('sample-cookie', 'this is example.', 10); // 10초 후 삭제
 	cookie('sample-cookie', 'this is example.', 10, '/'); // path를 /로 지정
 	cookie('sample-cookie', 'this is example.', 10, '/', 'www.example'); // domain을 www.example로 지정

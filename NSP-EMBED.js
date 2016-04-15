@@ -59,6 +59,9 @@ __parseFuncStr = function __parse(__requestInfo, __sourcePath, __source, __respo
 	// cookie info
 	__cookieInfo = __requestInfo.cookies,
 	
+	// new cookie info
+	__newCookieInfo = {},
+	
 	// ohters
 	__i, __ch, __line = 1, __column = 1, __lastLine = 1, __lastColumn = 1;
 	
@@ -106,7 +109,7 @@ __parseFuncStr = function __parse(__requestInfo, __sourcePath, __source, __respo
 		
 		else {
 			
-			__cookieInfo[name] = {
+			__newCookieInfo[name] = __cookieInfo[name] = {
 				value : value,
 				expireSeconds : expireSeconds,
 				path : path,
@@ -773,6 +776,7 @@ __resumeFuncStr = function resume() {
 		__response({
 			statusCode : 302,
 			headers : {
+				'Set-Cookie' : CREATE_COOKIE_STR_ARRAY(__newCookieInfo),
 				'Location' : __redirectURL
 			}
 		});
@@ -781,7 +785,7 @@ __resumeFuncStr = function resume() {
 	else {
 		__response({
 			headers : {
-				'Set-Cookie' : CREATE_COOKIE_STR_ARRAY(__cookieInfo)
+				'Set-Cookie' : CREATE_COOKIE_STR_ARRAY(__newCookieInfo)
 			},
 			content : __html,
 			contentType : 'text/html'

@@ -253,6 +253,7 @@ Saves or loads a cookie.
 <%
 	// Saves a cookie
 	cookie('sample-cookie', 'this is example.');
+	cookie('sample-cookie', '', 0); // Removes a cookie
 	cookie('sample-cookie', 'this is example.', 10); // Expired in 10 seconds
 	cookie('sample-cookie', 'this is example.', 10, '/'); // Sets path to '/'
 	cookie('sample-cookie', 'this is example.', 10, '/', 'www.example'); // Sets domain to www.example
