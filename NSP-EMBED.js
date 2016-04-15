@@ -216,6 +216,11 @@ __resumeFuncStr = function resume() {
 					}
 					resume();
 				}
+				
+				else {
+					print(__buffer.toString());
+					resume();
+				}
 			}
 		});
 	}
@@ -388,7 +393,6 @@ __resumeFuncStr = function resume() {
 			else if (__ch === '?' && __source[__i - 1] === '<') {
 				
 				if (
-				__isIgnored !== true &&
 				(__repeatInfo === undefined || __repeatInfo.key !== undefined) &&
 				__startCodeIndex === -1 &&
 				__startPstrIndex === -1 &&
@@ -396,20 +400,24 @@ __resumeFuncStr = function resume() {
 				__startCondIndex === -1 &&
 				__startEachIndex === -1) {
 					
-					if (__i > 2 && __source[__i - 3] === '\\' && __source[__i - 2] === '\\') {
-						print(__source.substring(__lastIndex, __i - 2));
-						__startCondIndex = __i + 1;
-					} else if (__i > 1 && __source[__i - 2] === '\\') {
-						// Node.js용 코드 아님, 무시
-						print(__source.substring(__lastIndex, __i - 2));
-						print(__source.substring(__i - 1, __i + 1));
+					if (__isIgnored !== true) {
+						if (__i > 2 && __source[__i - 3] === '\\' && __source[__i - 2] === '\\') {
+							print(__source.substring(__lastIndex, __i - 2));
+							__startCondIndex = __i + 1;
+						} else if (__i > 1 && __source[__i - 2] === '\\') {
+							// Node.js용 코드 아님, 무시
+							print(__source.substring(__lastIndex, __i - 2));
+							print(__source.substring(__i - 1, __i + 1));
+						} else {
+							print(__source.substring(__lastIndex, __i - 1));
+							__startCondIndex = __i + 1;
+						}
+						__lastIndex = __i + 1;
+						__lastLine = __line;
+						__lastColumn = __column - 1;
 					} else {
-						print(__source.substring(__lastIndex, __i - 1));
-						__startCondIndex = __i + 1;
+						__isIgnoreStack.push(true);
 					}
-					__lastIndex = __i + 1;
-					__lastLine = __line;
-					__lastColumn = __column - 1;
 				}
 			}
 			
