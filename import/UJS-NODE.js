@@ -5940,14 +5940,22 @@ global.CHECK_IS_FOLDER = METHOD(function() {
 			//REQUIRED: pathOrParams
 			//REQUIRED: pathOrParams.path
 			//OPTIONAL: pathOrParams.isSync
-			//OPTIONAL: callback
+			//OPTIONAL: callbackOrHandlers
+			//OPTIONAL: callbackOrHandlers.success
+			//OPTIONAL: callbackOrHandlers.error
 
 			var
 			// path
 			path,
 
 			// is sync
-			isSync;
+			isSync,
+			
+			// callback.
+			callback,
+
+			// error handler.
+			errorHandler;
 
 			// init params.
 			if (CHECK_IS_DATA(pathOrParams) !== true) {
@@ -5955,6 +5963,15 @@ global.CHECK_IS_FOLDER = METHOD(function() {
 			} else {
 				path = pathOrParams.path;
 				isSync = pathOrParams.isSync;
+			}
+			
+			if (callbackOrHandlers !== undefined) {
+				if (CHECK_IS_DATA(callbackOrHandlers) !== true) {
+					callback = callbackOrHandlers;
+				} else {
+					callback = callbackOrHandlers.success;
+					errorHandler = callbackOrHandlers.error;
+				}
 			}
 
 			// when normal mode
@@ -8936,6 +8953,8 @@ global.WEB_SERVER = CLASS(function(cls) {
 						nativeReq.on('data', function(data) {
 							if (paramStr === undefined) {
 								paramStr = '';
+							} else {
+								paramStr += '&';
 							}
 							paramStr += data;
 						});
