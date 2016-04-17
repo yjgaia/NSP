@@ -8227,9 +8227,12 @@ global.RESOURCE_SERVER = CLASS(function(cls) {
 
 			// web server
 			webServer,
-
+			
 			// get native http server.
-			getNativeHTTPServer;
+			getNativeHTTPServer,
+			
+			// get native https server.
+			getNativeHTTPSServer;
 
 			// init params.
 			if (CHECK_IS_DATA(portOrParams) !== true) {
@@ -8465,6 +8468,10 @@ global.RESOURCE_SERVER = CLASS(function(cls) {
 
 			self.getNativeHTTPServer = getNativeHTTPServer = function() {
 				return webServer.getNativeHTTPServer();
+			};
+			
+			self.getNativeHTTPSServer = getNativeHTTSPServer = function() {
+				return webServer.getNativeHTTPSServer();
 			};
 		}
 	};
@@ -8878,14 +8885,20 @@ global.WEB_SERVER = CLASS(function(cls) {
 			// no parsing params uri
 			noParsingParamsURI,
 
-			// server
+			// native http server
 			nativeHTTPServer,
+
+			// native https server
+			nativeHTTPSServer,
 
 			// serve.
 			serve,
 
 			// get native http server.
-			getNativeHTTPServer;
+			getNativeHTTPServer,
+
+			// get native https server.
+			getNativeHTTPSServer;
 
 			// init params.
 			if (CHECK_IS_DATA(portOrParams) !== true) {
@@ -9131,7 +9144,7 @@ global.WEB_SERVER = CLASS(function(cls) {
 			// init secured sever.
 			if (securedPort !== undefined) {
 
-				nativeHTTPServer = https.createServer({
+				nativeHTTPSServer = https.createServer({
 					key : fs.readFileSync(securedKeyFilePath),
 					cert : fs.readFileSync(securedCertFilePath)
 				}, serve).listen(securedPort);
@@ -9141,6 +9154,10 @@ global.WEB_SERVER = CLASS(function(cls) {
 
 			self.getNativeHTTPServer = getNativeHTTPServer = function() {
 				return nativeHTTPServer;
+			};
+			
+			self.getNativeHTTPSServer = getNativeHTTPSServer = function() {
+				return nativeHTTPSServer;
 			};
 		}
 	};

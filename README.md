@@ -396,10 +396,10 @@ Holds requested sub URI, which is resulted by excluding `restURI` from the reque
 If `restURI` is `sample` and the request URI is `sample/1/edit`, `self.subURI` holds `1/edit`.
 
 ## Samples
-- https://github.com/Hanul/nsp-sample-restful
-- https://github.com/Hanul/nsp-sample-bbs
-- https://github.com/Hanul/nsp-sample-bbs-mysql
-- https://github.com/Hanul/nsp-sample-bbs-angularjs
+- RESTful - https://github.com/Hanul/nsp-sample-restful
+- BBS (+ MongoDB) - https://github.com/Hanul/nsp-sample-bbs
+- BBS (+ MySQL) - https://github.com/Hanul/nsp-sample-bbs-mysql
+- BBS (+ AngularJS) - https://github.com/Hanul/nsp-sample-bbs-angularjs
 
 ## Etc.
 ### Are you familiar with PHP?
