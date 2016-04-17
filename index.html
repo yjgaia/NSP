@@ -1,1 +1,529 @@
-Node Server Pages
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>NSP by Hanul</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">NSP</h1>
+      <h2 class="project-tagline">Node Server Pages</h2>
+      <a href="https://github.com/Hanul/NSP" class="btn">View on GitHub</a>
+      <a href="https://github.com/Hanul/NSP/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/Hanul/NSP/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h1>
+<a id="node-server-pages" class="anchor" href="#node-server-pages" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Node Server Pages</h1>
+
+<p>Node Server Pages is a server-side script to create dynamic web pages based on Node.js.</p>
+
+<p><strong><em>Node Server Pages is NOT a template engine!</em></strong></p>
+
+<ul>
+<li><a href="README_ko.md">한국어 문서</a></li>
+</ul>
+
+<h2>
+<a id="features" class="anchor" href="#features" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Features</h2>
+
+<ul>
+<li>You can instantly start developing server programming with basic knowledge of JavaScript.</li>
+<li>You can use all the <a href="https://nodejs.org/api/">APIs of Node.js</a>.</li>
+<li>You can use hundreds of <a href="https://www.npmjs.com/">npm modules</a> out-of-box.</li>
+<li>You can use <a href="https://github.com/Hanul/UJS/blob/master/DOC/UJS-COMMON.md">COMMON</a> and <a href="https://github.com/Hanul/UJS/blob/master/DOC/UJS-NODE.md">NODE</a> of <a href="https://github.com/Hanul/UJS">UJS</a>.</li>
+<li>Pages change instantly once you modify <code>.nsp</code> pages.</li>
+<li>Built-in support for multi-core CPUs.</li>
+</ul>
+
+<h2>
+<a id="install" class="anchor" href="#install" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Install</h2>
+
+<ol>
+<li>Copy <code>NSP.js</code>, <code>import</code> folder and <code>config.json</code> to wherever you want.</li>
+<li>Modify <code>config.json</code>.</li>
+</ol>
+
+<div class="highlight highlight-source-json"><pre>{
+    <span class="pl-s"><span class="pl-pds">"</span>port<span class="pl-pds">"</span></span>: <span class="pl-c1">8080</span>,
+    <span class="pl-s"><span class="pl-pds">"</span>isDevMode<span class="pl-pds">"</span></span>: <span class="pl-c1">true</span>,
+    <span class="pl-s"><span class="pl-pds">"</span>rootPath<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>./<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>uploadURI<span class="pl-pds">"</span></span>: [<span class="pl-s"><span class="pl-pds">"</span>examples/upload_result.nsp<span class="pl-pds">"</span></span>],
+    <span class="pl-s"><span class="pl-pds">"</span>restURI<span class="pl-pds">"</span></span>: [<span class="pl-s"><span class="pl-pds">"</span>examples/restful<span class="pl-pds">"</span></span>],
+    <span class="pl-s"><span class="pl-pds">"</span>isNotUsingDCBN<span class="pl-pds">"</span></span> : <span class="pl-c1">false</span>
+}</pre></div>
+
+<ul>
+<li>
+<code>port</code> is the port of the web server.</li>
+<li>
+<code>idDevMode</code> <code>true</code> means development mode. In development mode, resources such as images are not cached.</li>
+<li>
+<code>rootPath</code> specified the root path where <code>.nsp</code> files or resources are saved.</li>
+<li>
+<code>uploadURI</code> points to the <code>URI</code> to upload to.</li>
+<li>
+<code>restURI</code> specifies the root URI of <code>REST URI</code>.</li>
+<li>
+<code>isNotUsingDCBN</code> if set to <code>true</code>, {{, }} (double curly braces notation) is not allowed.</li>
+</ul>
+
+<h2>
+<a id="run" class="anchor" href="#run" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Run</h2>
+
+<pre><code>node NSP.js
+</code></pre>
+
+<p>Now type <code>http://localhost:8123</code>, <code>http://localhost:8123/index.nsp</code> or <code>http://localhost:8123/index</code> in your browser. It's okay to emit <code>.nsp</code>.</p>
+
+<h2>
+<a id="examples" class="anchor" href="#examples" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Examples</h2>
+
+<pre lang="nsp"><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+    &lt;body&gt;
+        &lt;h1&gt;My first NSP page&lt;/h1&gt;
+        &lt;%
+            var msg = 'Hello World!';
+        %&gt;
+        &lt;p&gt;{{msg}}&lt;/p&gt;
+    &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<h2>
+<a id="syntax" class="anchor" href="#syntax" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Syntax</h2>
+
+<h3>
+<a id="-" class="anchor" href="#-" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a><code>&lt;%</code>, <code>%&gt;</code>
+</h3>
+
+<p>Allows server-side JavaScript codes to be embedded.</p>
+
+<h3>
+<a id="---" class="anchor" href="#---" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a><code>{{</code>, <code>}}</code>, <code>&lt;%=</code>, <code>%&gt;</code>
+</h3>
+
+<p>Prints formatted expressions, e.g., <code>{{expression}}</code> or <code>&lt;%=expression %&gt;</code>. It is equivalent to <code>&lt;% print(expression); %&gt;</code>.</p>
+
+<h3>
+<a id="-expression---else" class="anchor" href="#-expression---else" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a><code>&lt;? expression&gt;</code>, <code>&lt;/?&gt;</code>, <code>&lt;? else&gt;</code>
+</h3>
+
+<p>Interprets statements only if <code>expression</code> is <code>true</code>. Otherwise, <code>else</code> is interpreted.</p>
+
+<pre lang="nsp"><code>&lt;%
+    var a = true, b = false;
+%&gt;
+&lt;? a&gt;
+    I'm printed.
+&lt;/?&gt;
+&lt;? b&gt;
+    I'm not printed.
+&lt;/?&gt;
+&lt;? else&gt;
+    I'm printed.
+&lt;/?&gt;
+</code></pre>
+
+<h3>
+<a id="-array---value-" class="anchor" href="#-array---value-" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a><code>&lt;~ array -&gt; value&gt;</code>, <code>&lt;/~&gt;</code>
+</h3>
+
+<p>Iterates over an array.</p>
+
+<pre lang="nsp"><code>&lt;%
+    var arr = [1, 2];
+%&gt;
+&lt;~ arr -&gt; v&gt;
+    {{v}}
+&lt;/~&gt;
+</code></pre>
+
+<h3>
+<a id="-data---value--data---name-value-" class="anchor" href="#-data---value--data---name-value-" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a><code>&lt;~ data -&gt; value&gt;</code>, <code>&lt;~ data -&gt; name: value&gt;</code>, <code>&lt;/~&gt;</code>
+</h3>
+
+<p>Iterates over an object.</p>
+
+<pre lang="nsp"><code>&lt;%
+    var data = {
+        a : 1,
+        b : 2
+    };
+%&gt;
+&lt;~ data -&gt; n: v&gt;
+    {{n}} : {{v}}
+&lt;/~&gt;
+</code></pre>
+
+<h2>
+<a id="built-in-functions" class="anchor" href="#built-in-functions" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Built-in functions</h2>
+
+<h3>
+<a id="print" class="anchor" href="#print" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>print</h3>
+
+<p>Add contents to the <code>HTML</code> document using <code>print</code> function.</p>
+
+<pre lang="nsp"><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+    &lt;body&gt;
+        &lt;h1&gt;My first NSP page&lt;/h1&gt;
+        &lt;%
+            print('Hello World!');
+        %&gt;
+    &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<p>Output</p>
+
+<div class="highlight highlight-text-html-basic"><pre>&lt;!DOCTYPE html&gt;
+&lt;<span class="pl-ent">html</span>&gt;
+    &lt;<span class="pl-ent">body</span>&gt;
+        &lt;<span class="pl-ent">h1</span>&gt;My first NSP page&lt;/<span class="pl-ent">h1</span>&gt;
+        Hello World!
+    &lt;/<span class="pl-ent">body</span>&gt;
+&lt;/<span class="pl-ent">html</span>&gt;</pre></div>
+
+<p>You can also print out JSON objects to make JSON-based APIs.</p>
+
+<pre lang="nsp"><code>&lt;%
+    var data = {
+        a : 1,
+        b : 2,
+        c : 3
+    };
+
+    print(data); // or {{data}}
+%&gt;
+</code></pre>
+
+<p>Output</p>
+
+<div class="highlight highlight-source-json"><pre>{<span class="pl-s"><span class="pl-pds">"</span>a<span class="pl-pds">"</span></span>:<span class="pl-c1">1</span>,<span class="pl-s"><span class="pl-pds">"</span>b<span class="pl-pds">"</span></span>:<span class="pl-c1">2</span>,<span class="pl-s"><span class="pl-pds">"</span>c<span class="pl-pds">"</span></span>:<span class="pl-c1">3</span>}</pre></div>
+
+<h3>
+<a id="include" class="anchor" href="#include" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>include</h3>
+
+<p>You can have another <code>.nsp</code> file in the page using <code>include</code> function.</p>
+
+<ul>
+<li>If a variable was registered using <code>var</code> keyword, it is only visible in current page.</li>
+<li>If a variable is used in multiple pages with <code>include</code>, you can use it by assigning values to <code>self</code> that are shared between pages in current request.</li>
+</ul>
+
+<p><code>include.nsp</code></p>
+
+<pre lang="nsp"><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+    &lt;body&gt;
+        &lt;% include('include/top.nsp'); %&gt;
+        &lt;h1&gt;My first NSP page&lt;/h1&gt;
+        &lt;% include('include/bottom.nsp'); %&gt;
+    &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<p><code>include/top.nsp</code></p>
+
+<pre lang="nsp"><code>&lt;%
+    var local = 'Welcome!';
+
+    self.msg = 'Hello World! ' + local;
+%&gt;
+</code></pre>
+
+<p><code>include/bottom.nsp</code></p>
+
+<pre lang="nsp"><code>&lt;p&gt;{{self.msg}}&lt;/p&gt;
+</code></pre>
+
+<p>If you give another function as the second argument of <code>include</code> function, you can set the action to be run after the inclusion finishes. Note that the inclusion doesn't start until the sentences that contain <code>include</code> function ends.</p>
+
+<pre lang="nsp"><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+    &lt;body&gt;
+        &lt;%
+            include('include/top.nsp', function() {
+                console.log(self.msg); // Hello World! Welcome!
+            });
+
+            console.log(self.msg); // undefined
+        %&gt;
+        &lt;%
+            console.log(self.msg); // Hello World! Welcome!
+        %&gt;
+    &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<p>You can also contain <code>.js</code> file to reuse one <code>.js</code> file for both server-side and client-side.</p>
+
+<pre lang="nsp"><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+    &lt;body&gt;
+        &lt;% include('include/common.js'); %&gt;
+        &lt;script src="include/common.js"&gt;&lt;/script&gt;
+    &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<h3>
+<a id="saveload" class="anchor" href="#saveload" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>save/load</h3>
+
+<p>Saves or loads a variable. Loaded/saved variables are shared everywhere in the NSP server.</p>
+
+<pre lang="nsp"><code>&lt;%
+    save('sample', 'this is an example.');
+    load('sample'); // this is an example.
+    save('sample', undefined); // Saving 'undefined' deletes the variable.
+%&gt;
+</code></pre>
+
+<h3>
+<a id="pauseresume" class="anchor" href="#pauseresume" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>pause/resume</h3>
+
+<p>Document processing is paused for a while in <code>callback</code>s with <code>pause</code> function when you deal with database, etc.</p>
+
+<pre lang="nsp"><code>start
+&lt;%
+    setTimeout(function() {
+
+        print('ok');
+
+        resume();
+    }, 1000);
+
+    pause();
+%&gt;
+end
+</code></pre>
+
+<h3>
+<a id="cookie" class="anchor" href="#cookie" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>cookie</h3>
+
+<p>Saves or loads a cookie.</p>
+
+<pre lang="nsp"><code>&lt;%
+    // Saves a cookie
+    cookie('sample-cookie', 'this is example.');
+    cookie('sample-cookie', '', 0); // Removes a cookie
+    cookie('sample-cookie', 'this is example.', 10); // Expired in 10 seconds
+    cookie('sample-cookie', 'this is example.', 10, '/'); // Sets path to '/'
+    cookie('sample-cookie', 'this is example.', 10, '/', 'www.example'); // Sets domain to www.example
+
+    // Loads a cookie
+    cookie('sample-cookie');
+%&gt;
+</code></pre>
+
+<h4>
+<a id="sessions-example-using-cookie" class="anchor" href="#sessions-example-using-cookie" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Sessions example using <code>cookie</code>
+</h4>
+
+<p>An example to implement sessions using <code>cookie</code> and <code>save/load</code>.</p>
+
+<pre lang="nsp"><code>&lt;%
+    var sessionKey = cookie('session-key');
+
+    print(sessionKey);
+
+    if (sessionKey === undefined) {
+        sessionKey = RANDOM_STR(20);
+    }
+
+    cookie('session-key', sessionKey, 3600);
+%&gt;
+&lt;p&gt;{{load(sessionKey)}}&lt;/p&gt;
+&lt;%
+    save(sessionKey, {
+        name : 'YJ Sim',
+        age : 28
+    });
+%&gt;
+</code></pre>
+
+<p>The next step could be saving sessions to a file or a database.</p>
+
+<h3>
+<a id="upload" class="anchor" href="#upload" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>upload</h3>
+
+<p>Uploads a file to the <code>URI</code> that's specified by <code>uploadURI</code> in <code>config.json</code>.</p>
+
+<pre lang="nsp"><code>&lt;%
+    var paramsList;
+
+    // Uploaded file is saved in 'upload_temp_files' folder.
+    upload('upload_temp_files', function(_paramsList) {
+        paramsList = _paramsList;
+        resume();
+    });
+
+    pause();
+%&gt;
+&lt;~ paramsList -&gt; params&gt;
+    &lt;p&gt;{{params}}&lt;/p&gt;
+&lt;/~&gt;
+</code></pre>
+
+<h3>
+<a id="redirect" class="anchor" href="#redirect" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>redirect</h3>
+
+<p>Redirects the user to the URL specified.</p>
+
+<pre lang="nsp"><code>&lt;%
+    redirect('/main.nsp');
+%&gt;
+</code></pre>
+
+<pre lang="nsp"><code>&lt;%
+    redirect('https://github.com/Hanul/NSP');
+%&gt;
+</code></pre>
+
+<h3>
+<a id="escape" class="anchor" href="#escape" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>escape</h3>
+
+<p>A statement with backslash(\) in front of <code>&lt;%</code> or <code>{{</code> is NOT interpreted. However, since two backslashes(\\) in front of <code>&lt;%</code> or <code>{{</code> is recognized as a backslash, that statement is interpreted.</p>
+
+<pre lang="nsp"><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+    &lt;body&gt;
+        &lt;h1&gt;My first NSP page&lt;/h1&gt;
+
+        \&lt;%
+            // This statement is NOT interpreted.
+            var msg = 'Hello World!';
+        %&gt;
+        \{{msg}}
+
+        \\&lt;%
+            // This statement is interpreted.
+            var msg = 'Hello World!';
+        %&gt;
+        \\{{msg}}
+    &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<h2>
+<a id="built-in-variables" class="anchor" href="#built-in-variables" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Built-in Variables</h2>
+
+<h3>
+<a id="selfheaders" class="anchor" href="#selfheaders" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>self.headers</h3>
+
+<p>Holds requested HTTP headers.</p>
+
+<h3>
+<a id="selfmethod" class="anchor" href="#selfmethod" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>self.method</h3>
+
+<p>Holds requested HTTP Method. <code>ex) GET, POST</code></p>
+
+<h3>
+<a id="selfip" class="anchor" href="#selfip" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>self.ip</h3>
+
+<p>Holds requested IP address in String form. <code>ex) 127.0.0.1</code></p>
+
+<h3>
+<a id="selfparams" class="anchor" href="#selfparams" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>self.params</h3>
+
+<p>Holds data passed from <code>form</code>s, etc.</p>
+
+<p><code>params.nsp</code></p>
+
+<pre lang="nsp"><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+    &lt;body&gt;
+        &lt;h1&gt;Params Example&lt;/h1&gt;
+        &lt;form action="params_result.nsp" method="POST"&gt;
+            First name: &lt;input type="text" name="fname"&gt;&lt;br&gt;
+            Last name: &lt;input type="text" name="lname"&gt;&lt;br&gt;
+            &lt;input type="submit" value="Submit"&gt;
+        &lt;/form&gt;
+    &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<p><code>params_result.nsp</code></p>
+
+<pre lang="nsp"><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+    &lt;body&gt;
+        &lt;h1&gt;Params Example&lt;/h1&gt;
+        &lt;p&gt;
+            {{self.params}}
+        &lt;/p&gt;
+        &lt;a href="params.nsp"&gt;Back&lt;/a&gt;
+    &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<p>If you passed <code>Sam</code> as <code>fname</code> and <code>Ple</code> as <code>lname</code>, <code>self.params</code> should be <code>{"fname":"Sam","lname":"Ple"}</code>.</p>
+
+<h3>
+<a id="selfsuburi" class="anchor" href="#selfsuburi" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>self.subURI</h3>
+
+<p>Holds requested sub URI, which is resulted by excluding <code>restURI</code> from the request full URI.
+If <code>restURI</code> is <code>sample</code> and the request URI is <code>sample/1/edit</code>, <code>self.subURI</code> holds <code>1/edit</code>.</p>
+
+<h2>
+<a id="samples" class="anchor" href="#samples" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Samples</h2>
+
+<ul>
+<li><a href="https://github.com/Hanul/nsp-sample-restful">https://github.com/Hanul/nsp-sample-restful</a></li>
+<li><a href="https://github.com/Hanul/nsp-sample-bbs">https://github.com/Hanul/nsp-sample-bbs</a></li>
+<li><a href="https://github.com/Hanul/nsp-sample-bbs-mysql">https://github.com/Hanul/nsp-sample-bbs-mysql</a></li>
+<li><a href="https://github.com/Hanul/nsp-sample-bbs-angularjs">https://github.com/Hanul/nsp-sample-bbs-angularjs</a></li>
+</ul>
+
+<h2>
+<a id="etc" class="anchor" href="#etc" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Etc.</h2>
+
+<h3>
+<a id="are-you-familiar-with-php" class="anchor" href="#are-you-familiar-with-php" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Are you familiar with PHP?</h3>
+
+<p>Install <a href="https://github.com/kvz/phpjs">php.js</a> and use it together with NSP.</p>
+
+<pre lang="nsp"><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+    &lt;body&gt;
+        &lt;h1&gt;NSP + php.js&lt;/h1&gt;
+        &lt;%
+            var php = require('phpjs');
+
+            print(php.sprintf('Hey, %s : )', 'you'));
+            print(php.parse_url('mysql://kevin:abcd1234@example.com/databasename')['pass']);
+            print(php.strtotime('2 januari 2012, 11:12:13 GMT'));
+        %&gt;
+    &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<h2>
+<a id="license" class="anchor" href="#license" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>License</h2>
+
+<p><a href="LICENSE">MIT</a></p>
+
+<h2>
+<a id="author" class="anchor" href="#author" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Author</h2>
+
+<p><a href="https://github.com/Hanul">Young Jae Sim</a></p>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/Hanul/NSP">NSP</a> is maintained by <a href="https://github.com/Hanul">Hanul</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
