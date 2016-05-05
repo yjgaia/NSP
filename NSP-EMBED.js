@@ -554,11 +554,11 @@ __resumeFuncStr = function resume() {
 									__column = __repeatInfo.column;
 									
 									if (__repeatItemName === undefined) {
-										eval('var ' + __repeatItemValue + ' = ' + __repeatTargetName + '[\'' + __repeatTargetNowKey + '\'];');
+										eval(__repeatItemValue + ' = ' + __repeatTargetName + '[\'' + __repeatTargetNowKey + '\'];');
 									} else {
 										eval(
-											'var ' + __repeatItemName + ' = \'' + __repeatTargetNowKey + '\';' +
-											'var ' + __repeatItemValue + ' = ' + __repeatTargetName + '[\'' + __repeatTargetNowKey + '\'];'
+											__repeatItemName + ' = \'' + __repeatTargetNowKey + '\';' +
+											__repeatItemValue + ' = ' + __repeatTargetName + '[\'' + __repeatTargetNowKey + '\'];'
 										);
 									}
 								}
@@ -612,11 +612,11 @@ __resumeFuncStr = function resume() {
 									__column = __repeatInfo.column;
 									
 									if (__repeatItemName === undefined) {
-										eval('var ' + __repeatItemValue + ' = ' + __repeatTargetName + '[\'' + __repeatTargetNowKey + '\'];');
+										eval(__repeatItemValue + ' = ' + __repeatTargetName + '[\'' + __repeatTargetNowKey + '\'];');
 									} else {
 										eval(
-											'var ' + __repeatItemName + ' = \'' + __repeatTargetNowKey + '\';' +
-											'var ' + __repeatItemValue + ' = ' + __repeatTargetName + '[\'' + __repeatTargetNowKey + '\'];'
+											__repeatItemName + ' = \'' + __repeatTargetNowKey + '\';' +
+											__repeatItemValue + ' = ' + __repeatTargetName + '[\'' + __repeatTargetNowKey + '\'];'
 										);
 									}
 								}
@@ -710,59 +710,86 @@ __resumeFuncStr = function resume() {
 									});
 								}
 								
-								// name이 없을 때
-								else if (__repeatItemStr.indexOf(':') === -1) {
-									
-									// find first key
-									__repeatTargetFirstKey = undefined;
-									for (__repeatTargetFirstKey in __repeatTarget) {
-										if (__repeatTarget.hasOwnProperty(__repeatTargetFirstKey) === true) {
-											break;
-										}
-									}
-									
-									__isRepeatStack.push(__repeatInfo = {
-										target : __repeatTarget,
-										targetName : __repeatTargetName,
-										key : __repeatTargetFirstKey,
-										value : __repeatItemStr,
-										startIndex : __i + 1,
-										line : __line,
-										column : __column
-									});
-									
-									eval('var ' + __repeatItemStr + ' = ' + __repeatTargetName + '[\'' + __repeatTargetFirstKey + '\'];');
-								}
-								
-								// name이 있을 때
 								else {
-									__repeatItemSplits = __repeatItemStr.split(':');
-									__repeatItemName = __repeatItemSplits[0];
-									__repeatItemValue = __repeatItemSplits[1];
 									
-									// find first key
-									__repeatTargetFirstKey = undefined;
-									for (__repeatTargetFirstKey in __repeatTarget) {
-										if (__repeatTarget.hasOwnProperty(__repeatTargetFirstKey) === true) {
-											break;
-										}
+									if (isNaN(__repeatTarget) !== true) {
+										
+										__repeatTargetName = '__VALUE_ARRAY_' + __VALUE_ARRAY_INDEX;
+										__VALUE_ARRAY_INDEX += 1;
+										
+										__repeatTarget = eval(__repeatTargetName + '=' + RUN(function() {
+											
+											var
+											// script
+											script = '[';
+											
+											REPEAT(__repeatTarget, function(i) {
+												if (i > 0) {
+													script += ',';
+												}
+												script += i;
+											});
+											
+											script += ']';
+											
+											return script;
+										}));
 									}
 									
-									__isRepeatStack.push(__repeatInfo = {
-										target : __repeatTarget,
-										targetName : __repeatTargetName,
-										key : __repeatTargetFirstKey,
-										name : __repeatItemName,
-										value : __repeatItemValue,
-										startIndex : __i + 1,
-										line : __line,
-										column : __column
-									});
+									// name이 없을 때
+									if (__repeatItemStr.indexOf(':') === -1) {
+										
+										// find first key
+										__repeatTargetFirstKey = undefined;
+										for (__repeatTargetFirstKey in __repeatTarget) {
+											if (__repeatTarget.hasOwnProperty(__repeatTargetFirstKey) === true) {
+												break;
+											}
+										}
+										
+										__isRepeatStack.push(__repeatInfo = {
+											target : __repeatTarget,
+											targetName : __repeatTargetName,
+											key : __repeatTargetFirstKey,
+											value : __repeatItemStr,
+											startIndex : __i + 1,
+											line : __line,
+											column : __column
+										});
+										
+										eval('var ' + __repeatItemStr + ' = ' + __repeatTargetName + '[\'' + __repeatTargetFirstKey + '\'];');
+									}
 									
-									eval(
-										'var ' + __repeatItemName + ' = \'' + __repeatTargetFirstKey + '\';' +
-										'var ' + __repeatItemValue + ' = ' + __repeatTargetName + '[\'' + __repeatTargetFirstKey + '\'];'
-									);
+									// name이 있을 때
+									else {
+										__repeatItemSplits = __repeatItemStr.split(':');
+										__repeatItemName = __repeatItemSplits[0];
+										__repeatItemValue = __repeatItemSplits[1];
+										
+										// find first key
+										__repeatTargetFirstKey = undefined;
+										for (__repeatTargetFirstKey in __repeatTarget) {
+											if (__repeatTarget.hasOwnProperty(__repeatTargetFirstKey) === true) {
+												break;
+											}
+										}
+										
+										__isRepeatStack.push(__repeatInfo = {
+											target : __repeatTarget,
+											targetName : __repeatTargetName,
+											key : __repeatTargetFirstKey,
+											name : __repeatItemName,
+											value : __repeatItemValue,
+											startIndex : __i + 1,
+											line : __line,
+											column : __column
+										});
+										
+										eval(
+											'var ' + __repeatItemName + ' = \'' + __repeatTargetFirstKey + '\';' +
+											'var ' + __repeatItemValue + ' = ' + __repeatTargetName + '[\'' + __repeatTargetFirstKey + '\'];'
+										);
+									}
 								}
 							} catch (e) {
 								__responseError(__sourcePath, e, __source.substring(__lastIndex, __i), __lastLine, __lastColumn, __response);
@@ -847,6 +874,9 @@ function __responseNotFound(response) {
 global.NSP = function(config) {
 	
 	var
+	// __VALUE_ARRAY_INDEX
+	__VALUE_ARRAY_INDEX = 0,
+	
 	// root path
 	rootPath = config.rootPath,
 	
@@ -944,39 +974,6 @@ global.NSP = function(config) {
 				});
 			};
 			
-			if (restURI !== undefined) {
-				
-				if (CHECK_IS_ARRAY(restURI) === true) {
-					
-					if (CHECK_IS_IN({
-						array : restURI,
-						value : uri
-					}) === true) {
-						uri = restURI + '.nsp';
-					}
-					
-					else {
-						
-						EACH(restURI, function(restURI) {
-							if (restURI + '/' === uri.substring(0, restURI.length + 1)) {
-								subURI = uri.substring(restURI.length + 1);
-								uri = restURI + '.nsp';
-								return false;
-							}
-						});
-					}
-				}
-				
-				else {
-					if (restURI === uri) {
-						uri = restURI + '.nsp';
-					} else if (restURI + '/' === uri.substring(0, restURI.length + 1)) {
-						subURI = uri.substring(restURI.length + 1);
-						uri = restURI + '.nsp';
-					}
-				}
-			}
-			
 			if (uri === '') {
 				uri = 'index.nsp';
 			}
@@ -992,14 +989,86 @@ global.NSP = function(config) {
 			
 			else if (ext === '') {
 				
-				CHECK_IS_EXISTS_FILE(path + '.nsp', function(isExists) {
+				NEXT([
+				function(next) {
 					
-					if (isExists === true) {
-						path += '.nsp';
-						run();
-					}
-					
-					else {
+					CHECK_IS_EXISTS_FILE(path + '.nsp', function(isExists) {
+						
+						if (isExists === true) {
+							
+							CHECK_IS_FOLDER(path + '.nsp', function(isFolder) {
+								
+								if (isFolder === true) {
+									next();
+								} else {
+									path += '.nsp';
+									run();
+								}
+							});
+						}
+						
+						else {
+							next();
+						}
+					});
+				},
+				
+				function(next) {
+					return function() {
+						
+						if (restURI !== undefined) {
+							
+							if (CHECK_IS_ARRAY(restURI) === true) {
+								
+								if (CHECK_IS_IN({
+									array : restURI,
+									value : uri
+								}) === true) {
+									uri = restURI + '.nsp';
+								}
+								
+								else {
+									
+									EACH(restURI, function(restURI) {
+										if (restURI + '/' === uri.substring(0, restURI.length + 1)) {
+											subURI = uri.substring(restURI.length + 1);
+											uri = restURI + '.nsp';
+											return false;
+										}
+									});
+								}
+							}
+							
+							else {
+								if (restURI === uri) {
+									uri = restURI + '.nsp';
+								} else if (restURI + '/' === uri.substring(0, restURI.length + 1)) {
+									subURI = uri.substring(restURI.length + 1);
+									uri = restURI + '.nsp';
+								}
+							}
+							
+							CHECK_IS_EXISTS_FILE(rootPath + '/' + uri, function(isExists) {
+								
+								if (isExists === true) {
+									path = rootPath + '/' + uri;
+									run();
+								}
+								
+								else {
+									next();
+								}
+							});
+						}
+						
+						else {
+							next();
+						}
+					};
+				},
+				
+				function() {
+					return function() {
 						
 						CHECK_IS_EXISTS_FILE(path, function(isExists) {
 							
@@ -1020,8 +1089,8 @@ global.NSP = function(config) {
 								next();
 							}
 						});
-					}
-				});
+					};
+				}]);
 				
 				return false;
 			}

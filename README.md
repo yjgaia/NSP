@@ -105,6 +105,13 @@ Iterates over an object.
 </~>
 ```
 
+### `<~ number -> i>`, `</~>`
+```nsp
+<~ 5 -> i>
+    {{i}}
+</~>
+```
+
 ## Built-in functions
 ### print
 Add contents to the `HTML` document using `print` function.
