@@ -33,11 +33,8 @@ __parseFuncStr = function __parse(__requestInfo, __sourcePath, __source, __respo
 	// start each index
 	__startEachIndex = -1,
 	
-	// to pause count
-	toPauseCount = 0,
-	
-	// is paused
-	__isPaused = true,
+	// pause count
+	__pauseCount = 1,
 	
 	// last cond
 	__lastCond,
@@ -161,11 +158,7 @@ __parseFuncStr = function __parse(__requestInfo, __sourcePath, __source, __respo
 	}
 	
 	function pause() {
-		if (toPauseCount <= 0) {
-			__isPaused = true;
-		} else {
-			toPauseCount -= 1;
-		}
+		__pauseCount += 1;
 	}
 	
 	eval(__resumeFuncStr);
@@ -177,13 +170,9 @@ __parseFuncStr = function __parse(__requestInfo, __sourcePath, __source, __respo
 // resume func str
 __resumeFuncStr = function resume() {
 	
-	if (__isPaused !== true) {
-		toPauseCount += 1;
-	}
+	__pauseCount -= 1;
 	
-	else {
-		
-		__isPaused = false;
+	if (__pauseCount === 0) {
 		
 		eval(__parseFuncStr);
 		eval(__resumeFuncStr);
@@ -322,7 +311,7 @@ __resumeFuncStr = function resume() {
 							__startCodeIndex = -1;
 							__lastIndex = __i + 1;
 							
-							if (__isPaused === true) {
+							if (__pauseCount !== 0) {
 								__column += 1;
 								return;
 							}
@@ -342,7 +331,7 @@ __resumeFuncStr = function resume() {
 							__startPstr2Index = -1;
 							__lastIndex = __i + 1;
 							
-							if (__isPaused === true) {
+							if (__pauseCount !== 0) {
 								__column += 1;
 								return;
 							}
@@ -401,7 +390,7 @@ __resumeFuncStr = function resume() {
 						__startPstrIndex = -1;
 						__lastIndex = __i + 1;
 						
-						if (__isPaused === true) {
+						if (__pauseCount !== 0) {
 							__column += 1;
 							return;
 						}
@@ -676,7 +665,7 @@ __resumeFuncStr = function resume() {
 							__startCondIndex = -1;
 							__lastIndex = __i + 1;
 							
-							if (__isPaused === true) {
+							if (__pauseCount !== 0) {
 								__column += 1;
 								return;
 							}
@@ -799,7 +788,7 @@ __resumeFuncStr = function resume() {
 							__startEachIndex = -1;
 							__lastIndex = __i + 1;
 							
-							if (__isPaused === true) {
+							if (__pauseCount !== 0) {
 								__column += 1;
 								return;
 							}
