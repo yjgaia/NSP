@@ -1141,16 +1141,13 @@ global.VALID = CLASS(function(cls) {
 		max = params.max,
 
 		// string
-		str = String(params.value),
-
-		// length
-		length = str.length;
-
+		str = String(params.value);
+		
 		if (min === undefined) {
 			min = 0;
 		}
 
-		return min <= length && (max === undefined || length <= max);
+		return min <= str.trim().length && (max === undefined || str.length <= max);
 	};
 
 	cls.integer = integer = function(value) {
@@ -8102,93 +8099,113 @@ global.RESOURCE_SERVER = CLASS(function(cls) {
 	'use strict';
 
 	var
+	//IMPORT: fs
+	fs = require('fs'),
+	
 	//IMPORT: path
 	path = require('path'),
 
 	//IMPORT: querystring
 	querystring = require('querystring'),
+	
+	// preprocessors
+	preprocessors = {},
 
-	// get content type from uri.
-	getContentTypeFromURI;
+	// get content type from extension.
+	getContentTypeFromExtension,
+	
+	// add preprocessor.
+	addPreprocessor;
 
-	cls.getContentTypeFromURI = getContentTypeFromURI = function(uri) {
-		//REQUIRED: uri
-
-		var
-		// extname
-		extname = path.extname(uri);
-
+	cls.getContentTypeFromExtension = getContentTypeFromExtension = function(extension) {
+		//REQUIRED: ext
+		
 		// png image
-		if (extname === '.png') {
+		if (extension === 'png') {
 			return 'image/png';
 		}
 
 		// jpeg image
-		if (extname === '.jpeg' || extname === '.jpg') {
+		if (extension === 'jpeg' || extension === 'jpg') {
 			return 'image/jpeg';
 		}
 
 		// gif image
-		if (extname === '.gif') {
+		if (extension === 'gif') {
 			return 'image/gif';
 		}
 
 		// svg
-		if (extname === '.svg') {
+		if (extension === 'svg') {
 			return 'image/svg+xml';
 		}
 
 		// javascript
-		if (extname === '.js') {
+		if (extension === 'js') {
 			return 'application/javascript';
 		}
 
 		// json document
-		if (extname === '.json') {
+		if (extension === 'json') {
 			return 'application/json';
 		}
 
 		// css
-		if (extname === '.css') {
+		if (extension === 'css') {
 			return 'text/css';
 		}
 
 		// text
-		if (extname === '.text' || extname === '.txt') {
+		if (extension === 'text' || extension === 'txt') {
 			return 'text/plain';
 		}
 
 		// markdown
-		if (extname === '.markdown' || extname === '.md') {
+		if (extension === 'markdown' || extension === 'md') {
 			return 'text/x-markdown';
 		}
 
 		// html document
-		if (extname === '.html') {
+		if (extension === 'html') {
 			return 'text/html';
 		}
 
 		// swf
-		if (extname === '.swf') {
+		if (extension === 'swf') {
 			return 'application/x-shockwave-flash';
 		}
 
 		// mp3
-		if (extname === '.mp3') {
+		if (extension === 'mp3') {
 			return 'audio/mpeg';
 		}
 
 		// ogg
-		if (extname === '.ogg') {
+		if (extension === 'ogg') {
 			return 'audio/ogg';
 		}
 
 		// mp4
-		if (extname === '.mp4') {
+		if (extension === 'mp4') {
 			return 'video/mp4';
 		}
 
 		return 'application/octet-stream';
+	};
+	
+	cls.addPreprocessor = addPreprocessor = function(params) {
+		//REQUIRED: params
+		//REQUIRED: params.extension
+		//REQUIRED: params.preprocessor
+		
+		var
+		// extension
+		extension = params.extension,
+		
+		// preprocessor
+		preprocessor = params.preprocessor;
+		
+		preprocessors[extension] = preprocessor;
 	};
 
 	return {
@@ -8206,6 +8223,7 @@ global.RESOURCE_SERVER = CLASS(function(cls) {
 			//OPTIONAL: requestListenerOrHandlers.requestListener
 			//OPTIONAL: requestListenerOrHandlers.error
 			//OPTIONAL: requestListenerOrHandlers.notExistsResource
+			//OPTIONAL: requestListenerOrHandlers.preprocessor
 
 			var
 			//IMPORT: path
@@ -8231,6 +8249,9 @@ global.RESOURCE_SERVER = CLASS(function(cls) {
 
 			// not exists resource handler.
 			notExistsResourceHandler,
+			
+			// preprocessor.
+			preprocessor,
 
 			// resource caches
 			resourceCaches = {},
@@ -8261,6 +8282,7 @@ global.RESOURCE_SERVER = CLASS(function(cls) {
 					requestListener = requestListenerOrHandlers.requestListener;
 					errorHandler = requestListenerOrHandlers.error;
 					notExistsResourceHandler = requestListenerOrHandlers.notExistsResource;
+					preprocessor = requestListenerOrHandlers.preprocessor;
 				}
 			}
 
@@ -8327,9 +8349,60 @@ global.RESOURCE_SERVER = CLASS(function(cls) {
 
 				function() {
 					return function() {
+						
+						// stream video.
+						if (headers.range !== undefined) {
+							
+							GET_FILE_INFO(rootPath + '/' + uri, function(fileInfo) {
 
+								var
+								// positions
+								positions = headers.range.replace(/bytes=/, '').split('-'),
+								
+								// total size
+								totalSize = fileInfo.size,
+								
+								// start position
+								startPosition = INTEGER(positions[0]),
+								
+								// end position
+								endPosition = positions[1] === undefined || positions[1] === '' ? totalSize - 1 : INTEGER(positions[1]),
+								
+								// stream
+								stream = fs.createReadStream(rootPath + '/' + uri, {
+									start : startPosition,
+									end : endPosition
+								}).on('open', function() {
+									
+									response(EXTEND({
+										origin : {
+											contentType : getContentTypeFromExtension(path.extname(uri).substring(1)),
+											totalSize : totalSize,
+											startPosition : startPosition,
+											endPosition : endPosition,
+											stream : stream
+										},
+										extend : overrideResponseInfo
+									}));
+									
+								}).on('error', function(error) {
+									
+									response(EXTEND({
+										origin : {
+											contentType : getContentTypeFromExtension(path.extname(uri).substring(1)),
+											totalSize : totalSize,
+											startPosition : startPosition,
+											endPosition : endPosition,
+											content : error.toString()
+										},
+										extend : overrideResponseInfo
+									}));
+								});
+							});
+						}
+						
 						// check ETag.
-						if (CONFIG.isDevMode !== true && (overrideResponseInfo.isFinal !== true ?
+						else if (CONFIG.isDevMode !== true && (overrideResponseInfo.isFinal !== true ?
 
 						// check version.
 						(version !== undefined && headers['if-none-match'] === version) :
@@ -8439,26 +8512,35 @@ global.RESOURCE_SERVER = CLASS(function(cls) {
 
 							function() {
 								return function(buffer, contentType) {
-
-									if (contentType === undefined) {
-										contentType = getContentTypeFromURI(uri);
+									
+									var
+									// extension
+									extension = path.extname(uri).substring(1);
+									
+									if (preprocessors[extension] !== undefined) {
+										preprocessors[extension](buffer.toString(), response);
+									} else {
+										
+										if (contentType === undefined) {
+											contentType = getContentTypeFromExtension(extension);
+										}
+	
+										if (CONFIG.isDevMode !== true && overrideResponseInfo.isFinal !== true && resourceCaches[originalURI] === undefined) {
+											resourceCaches[originalURI] = {
+												buffer : buffer,
+												contentType : contentType
+											};
+										}
+	
+										response(EXTEND({
+											origin : {
+												buffer : buffer,
+												contentType : contentType,
+												version : version
+											},
+											extend : overrideResponseInfo
+										}));
 									}
-
-									if (CONFIG.isDevMode !== true && overrideResponseInfo.isFinal !== true && resourceCaches[originalURI] === undefined) {
-										resourceCaches[originalURI] = {
-											buffer : buffer,
-											contentType : contentType
-										};
-									}
-
-									response(EXTEND({
-										origin : {
-											buffer : buffer,
-											contentType : contentType,
-											version : version
-										},
-										extend : overrideResponseInfo
-									}));
 								};
 							}]);
 
@@ -9001,7 +9083,7 @@ global.WEB_SERVER = CLASS(function(cls) {
 						EACH(params, function(param, name) {
 							
 							if (CHECK_IS_ARRAY(param) === true) {
-								params[name] = param[0];
+								params[name] = param[param.length - 1];
 							}
 						});
 						
@@ -9043,6 +9125,10 @@ global.WEB_SERVER = CLASS(function(cls) {
 							//OPTIONAL: contentOrParams.contentType
 							//OPTIONAL: contentOrParams.content
 							//OPTIONAL: contentOrParams.buffer
+							//OPTIONAL: contentOrParams.totalSize
+							//OPTIONAL: contentOrParams.startPosition
+							//OPTIONAL: contentOrParams.endPosition
+							//OPTIONAL: contentOrParams.stream
 							//OPTIONAL: contentOrParams.encoding
 							//OPTIONAL: contentOrParams.version
 							//OPTIONAL: contentOrParams.isFinal
@@ -9062,6 +9148,18 @@ global.WEB_SERVER = CLASS(function(cls) {
 
 							// buffer
 							buffer,
+							
+							// total size
+							totalSize,
+							
+							// start position
+							startPosition,
+							
+							// end position
+							endPosition,
+							
+							// stream
+							stream,
 
 							// encoding
 							encoding,
@@ -9077,22 +9175,21 @@ global.WEB_SERVER = CLASS(function(cls) {
 								if (CHECK_IS_DATA(contentOrParams) !== true) {
 									content = contentOrParams;
 								} else {
+									
 									statusCode = contentOrParams.statusCode;
 									headers = contentOrParams.headers;
 									contentType = contentOrParams.contentType;
 									content = contentOrParams.content;
 									buffer = contentOrParams.buffer;
+									
+									totalSize = contentOrParams.totalSize;
+									startPosition = contentOrParams.startPosition;
+									endPosition = contentOrParams.endPosition;
+									stream = contentOrParams.stream;
+									
 									encoding = contentOrParams.encoding;
 									version = contentOrParams.version;
 									isFinal = contentOrParams.isFinal;
-								}
-								
-								if (content === undefined) {
-									content = '';
-								}
-
-								if (statusCode === undefined) {
-									statusCode = 200;
 								}
 
 								if (headers === undefined) {
@@ -9108,29 +9205,51 @@ global.WEB_SERVER = CLASS(function(cls) {
 									headers['Content-Type'] = contentType + '; charset=' + encoding;
 								}
 
-								if (CONFIG.isDevMode !== true) {
-									if (isFinal === true) {
-										headers['ETag'] = 'FINAL';
-									} else if (version !== undefined) {
-										headers['ETag'] = version;
-									}
+								if (stream !== undefined) {
+									
+									headers['Content-Range'] = 'bytes ' + startPosition + '-' + endPosition + '/' + totalSize;
+									headers['Accept-Ranges'] = 'bytes';
+									headers['Content-Length'] = endPosition - startPosition + 1;
+									
+									nativeRes.writeHead(206, headers);
+									
+									stream.pipe(nativeRes);
 								}
 								
-								// when gzip encoding
-								if (acceptEncoding.match(/\bgzip\b/) !== TO_DELETE) {
-
-									headers['Content-Encoding'] = 'gzip';
-
-									zlib.gzip(buffer !== undefined ? buffer : String(content), function(error, buffer) {
-										nativeRes.writeHead(statusCode, headers);
-										nativeRes.end(buffer, encoding);
-									});
-								}
-
-								// when not encoding
 								else {
-									nativeRes.writeHead(statusCode, headers);
-									nativeRes.end(buffer !== undefined ? buffer : String(content), encoding);
+									
+									if (content === undefined) {
+										content = '';
+									}
+									
+									if (statusCode === undefined) {
+										statusCode = 200;
+									}
+									
+									if (CONFIG.isDevMode !== true) {
+										if (isFinal === true) {
+											headers['ETag'] = 'FINAL';
+										} else if (version !== undefined) {
+											headers['ETag'] = version;
+										}
+									}
+									
+									// when gzip encoding
+									if (acceptEncoding.match(/\bgzip\b/) !== TO_DELETE) {
+	
+										headers['Content-Encoding'] = 'gzip';
+	
+										zlib.gzip(buffer !== undefined ? buffer : String(content), function(error, buffer) {
+											nativeRes.writeHead(statusCode, headers);
+											nativeRes.end(buffer, encoding);
+										});
+									}
+	
+									// when not encoding
+									else {
+										nativeRes.writeHead(statusCode, headers);
+										nativeRes.end(buffer !== undefined ? buffer : String(content), encoding);
+									}
 								}
 
 								requestInfo.isResponsed = true;

@@ -627,7 +627,7 @@ __resumeFuncStr = function resume() {
 				}
 				
 				// 조건 코드나 반복 코드 시작의 끝
-				else if (__ch === '>') {
+				else if (__i > 2 && __ch === '>' && __source[__i - 1] !== '\\') {
 					
 					if (
 					__isIgnored !== true &&
@@ -635,6 +635,7 @@ __resumeFuncStr = function resume() {
 					__startPstrIndex === -1 &&
 					__startPstr2Index === -1) {
 						
+						// 조건 코드
 						if (
 						(__repeatInfo === undefined || __repeatInfo.key !== undefined) &&
 						__startCondIndex !== -1 &&
@@ -649,7 +650,7 @@ __resumeFuncStr = function resume() {
 										__isIgnoreStack.push(false);
 									}
 									__lastCondStack.push(true);
-								} else if (eval(__source.substring(__lastIndex, __i)) === false) {
+								} else if (eval(__source.substring(__lastIndex, __i).replace(/\\>/g, '>')) === false) {
 									__isIgnored = true;
 									__isIgnoreStack.push(true);
 									__lastCondStack.push(false);
@@ -671,6 +672,7 @@ __resumeFuncStr = function resume() {
 							}
 						}
 						
+						// 반복 코드
 						else if (
 						__startCondIndex === -1 &&
 						__startEachIndex !== -1 &&
