@@ -965,126 +965,149 @@ global.NSP = function(config) {
 				});
 			};
 			
-			if (uri === '') {
-				uri = 'index.nsp';
-			}
-			
-			path = rootPath + '/' + uri;
-			
-			ext = __path.extname(uri).toLowerCase();
-			
-			if (ext === '.nsp') {
-				run();
-				return false;
-			}
-			
-			else if (ext === '') {
+			NEXT([
+			function(next) {
 				
-				NEXT([
-				function(next) {
+				if (uri === '') {
 					
-					CHECK_IS_EXISTS_FILE(path + '.nsp', function(isExists) {
-						
+					CHECK_IS_EXISTS_FILE(rootPath + '/index.nsp', function(isExists) {
 						if (isExists === true) {
-							
-							CHECK_IS_FOLDER(path + '.nsp', function(isFolder) {
-								
-								if (isFolder === true) {
-									next();
-								} else {
-									path += '.nsp';
-									run();
-								}
-							});
+							uri = 'index.nsp';
+						} else {
+							uri = 'index.html';
 						}
-						
-						else {
-							next();
-						}
+						next();
 					});
-				},
-				
-				function(next) {
-					return function() {
+					
+				} else {
+					next();
+				}
+			},
+			
+			function() {
+				return function() {
+					
+					path = rootPath + '/' + uri;
+			
+					ext = __path.extname(uri).toLowerCase();
+					
+					if (ext === '.nsp') {
+						run();
+					}
+					
+					else if (ext === '') {
 						
-						if (restURI !== undefined) {
+						NEXT([
+						function(next) {
 							
-							if (CHECK_IS_ARRAY(restURI) === true) {
+							CHECK_IS_EXISTS_FILE(path + '.nsp', function(isExists) {
 								
-								if (CHECK_IS_IN({
-									array : restURI,
-									value : uri
-								}) === true) {
-									uri = restURI + '.nsp';
-								}
-								
-								else {
+								if (isExists === true) {
 									
-									EACH(restURI, function(restURI) {
-										if (restURI + '/' === uri.substring(0, restURI.length + 1)) {
-											subURI = uri.substring(restURI.length + 1);
-											uri = restURI + '.nsp';
-											return false;
+									CHECK_IS_FOLDER(path + '.nsp', function(isFolder) {
+										
+										if (isFolder === true) {
+											next();
+										} else {
+											path += '.nsp';
+											run();
 										}
 									});
 								}
-							}
-							
-							else {
-								if (restURI === uri) {
-									uri = restURI + '.nsp';
-								} else if (restURI + '/' === uri.substring(0, restURI.length + 1)) {
-									subURI = uri.substring(restURI.length + 1);
-									uri = restURI + '.nsp';
-								}
-							}
-							
-							CHECK_IS_EXISTS_FILE(rootPath + '/' + uri, function(isExists) {
-								
-								if (isExists === true) {
-									path = rootPath + '/' + uri;
-									run();
-								}
 								
 								else {
 									next();
 								}
 							});
-						}
+						},
 						
-						else {
-							next();
-						}
-					};
-				},
-				
-				function() {
-					return function() {
-						
-						CHECK_IS_EXISTS_FILE(path, function(isExists) {
-							
-							if (isExists === true) {
-							
-								CHECK_IS_FOLDER(path, function(isFolder) {
+						function(next) {
+							return function() {
+								
+								if (restURI !== undefined) {
 									
-									if (isFolder === true) {
-										path += '/index.nsp';
-										run();
-									} else {
+									if (CHECK_IS_ARRAY(restURI) === true) {
+										
+										if (CHECK_IS_IN({
+											array : restURI,
+											value : uri
+										}) === true) {
+											uri = restURI + '.nsp';
+										}
+										
+										else {
+											
+											EACH(restURI, function(restURI) {
+												if (restURI + '/' === uri.substring(0, restURI.length + 1)) {
+													subURI = uri.substring(restURI.length + 1);
+													uri = restURI + '.nsp';
+													return false;
+												}
+											});
+										}
+									}
+									
+									else {
+										if (restURI === uri) {
+											uri = restURI + '.nsp';
+										} else if (restURI + '/' === uri.substring(0, restURI.length + 1)) {
+											subURI = uri.substring(restURI.length + 1);
+											uri = restURI + '.nsp';
+										}
+									}
+									
+									CHECK_IS_EXISTS_FILE(rootPath + '/' + uri, function(isExists) {
+										
+										if (isExists === true) {
+											path = rootPath + '/' + uri;
+											run();
+										}
+										
+										else {
+											next();
+										}
+									});
+								}
+								
+								else {
+									next();
+								}
+							};
+						},
+						
+						function() {
+							return function() {
+								
+								CHECK_IS_EXISTS_FILE(path, function(isExists) {
+									
+									if (isExists === true) {
+									
+										CHECK_IS_FOLDER(path, function(isFolder) {
+											
+											if (isFolder === true) {
+												path += '/index.nsp';
+												run();
+											} else {
+												next();
+											}
+										});
+									}
+									
+									else {
 										next();
 									}
 								});
-							}
-							
-							else {
-								next();
-							}
-						});
-					};
-				}]);
-				
-				return false;
-			}
+							};
+						}]);
+					}
+					
+					else {
+						next();
+					}
+				};
+			}]);
+			
+			return false;
 		}
 	};
 };
