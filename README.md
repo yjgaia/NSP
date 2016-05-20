@@ -37,7 +37,7 @@ Node Server Pages is a server-side script to create dynamic web pages based on N
 ```
 node NSP.js
 ```
-Now type `http://localhost:8123`, `http://localhost:8123/index.nsp` or `http://localhost:8123/index` in your browser. It's okay to emit `.nsp`.
+Now type `http://localhost:8123`, `http://localhost:8123/index.nsp` or `http://localhost:8123/index` in your browser. It's okay to omit `.nsp`.
 
 ## Examples
 ```nsp
