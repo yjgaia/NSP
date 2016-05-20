@@ -37,7 +37,7 @@ Node Server Pages is a server-side script to create dynamic web pages based on N
 ```
 node NSP.js
 ```
-Now type `http://localhost:8123`, `http://localhost:8123/index.nsp` or `http://localhost:8123/index` in your browser. It's okay to emit `.nsp`.
+Now type `http://localhost:8123`, `http://localhost:8123/index.nsp` or `http://localhost:8123/index` in your browser. It's okay to omit `.nsp`.
 
 ## Examples
 ```nsp
@@ -102,6 +102,13 @@ Iterates over an object.
 %>
 <~ data -> n: v>
     {{n}} : {{v}}
+</~>
+```
+
+### `<~ number -> i>`, `</~>`
+```nsp
+<~ 5 -> i>
+    {{i}}
 </~>
 ```
 
@@ -396,10 +403,10 @@ Holds requested sub URI, which is resulted by excluding `restURI` from the reque
 If `restURI` is `sample` and the request URI is `sample/1/edit`, `self.subURI` holds `1/edit`.
 
 ## Samples
-- https://github.com/Hanul/nsp-sample-restful
-- https://github.com/Hanul/nsp-sample-bbs
-- https://github.com/Hanul/nsp-sample-bbs-mysql
-- https://github.com/Hanul/nsp-sample-bbs-angularjs
+- RESTful - https://github.com/Hanul/nsp-sample-restful
+- BBS (+ MongoDB) - https://github.com/Hanul/nsp-sample-bbs
+- BBS (+ MySQL) - https://github.com/Hanul/nsp-sample-bbs-mysql
+- BBS (+ AngularJS) - https://github.com/Hanul/nsp-sample-bbs-angularjs
 
 ## Etc.
 ### Are you familiar with PHP?

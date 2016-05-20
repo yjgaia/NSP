@@ -74,6 +74,7 @@ OVERRIDE(CONNECT_TO_WEB_SOCKET_SERVER, function(origin) {
 			}
 
 			requestInfo.script = LOAD({
+				isSecure : requestInfo.isSecure,
 				host : requestInfo.host,
 				port : requestInfo.port,
 				uri : requestInfo.uri,
@@ -123,12 +124,16 @@ OVERRIDE(CONNECT_TO_WEB_SOCKET_SERVER, function(origin) {
 
 			run : function(params, connectionListenerOrListeners) {
 				//REQUIRED: params
+				//OPTIONAL: params.isSecure
 				//OPTIONAL: params.host
 				//OPTIONAL: params.port
 				//REQUIRED: params.fixRequestURI
 				//REQUIRED: connectionListenerOrListeners
 
 				var
+				// is secure
+				isSecure = params.isSecure === undefined ? BROWSER_CONFIG.isSecure : params.isSecure,
+				
 				// host
 				host = params.host === undefined ? BROWSER_CONFIG.host : params.host,
 
@@ -174,6 +179,7 @@ OVERRIDE(CONNECT_TO_WEB_SOCKET_SERVER, function(origin) {
 
 					// create request info.
 					requestInfos[requestCount] = {
+						isSecure : isSecure,
 						host : host,
 						port : port,
 						uri : uri,

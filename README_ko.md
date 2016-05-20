@@ -9,7 +9,7 @@ Node Server Pages는 Node.js를 기반으로 동적 웹페이지를 생성하기
 - 수많은 [npm 모듈들](https://www.npmjs.com/)을 즉시 사용할 수 있습니다.
 - [UJS](https://github.com/Hanul/UJS)의 [COMMON](https://github.com/Hanul/UJS/blob/master/DOC/UJS-COMMON.md)과 [NODE](https://github.com/Hanul/UJS/blob/master/DOC/UJS-NODE.md)를 사용할 수 있습니다.
 - `.nsp` 페이지가 수정 즉시 반영됩니다.
-- 멀티코어 CPU를 지원을 내장하고 있습니다.
+- 멀티코어 CPU 지원을 내장하고 있습니다.
 
 ## 설치
 1. `NSP.js`와 `import` 폴더, `config.json`을 원하는 폴더에 복사합니다.
@@ -99,6 +99,13 @@ node NSP.js
 %>
 <~ data -> n: v>
     {{n}} : {{v}}
+</~>
+```
+
+### `<~ number -> i>`, `</~>`
+```nsp
+<~ 5 -> i>
+    {{i}}
 </~>
 ```
 
@@ -379,10 +386,10 @@ HTML `form` 등에서 넘어온 데이터를 갖고 있습니다.
 만약 `restURI`가 `sample`이고 접속 `URI`가 `sample/1/edit`이면, `self.subURI`는 `1/edit`이 됩니다.
 
 ## 샘플
-- https://github.com/Hanul/nsp-sample-restful
-- https://github.com/Hanul/nsp-sample-bbs
-- https://github.com/Hanul/nsp-sample-bbs-mysql
-- https://github.com/Hanul/nsp-sample-bbs-angularjs
+- RESTful - https://github.com/Hanul/nsp-sample-restful
+- BBS (+ MongoDB) - https://github.com/Hanul/nsp-sample-bbs
+- BBS (+ MySQL) - https://github.com/Hanul/nsp-sample-bbs-mysql
+- BBS (+ AngularJS) - https://github.com/Hanul/nsp-sample-bbs-angularjs
 
 ## 기타
 ### PHP에 익숙한 개발자세요?
@@ -408,3 +415,7 @@ HTML `form` 등에서 넘어온 데이터를 갖고 있습니다.
 
 ## 작성자
 [Young Jae Sim](https://github.com/Hanul)
+
+## 문의하기
+* [GitHub Issues](https://github.com/Hanul/NSP/issues)
+* [페이스북 유저 그룹](https://www.facebook.com/groups/nodeserverpages/)

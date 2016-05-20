@@ -12,6 +12,7 @@ global.CONNECT_TO_WEB_SOCKET_SERVER = METHOD({
 	run : function(params, connectionListenerOrListeners) {
 		'use strict';
 		//REQUIRED: params
+		//OPTIONAL: params.isSecure
 		//OPTIONAL: params.host
 		//REQUIRED: params.port
 		//OPTIONAL: params.fixRequestURI
@@ -20,6 +21,9 @@ global.CONNECT_TO_WEB_SOCKET_SERVER = METHOD({
 		//OPTIONAL: connectionListenerOrListeners.error
 
 		var
+		// is secure
+		isSecure = params.isSecure === undefined ? BROWSER_CONFIG.isSecure : params.isSecure,
+		
 		// host
 		host = params.host === undefined ? BROWSER_CONFIG.host : params.host,
 
@@ -91,7 +95,7 @@ global.CONNECT_TO_WEB_SOCKET_SERVER = METHOD({
 			}
 		};
 
-		conn = new WebSocket('ws://' + host + ':' + port);
+		conn = new WebSocket((isSecure === true ? 'wss://': 'ws://') + host + ':' + port);
 
 		conn.onopen = function() {
 
