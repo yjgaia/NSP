@@ -12,7 +12,7 @@ Node Server Pages는 Node.js를 기반으로 동적 웹페이지를 생성하기
 - 멀티코어 CPU 지원을 내장하고 있습니다.
 
 ## 설치
-1. `NSP.js`와 `import` 폴더, `config.json`을 원하는 폴더에 복사합니다.
+1. `NSP.js`와 `NSP-EMBED.js`, `import` 폴더, `config.json`을 원하는 폴더에 복사합니다.
 2. `config.json`을 수정해서 사용합니다.
 
 ```json
@@ -31,7 +31,7 @@ Node Server Pages는 Node.js를 기반으로 동적 웹페이지를 생성하기
 - `rootPath` `.nsp` 파일 혹은 리소스 등이 저장된 경로를 지정합니다.
 - `uploadURI` 업로드 처리를 할 `URI`를 입력합니다.
 - `restURI` `REST URI` 디자인을 적용할 `URI`를 입력합니다.
-- `isNotUsingDCBN` 이중 중괄호 표기법 `{{`, `}}`을 사용하지 않습니다.
+- `isNotUsingDCBN` `true`인 경우 이중 중괄호 표기법 `{{`, `}}`을 사용하지 않습니다.
 
 ## 실행
 ```

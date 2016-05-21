@@ -14,7 +14,7 @@ Node Server Pages is a server-side script to create dynamic web pages based on N
 - Built-in support for multi-core CPUs.
 
 ## Install
-1. Copy `NSP.js`, `import` folder and `config.json` to wherever you want.
+1. Copy `NSP.js`, `NSP-EMBED.js`, `import` folder and `config.json` to wherever you want.
 2. Modify `config.json`.
 ```json
 {
