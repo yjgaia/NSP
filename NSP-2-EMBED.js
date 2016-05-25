@@ -1,16 +1,18 @@
 // import UJS.
 require('./import/UJS-NODE.js');
 
-var __cachedFileInfos = {};
+var cachedFileInfos = {};
 
-global.LOAD_NSP = function(path, notExistsHandler, errorHandler) {
+global.__NSP_SHARED_STORE = SHARED_STORE('__NSP_SHARED_STORE');
+
+global.LOAD_NSP = function(__requestInfo, path, self, notExistsHandler, errorHandler, handler) {
 	//REQUIRED: path
 	
 	GET_FILE_INFO(path, {
 		notExists : notExistsHandler,
 		success : function(fileInfo) {
 			
-			var cachedFileInfo = __cachedFileInfos[path];
+			var cachedFileInfo = cachedFileInfos[path];
 			
 			if (cachedFileInfo !== undefined
 				&& (
@@ -18,7 +20,11 @@ global.LOAD_NSP = function(path, notExistsHandler, errorHandler) {
 					|| (fileInfo.createTime !== undefined && cachedFileInfo.lastUpdateTime.getTime() === fileInfo.createTime.getTime())
 				)
 			) {
-				console.log(cachedFileInfo.compiledCode);
+				try {
+					handler(cachedFileInfo.run(__requestInfo, self));
+				} catch(e) {
+					errorHandler(e);
+				}
 			}
 			
 			else {
@@ -29,15 +35,19 @@ global.LOAD_NSP = function(path, notExistsHandler, errorHandler) {
 					success : function(buffer) {
 						
 						var
-						// code
-						code = buffer.toString();
+						// run.
+						run = new Function('__requestInfo', 'self', NSP(buffer.toString()));
 						
-						__cachedFileInfos[path] = {
-							code : code,
-							lastUpdateTime : fileInfo.lastUpdateTime === undefined ? fileInfo.createTime : fileInfo.lastUpdateTime
+						cachedFileInfos[path] = {
+							lastUpdateTime : fileInfo.lastUpdateTime === undefined ? fileInfo.createTime : fileInfo.lastUpdateTime,
+							run : run
 						};
 						
-						console.log(NSP(code));//, new Function(NSP(code)).toString());
+						try {
+							handler(run(__requestInfo, self));
+						} catch(e) {
+							errorHandler(e);
+						}
 					}
 				});
 			}
@@ -57,9 +67,13 @@ global.NSP = function(code) {
 	
 	addCompiledCode('var __html = \'\';');
 	addCompiledCode('var __pauseCount = 1;');
+	addCompiledCode('var __redirectURL;');
+	addCompiledCode('var __cookieInfo = __requestInfo.cookies;');
+	addCompiledCode('var __newCookieInfo = {};');
 	
 	// print
 	addCompiledCode(function print(content) {
+		
 		if (content !== undefined) {
 			if (typeof content === 'string') {
 				__html += content;
@@ -67,11 +81,103 @@ global.NSP = function(code) {
 				__html += JSON.stringify(content);
 			}
 		}
+		
+	}.toString());
+	
+	// save
+	addCompiledCode(function save(name, value) {
+		
+		if (value === undefined) {
+			__NSP_SHARED_STORE.remove(name);
+		}
+		
+		else {
+			__NSP_SHARED_STORE.save({
+				name : name,
+				value : value
+			});
+		}
+		
+	}.toString());
+	
+	// load
+	addCompiledCode(function load(name) {
+		
+		return __NSP_SHARED_STORE.get(name);
+		
+	}.toString());
+	
+	// cookie
+	addCompiledCode(function cookie(name, value, expireSeconds, path, domain) {
+		
+		if (value === undefined) {
+			value = __cookieInfo[name];
+			
+			if (CHECK_IS_DATA(value) === true) {
+				return value.value;
+			} else {
+				return value;
+			}
+		}
+		
+		else {
+			
+			__newCookieInfo[name] = __cookieInfo[name] = {
+				value : value,
+				expireSeconds : expireSeconds,
+				path : path,
+				domain : domain
+			};
+			
+			return value;
+		}
+		
+	}.toString());
+	
+	// upload
+	addCompiledCode(function upload(uploadPath, callbackOrHandlers) {
+		
+		var
+		// callback
+		callback,
+
+		// error handler
+		errorHandler,
+
+		// over file size handler
+		overFileSizeHandler;
+
+		if (CHECK_IS_DATA(callbackOrHandlers) !== true) {
+			callback = callbackOrHandlers;
+		} else {
+			callback = callbackOrHandlers.success;
+			errorHandler = callbackOrHandlers.error;
+			overFileSizeHandler = callbackOrHandlers.overFileSize;
+		}
+		
+		UPLOAD_REQUEST({
+			requestInfo : __requestInfo,
+			uploadPath : __path.dirname(__sourcePath) + '/' + uploadPath
+		}, {
+			error : errorHandler,
+			overFileSize : overFileSizeHandler,
+			success : callback
+		});
+		
+	}.toString());
+	
+	// redirect
+	addCompiledCode(function redirect(url) {
+		
+		__redirectURL = url;
+		
 	}.toString());
 	
 	// pause
 	addCompiledCode(function pause() {
+		
 		__pauseCount += 1;
+		
 	}.toString());
 	
 	// <%...%>
@@ -164,7 +270,7 @@ global.NSP = function(code) {
 		if (cch === '<?' && checkIsInCode() !== true) {
 			isQuestionMode = true;
 			
-			compiledCode += '\');\nif (';
+			compiledCode += '\');\n\tif (';
 			
 			i += 1;
 			continue;
@@ -174,9 +280,26 @@ global.NSP = function(code) {
 		if (cch === '<~' && checkIsInCode() !== true) {
 			isRepeatMode = true;
 			
-			compiledCode += '\');\n';
+			compiledCode += '\');\n\tEACH(';
 			
 			i += 1;
+			continue;
+		}
+		
+		// split repeat
+		if (cch === '->' && checkIsInString() !== true && isRepeatMode === true) {
+			
+			compiledCode += ', function(';
+			
+			i += 1;
+			continue;
+		}
+		
+		// split repeat
+		if (ch === ':' && checkIsInString() !== true && isRepeatMode === true) {
+			
+			compiledCode += ',';
+			
 			continue;
 		}
 		
@@ -186,7 +309,7 @@ global.NSP = function(code) {
 			if (isQuestionMode === true) {
 				isQuestionMode = false;
 				
-				compiledCode += ') {\n';
+				compiledCode += ') {\n\tprint(\'';
 				
 				continue;
 			}
@@ -195,8 +318,30 @@ global.NSP = function(code) {
 			if (isRepeatMode === true) {
 				isRepeatMode = false;
 				
-				compiledCode += '\n\tprint(\'';
+				compiledCode += ') {\n\tprint(\'';
 				
+				continue;
+			}
+		}
+		
+		// end block
+		if (cch === '</' && code[i + 3] === '>' && checkIsInCode() !== true) {
+			
+			// end question block
+			if (code[i + 2] === '?') {
+				
+				compiledCode += '\');\n\t}\n\tprint(\'';
+				
+				i += 3;
+				continue;
+			}
+			
+			// end repeat block
+			if (code[i + 2] === '~') {
+				
+				compiledCode += '\');\n\t});\n\tprint(\'';
+				
+				i += 3;
 				continue;
 			}
 		}
@@ -221,22 +366,31 @@ global.NSP = function(code) {
 			continue;
 		}
 		
-		if (ch === '\'' && checkIsInCode() === true) {
+		if (ch === '\'') {
 			
-			// start string1 mode
-			if (checkIsInString() !== true) {
-				isString1Mode = true;
+			if (checkIsInCode() === true) {
 				
-				compiledCode += '\'';
+				// start string1 mode
+				if (checkIsInString() !== true) {
+					isString1Mode = true;
+					
+					compiledCode += '\'';
+					
+					continue;
+				}
 				
-				continue;
+				// end strting1 mode
+				if (isString1Mode === true) {
+					isString1Mode = false;
+					
+					compiledCode += '\'';
+					
+					continue;
+				}
 			}
 			
-			// end strting1 mode
-			if (isString1Mode === true) {
-				isString1Mode = false;
-				
-				compiledCode += '\'';
+			else {
+				compiledCode += '\\\'';
 				
 				continue;
 			}
@@ -317,7 +471,7 @@ global.NSP = function(code) {
 		if (ch === '\n') {
 			
 			// end comment1 mode
-			if (checkIsInCode() === true && checkIsInString() !== true && isComment1Mode === true) {
+			if (checkIsInCode() === true && isComment1Mode === true) {
 				isComment1Mode = false;
 				
 				compiledCode += '\n';
@@ -340,8 +494,6 @@ global.NSP = function(code) {
 	
 	compiledCode += '\');\n';
 	
-	addCompiledCode('return __html;');
+	addCompiledCode('return {\n\t\thtml : __html,\n\t\tcookies : __newCookieInfo,\n\t\tredirectURL : __redirectURL\n\t};');
 	return compiledCode;
 };
-
-LOAD_NSP('./www/examples/each.nsp');

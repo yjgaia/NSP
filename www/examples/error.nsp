@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
 	<body>
-		<% conso1e.1og('error!'); %>
+		<% error %>
 	</body>
 </html>
