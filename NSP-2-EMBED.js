@@ -58,6 +58,7 @@ global.NSP = function(path, code) {
 	compiledCode += 'var __redirectURL;';
 	compiledCode += 'var __cookieInfo = __requestInfo.cookies;';
 	compiledCode += 'var __newCookieInfo = {};';
+	compiledCode += 'var __path = \'' + path + '\';';
 	compiledCode += 'var __basePath = \'' + Path.dirname(path) + '\';';
 	
 	// print
@@ -193,7 +194,9 @@ global.NSP = function(path, code) {
 			LOAD_NSP(__requestInfo, __basePath + '/' + path, self, function() {
 				print(path + ': File not exists.');
 				resume();
-			}, __errorHandler, function(result) {
+			}, function(e, pth, line, column) {
+				print('<p><b>' + e + '</b></p>' + '<b>path: </b>' + path + ' (' + line + ':' + column + ')</p>');
+			}, function(result) {
 				print(result.html);
 				resume();
 			});
@@ -289,7 +292,7 @@ global.NSP = function(path, code) {
 				compiledCode += ');';
 			}
 			
-			compiledCode += '} catch(e) { __errorHandler(e, ' + savedLine + ',' + savedColumn + '); }';
+			compiledCode += '} catch(e) { __errorHandler(e, __path, ' + savedLine + ',' + savedColumn + '); }';
 			
 			addResumeStart();
 			
@@ -400,7 +403,7 @@ global.NSP = function(path, code) {
 				});
 				resumeCountStack.pop();
 				
-				compiledCode += '__parentPause(); } )(pause, __store); } } catch(e) { __errorHandler(e, ' + savedLine + ', ' + savedColumn + '); }';
+				compiledCode += '__parentPause(); } )(pause, __store); } } catch(e) { __errorHandler(e, __path, ' + savedLine + ', ' + savedColumn + '); }';
 				
 				addResumeStart();
 				
@@ -423,7 +426,7 @@ global.NSP = function(path, code) {
 				});
 				resumeCountStack.pop();
 				
-				compiledCode += '__parentPause(); } )(pause, __store); } ); } catch(e) { __errorHandler(e, ' + savedLine + ', ' + savedColumn + '); }';
+				compiledCode += '__parentPause(); } )(pause, __store); } ); } catch(e) { __errorHandler(e, __path, ' + savedLine + ', ' + savedColumn + '); }';
 				
 				addResumeStart();
 				
@@ -451,7 +454,7 @@ global.NSP = function(path, code) {
 		if (cch === '}}' && checkIsInString() !== true && isPrintMode === true) {
 			isPrintMode = false;
 			
-			compiledCode += '); } catch(e) { __errorHandler(e, ' + savedLine + ', ' + savedColumn + '); }';
+			compiledCode += '); } catch(e) { __errorHandler(e, __path, ' + savedLine + ', ' + savedColumn + '); }';
 			
 			addResumeStart();
 			
