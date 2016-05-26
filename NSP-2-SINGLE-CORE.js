@@ -15,6 +15,18 @@ INIT_OBJECTS();
 // import NSP-EMBED.
 require('./NSP-2-EMBED.js');
 
+var beautify = require('js-beautify').js_beautify;
+
+var NSP_ORIGIN = NSP
+global.NSP = function(path, code) {
+	var c = beautify(NSP_ORIGIN(path, code), {
+		indent_size : 1,
+		indent_char : '\t'
+	});
+	console.log(c);
+	return c;
+};
+
 RUN(function() {
 	
 	var
@@ -102,8 +114,8 @@ RUN(function() {
 					subURI : subURI
 				}, function() {
 					responseNotFound(response);
-				}, function(e) {
-					responseError(path, e, undefined, 1, 1, response);
+				}, function(e, line, column) {
+					responseError(path, e, undefined, line, column, response);
 				}, function(result) {
 					
 					if (result.redirectURL !== undefined) {

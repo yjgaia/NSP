@@ -1,11 +1,12 @@
-// import UJS.
-require('./import/UJS-NODE.js');
-
 var cachedFileInfos = {};
+
+var
+//IMPORT: Path
+Path = require('path');
 
 global.__NSP_SHARED_STORE = SHARED_STORE('__NSP_SHARED_STORE');
 
-global.LOAD_NSP = function(__requestInfo, path, self, notExistsHandler, errorHandler, handler) {
+global.LOAD_NSP = function(requestInfo, path, self, notExistsHandler, errorHandler, handler) {
 	//REQUIRED: path
 	
 	GET_FILE_INFO(path, {
@@ -20,11 +21,7 @@ global.LOAD_NSP = function(__requestInfo, path, self, notExistsHandler, errorHan
 					|| (fileInfo.createTime !== undefined && cachedFileInfo.lastUpdateTime.getTime() === fileInfo.createTime.getTime())
 				)
 			) {
-				try {
-					handler(cachedFileInfo.run(__requestInfo, self));
-				} catch(e) {
-					errorHandler(e);
-				}
+				cachedFileInfo.run(requestInfo, self, errorHandler, handler);
 			}
 			
 			else {
@@ -36,18 +33,14 @@ global.LOAD_NSP = function(__requestInfo, path, self, notExistsHandler, errorHan
 						
 						var
 						// run.
-						run = new Function('__requestInfo', 'self', NSP(buffer.toString()));
+						run = new Function('__requestInfo', 'self', '__errorHandler', '__handler', NSP(path, buffer.toString()));
 						
 						cachedFileInfos[path] = {
 							lastUpdateTime : fileInfo.lastUpdateTime === undefined ? fileInfo.createTime : fileInfo.lastUpdateTime,
 							run : run
 						};
 						
-						try {
-							handler(run(__requestInfo, self));
-						} catch(e) {
-							errorHandler(e);
-						}
+						run(requestInfo, self, errorHandler, handler);
 					}
 				});
 			}
@@ -55,24 +48,22 @@ global.LOAD_NSP = function(__requestInfo, path, self, notExistsHandler, errorHan
 	});
 };
 
-global.NSP = function(code) {
+global.NSP = function(path, code) {
 	//REQUIRED: code
 	
 	// init
 	var compiledCode = '';
 	
-	function addCompiledCode(subCode) {
-		compiledCode += '\t' + subCode + '\n';
-	}
-	
-	addCompiledCode('var __html = \'\';');
-	addCompiledCode('var __pauseCount = 1;');
-	addCompiledCode('var __redirectURL;');
-	addCompiledCode('var __cookieInfo = __requestInfo.cookies;');
-	addCompiledCode('var __newCookieInfo = {};');
+	compiledCode += 'var __html = \'\';';
+	compiledCode += 'var __pauseCount = 0;';
+	compiledCode += 'var __redirectURL;';
+	compiledCode += 'var __cookieInfo = __requestInfo.cookies;';
+	compiledCode += 'var __newCookieInfo = {};';
+	compiledCode += 'var __basePath = \'' + Path.dirname(path) + '\';';
+	compiledCode += 'var __lastCondition;';
 	
 	// print
-	addCompiledCode(function print(content) {
+	compiledCode += 'var print = ' + function(content) {
 		
 		if (content !== undefined) {
 			if (typeof content === 'string') {
@@ -82,10 +73,25 @@ global.NSP = function(code) {
 			}
 		}
 		
-	}.toString());
+	}.toString() + ';';
+	
+	// include
+	compiledCode += 'var include = ' + function(path) {
+		
+		LOAD_NSP(__requestInfo, __basePath + '/' + path, self, function() {
+			print(path + ': File not exists.');
+			resume();
+		}, __errorHandler, function(result) {
+			print(result.html);
+			resume();
+		});
+		
+		pause();
+		
+	}.toString() + ';';
 	
 	// save
-	addCompiledCode(function save(name, value) {
+	compiledCode += 'var save = ' + function(name, value) {
 		
 		if (value === undefined) {
 			__NSP_SHARED_STORE.remove(name);
@@ -98,17 +104,17 @@ global.NSP = function(code) {
 			});
 		}
 		
-	}.toString());
+	}.toString() + ';';
 	
 	// load
-	addCompiledCode(function load(name) {
+	compiledCode += 'var load = ' + function(name) {
 		
 		return __NSP_SHARED_STORE.get(name);
 		
-	}.toString());
+	}.toString() + ';';
 	
 	// cookie
-	addCompiledCode(function cookie(name, value, expireSeconds, path, domain) {
+	compiledCode += 'var cookie = ' + function(name, value, expireSeconds, path, domain) {
 		
 		if (value === undefined) {
 			value = __cookieInfo[name];
@@ -132,10 +138,10 @@ global.NSP = function(code) {
 			return value;
 		}
 		
-	}.toString());
+	}.toString() + ';';
 	
 	// upload
-	addCompiledCode(function upload(uploadPath, callbackOrHandlers) {
+	compiledCode += 'var upload = ' + function(uploadPath, callbackOrHandlers) {
 		
 		var
 		// callback
@@ -157,28 +163,28 @@ global.NSP = function(code) {
 		
 		UPLOAD_REQUEST({
 			requestInfo : __requestInfo,
-			uploadPath : __path.dirname(__sourcePath) + '/' + uploadPath
+			uploadPath : __basePath + '/' + uploadPath
 		}, {
 			error : errorHandler,
 			overFileSize : overFileSizeHandler,
 			success : callback
 		});
 		
-	}.toString());
+	}.toString() + ';';
 	
 	// redirect
-	addCompiledCode(function redirect(url) {
+	compiledCode += 'var redirect = ' + function(url) {
 		
 		__redirectURL = url;
 		
-	}.toString());
+	}.toString() + ';';
 	
 	// pause
-	addCompiledCode(function pause() {
+	compiledCode += 'var pause = ' + function() {
 		
 		__pauseCount += 1;
 		
-	}.toString());
+	}.toString() + ';';
 	
 	// <%...%>
 	var isCodeMode = false;
@@ -205,9 +211,6 @@ global.NSP = function(code) {
 	// /*...*/
 	var isComment2Mode = false;
 	
-	// /.../
-	var isRegexMode = false;
-	
 	function checkIsInCode() {
 		return isCodeMode === true ||
 			isQuestionMode === true ||
@@ -219,13 +222,26 @@ global.NSP = function(code) {
 		return isString1Mode === true ||
 			isString2Mode === true ||
 			isComment1Mode === true ||
-			isComment2Mode === true ||
-			isRegexMode === true;
+			isComment2Mode === true;
 	};
 	
-	compiledCode += '\tprint(\'';
+	compiledCode += 'var __store={};';
+	compiledCode += 'var resume;';
+	
+	var resumeCountStack = [0];
+	var resumeStart = function() {
+		resumeCountStack[resumeCountStack.length - 1] += 1;
+		return '__pauseCount+=1;__store.resume=resume=function(){__pauseCount-=1;if(__pauseCount===0){';
+	};
+	
+	compiledCode += resumeStart() + 'print(\'';
+	
+	var line = 1, savedLine = 1;
+	var column = 0, savedColumn = 0;
 	
 	for (var i = 0; i < code.length; i += 1) {
+		
+		column += 1;
 		
 		var ch = code[i];
 		var cch = ch + code[i + 1];
@@ -234,12 +250,15 @@ global.NSP = function(code) {
 		if (cch === '<%' && checkIsInCode() !== true) {
 			isCodeMode = true;
 			
-			compiledCode += '\');\n';
+			compiledCode += '\');try{';
+			
+			savedLine = line;
+			savedColumn = column;
 			
 			if (code[i + 2] === '=') {
 				isCodePrintMode = true;
 				
-				compiledCode += '\tprint(';
+				compiledCode += 'print(';
 				
 				i += 2;
 			}
@@ -260,7 +279,7 @@ global.NSP = function(code) {
 				compiledCode += ');';
 			}
 			
-			compiledCode += '\n\tprint(\'';
+			compiledCode += '}catch(e){__errorHandler(e,' + savedLine + ',' + savedColumn + ');}' + resumeStart() + 'print(\'';
 			
 			i += 1;
 			continue;
@@ -270,7 +289,10 @@ global.NSP = function(code) {
 		if (cch === '<?' && checkIsInCode() !== true) {
 			isQuestionMode = true;
 			
-			compiledCode += '\');\n\tif (';
+			compiledCode += '\');try{if(__lastCondition=(';
+			
+			savedLine = line;
+			savedColumn = column;
 			
 			i += 1;
 			continue;
@@ -280,7 +302,10 @@ global.NSP = function(code) {
 		if (cch === '<~' && checkIsInCode() !== true) {
 			isRepeatMode = true;
 			
-			compiledCode += '\');\n\tEACH(';
+			compiledCode += '\');try{EACH(';
+			
+			savedLine = line;
+			savedColumn = column;
 			
 			i += 1;
 			continue;
@@ -289,7 +314,7 @@ global.NSP = function(code) {
 		// split repeat
 		if (cch === '->' && checkIsInString() !== true && isRepeatMode === true) {
 			
-			compiledCode += ', function(';
+			compiledCode += ',function(';
 			
 			i += 1;
 			continue;
@@ -303,13 +328,34 @@ global.NSP = function(code) {
 			continue;
 		}
 		
+		// else
+		if (cch === 'el' && code[i + 2] === 's' && code[i + 3] === 'e' && (code[i + 4] === ' ' || code[i + 4] === '\t' || code[i + 4] === '>' || code[i + 4] === '\r' || code[i + 4] === '\n') && checkIsInString() !== true && isQuestionMode === true) {
+			
+			compiledCode += '__lastCondition!==true';
+			
+			i += 3;
+			continue;
+		}
+		
 		if (ch === '>' && checkIsInString() !== true) {
 			
 			// end question mode
 			if (isQuestionMode === true) {
 				isQuestionMode = false;
 				
-				compiledCode += ') {\n\tprint(\'';
+				resumeCountStack.push(0);
+				
+				compiledCode += ')===true){(function(__parentPause, __parentStore){';
+				compiledCode += 'var __pauseCount = 0;';
+				compiledCode += 'var __lastCondition;';
+				compiledCode += 'var pause = ' + function() {
+					
+					__pauseCount += 1;
+					
+				}.toString() + ';';
+				compiledCode += 'var __store={};';
+				compiledCode += 'var resume;';
+				compiledCode += resumeStart() + 'print(\'';
 				
 				continue;
 			}
@@ -318,7 +364,19 @@ global.NSP = function(code) {
 			if (isRepeatMode === true) {
 				isRepeatMode = false;
 				
-				compiledCode += ') {\n\tprint(\'';
+				resumeCountStack.push(0);
+				
+				compiledCode += '){(function(__parentPause, __parentStore){';
+				compiledCode += 'var __pauseCount = 0;';
+				compiledCode += 'var __lastCondition;';
+				compiledCode += 'var pause = ' + function() {
+					
+					__pauseCount += 1;
+					
+				}.toString() + ';';
+				compiledCode += 'var __store={};';
+				compiledCode += 'var resume;';
+				compiledCode += resumeStart() + 'print(\'';
 				
 				continue;
 			}
@@ -330,7 +388,17 @@ global.NSP = function(code) {
 			// end question block
 			if (code[i + 2] === '?') {
 				
-				compiledCode += '\');\n\t}\n\tprint(\'';
+				compiledCode += '\');';
+				
+				REPEAT(resumeCountStack[resumeCountStack.length - 1], function(i) {
+					if (i === 0) {
+						compiledCode += '__parentStore.resume();'
+					}
+					compiledCode += '}};resume();';
+				});
+				resumeCountStack.pop();
+				
+				compiledCode += '__parentPause();})(pause, __store);}}catch(e){__errorHandler(e,' + savedLine + ',' + savedColumn + ');}' + resumeStart() + 'print(\'';
 				
 				i += 3;
 				continue;
@@ -339,7 +407,17 @@ global.NSP = function(code) {
 			// end repeat block
 			if (code[i + 2] === '~') {
 				
-				compiledCode += '\');\n\t});\n\tprint(\'';
+				compiledCode += '\');';
+				
+				REPEAT(resumeCountStack[resumeCountStack.length - 1], function(i) {
+					if (i === 0) {
+						compiledCode += '__parentStore.resume();'
+					}
+					compiledCode += '}};resume();';
+				});
+				resumeCountStack.pop();
+				
+				compiledCode += '__parentPause();})(pause, __store);});}catch(e){__errorHandler(e,' + savedLine + ',' + savedColumn + ');}' + resumeStart() + 'print(\'';
 				
 				i += 3;
 				continue;
@@ -350,7 +428,10 @@ global.NSP = function(code) {
 		if (cch === '{{' && checkIsInCode() !== true) {
 			isPrintMode = true;
 			
-			compiledCode += '\');\n\tprint(';
+			compiledCode += '\');try{print(';
+			
+			savedLine = line;
+			savedColumn = column;
 			
 			i += 1;
 			continue;
@@ -360,7 +441,7 @@ global.NSP = function(code) {
 		if (cch === '}}' && checkIsInString() !== true && isPrintMode === true) {
 			isPrintMode = false;
 			
-			compiledCode += ');\n\tprint(\'';
+			compiledCode += ');}catch(e){__errorHandler(e,' + savedLine + ',' + savedColumn + ');}' + resumeStart() + 'print(\'';
 			
 			i += 1;
 			continue;
@@ -446,29 +527,11 @@ global.NSP = function(code) {
 			i += 1;
 			continue;
 		}
-			
-		if (ch === '/' && checkIsInCode() === true) {
-			
-			// start regex mode
-			if (checkIsInString() !== true) {
-				isRegexMode = true;
-				
-				compiledCode += '/';
-				
-				continue;
-			}
-			
-			// end regex mode
-			if (isRegexMode === true) {
-				isRegexMode = false;
-				
-				compiledCode += '/';
-				
-				continue;
-			}
-		}
 		
 		if (ch === '\n') {
+			
+			line += 1;
+			column = 0;
 			
 			// end comment1 mode
 			if (checkIsInCode() === true && isComment1Mode === true) {
@@ -487,13 +550,23 @@ global.NSP = function(code) {
 			}
 		}
 		
+		if (ch === '\\' && checkIsInCode() !== true) {
+			
+			compiledCode += '\\\\';
+			
+			continue;
+		}
+		
 		if (ch !== '\r') {
 			compiledCode += ch;
 		}
 	}
 	
-	compiledCode += '\');\n';
+	compiledCode += '\');__handler({html:__html,cookies:__newCookieInfo,redirectURL:__redirectURL});';
 	
-	addCompiledCode('return {\n\t\thtml : __html,\n\t\tcookies : __newCookieInfo,\n\t\tredirectURL : __redirectURL\n\t};');
+	REPEAT(resumeCountStack[0], function() {
+		compiledCode += '}};resume();';
+	});
+	
 	return compiledCode;
 };
