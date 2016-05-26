@@ -55,12 +55,10 @@ global.NSP = function(path, code) {
 	var compiledCode = '';
 	
 	compiledCode += 'var __html = \'\';';
-	compiledCode += 'var __pauseCount = 0;';
 	compiledCode += 'var __redirectURL;';
 	compiledCode += 'var __cookieInfo = __requestInfo.cookies;';
 	compiledCode += 'var __newCookieInfo = {};';
 	compiledCode += 'var __basePath = \'' + Path.dirname(path) + '\';';
-	compiledCode += 'var __lastCondition;';
 	
 	// print
 	compiledCode += 'var print = ' + function(content) {
@@ -72,21 +70,6 @@ global.NSP = function(path, code) {
 				__html += JSON.stringify(content);
 			}
 		}
-		
-	}.toString() + ';';
-	
-	// include
-	compiledCode += 'var include = ' + function(path) {
-		
-		LOAD_NSP(__requestInfo, __basePath + '/' + path, self, function() {
-			print(path + ': File not exists.');
-			resume();
-		}, __errorHandler, function(result) {
-			print(result.html);
-			resume();
-		});
-		
-		pause();
 		
 	}.toString() + ';';
 	
@@ -179,12 +162,50 @@ global.NSP = function(path, code) {
 		
 	}.toString() + ';';
 	
-	// pause
-	compiledCode += 'var pause = ' + function() {
+	var i = 0;
+	
+	var resumeCountStack = [0];
+	
+	var addResumeStart = function() {
 		
-		__pauseCount += 1;
+		resumeCountStack[resumeCountStack.length - 1] += 1;
 		
-	}.toString() + ';';
+		compiledCode += '__pauseCount += 1;';
+		compiledCode += '__store.resume = resume = function() { __pauseCount -= 1; if (__pauseCount === 0 && __store.doneResumeIndexes[' + i + '] !== true) { __store.doneResumeIndexes[' + i + '] = true;';
+	};
+	
+	var addBlockStart = RAR(function() {
+		compiledCode += 'var __pauseCount = 0;';
+		compiledCode += 'var __lastCondition;';
+		compiledCode += 'var __store = { doneResumeIndexes: {} };';
+		compiledCode += 'var resume;';
+		
+		// pause
+		compiledCode += 'var pause = ' + function() {
+			
+			__pauseCount += 1;
+			
+		}.toString() + ';';
+		
+		// include
+		compiledCode += 'var include = ' + function(path) {
+			
+			LOAD_NSP(__requestInfo, __basePath + '/' + path, self, function() {
+				print(path + ': File not exists.');
+				resume();
+			}, __errorHandler, function(result) {
+				print(result.html);
+				resume();
+			});
+			
+			pause();
+			
+		}.toString() + ';';
+		
+		addResumeStart();
+	});
+	
+	compiledCode += 'print(\'';
 	
 	// <%...%>
 	var isCodeMode = false;
@@ -225,21 +246,10 @@ global.NSP = function(path, code) {
 			isComment2Mode === true;
 	};
 	
-	compiledCode += 'var __store={};';
-	compiledCode += 'var resume;';
-	
-	var resumeCountStack = [0];
-	var resumeStart = function() {
-		resumeCountStack[resumeCountStack.length - 1] += 1;
-		return '__pauseCount+=1;__store.resume=resume=function(){__pauseCount-=1;if(__pauseCount===0){';
-	};
-	
-	compiledCode += resumeStart() + 'print(\'';
-	
 	var line = 1, savedLine = 1;
 	var column = 0, savedColumn = 0;
 	
-	for (var i = 0; i < code.length; i += 1) {
+	for (; i < code.length; i += 1) {
 		
 		column += 1;
 		
@@ -250,7 +260,7 @@ global.NSP = function(path, code) {
 		if (cch === '<%' && checkIsInCode() !== true) {
 			isCodeMode = true;
 			
-			compiledCode += '\');try{';
+			compiledCode += '\'); try {';
 			
 			savedLine = line;
 			savedColumn = column;
@@ -279,7 +289,11 @@ global.NSP = function(path, code) {
 				compiledCode += ');';
 			}
 			
-			compiledCode += '}catch(e){__errorHandler(e,' + savedLine + ',' + savedColumn + ');}' + resumeStart() + 'print(\'';
+			compiledCode += '} catch(e) { __errorHandler(e, ' + savedLine + ',' + savedColumn + '); }';
+			
+			addResumeStart();
+			
+			compiledCode += 'print(\'';
 			
 			i += 1;
 			continue;
@@ -289,7 +303,7 @@ global.NSP = function(path, code) {
 		if (cch === '<?' && checkIsInCode() !== true) {
 			isQuestionMode = true;
 			
-			compiledCode += '\');try{if(__lastCondition=(';
+			compiledCode += '\'); try { if (__lastCondition = (';
 			
 			savedLine = line;
 			savedColumn = column;
@@ -302,7 +316,7 @@ global.NSP = function(path, code) {
 		if (cch === '<~' && checkIsInCode() !== true) {
 			isRepeatMode = true;
 			
-			compiledCode += '\');try{EACH(';
+			compiledCode += '\'); try { EACH(';
 			
 			savedLine = line;
 			savedColumn = column;
@@ -314,7 +328,7 @@ global.NSP = function(path, code) {
 		// split repeat
 		if (cch === '->' && checkIsInString() !== true && isRepeatMode === true) {
 			
-			compiledCode += ',function(';
+			compiledCode += ', function(';
 			
 			i += 1;
 			continue;
@@ -323,7 +337,7 @@ global.NSP = function(path, code) {
 		// split repeat
 		if (ch === ':' && checkIsInString() !== true && isRepeatMode === true) {
 			
-			compiledCode += ',';
+			compiledCode += ', ';
 			
 			continue;
 		}
@@ -331,7 +345,7 @@ global.NSP = function(path, code) {
 		// else
 		if (cch === 'el' && code[i + 2] === 's' && code[i + 3] === 'e' && (code[i + 4] === ' ' || code[i + 4] === '\t' || code[i + 4] === '>' || code[i + 4] === '\r' || code[i + 4] === '\n') && checkIsInString() !== true && isQuestionMode === true) {
 			
-			compiledCode += '__lastCondition!==true';
+			compiledCode += '__lastCondition !== true';
 			
 			i += 3;
 			continue;
@@ -345,17 +359,11 @@ global.NSP = function(path, code) {
 				
 				resumeCountStack.push(0);
 				
-				compiledCode += ')===true){(function(__parentPause, __parentStore){';
-				compiledCode += 'var __pauseCount = 0;';
-				compiledCode += 'var __lastCondition;';
-				compiledCode += 'var pause = ' + function() {
-					
-					__pauseCount += 1;
-					
-				}.toString() + ';';
-				compiledCode += 'var __store={};';
-				compiledCode += 'var resume;';
-				compiledCode += resumeStart() + 'print(\'';
+				compiledCode += ') === true) { (function(__parentPause, __parentStore) {';
+				
+				addBlockStart();
+				
+				compiledCode += 'print(\'';
 				
 				continue;
 			}
@@ -366,17 +374,11 @@ global.NSP = function(path, code) {
 				
 				resumeCountStack.push(0);
 				
-				compiledCode += '){(function(__parentPause, __parentStore){';
-				compiledCode += 'var __pauseCount = 0;';
-				compiledCode += 'var __lastCondition;';
-				compiledCode += 'var pause = ' + function() {
-					
-					__pauseCount += 1;
-					
-				}.toString() + ';';
-				compiledCode += 'var __store={};';
-				compiledCode += 'var resume;';
-				compiledCode += resumeStart() + 'print(\'';
+				compiledCode += ') { (function(__parentPause, __parentStore) {';
+				
+				addBlockStart();
+				
+				compiledCode += 'print(\'';
 				
 				continue;
 			}
@@ -394,11 +396,15 @@ global.NSP = function(path, code) {
 					if (i === 0) {
 						compiledCode += '__parentStore.resume();'
 					}
-					compiledCode += '}};resume();';
+					compiledCode += '} }; resume();';
 				});
 				resumeCountStack.pop();
 				
-				compiledCode += '__parentPause();})(pause, __store);}}catch(e){__errorHandler(e,' + savedLine + ',' + savedColumn + ');}' + resumeStart() + 'print(\'';
+				compiledCode += '__parentPause(); } )(pause, __store); } } catch(e) { __errorHandler(e, ' + savedLine + ', ' + savedColumn + '); }';
+				
+				addResumeStart();
+				
+				compiledCode += 'print(\'';
 				
 				i += 3;
 				continue;
@@ -413,11 +419,15 @@ global.NSP = function(path, code) {
 					if (i === 0) {
 						compiledCode += '__parentStore.resume();'
 					}
-					compiledCode += '}};resume();';
+					compiledCode += '} }; resume();';
 				});
 				resumeCountStack.pop();
 				
-				compiledCode += '__parentPause();})(pause, __store);});}catch(e){__errorHandler(e,' + savedLine + ',' + savedColumn + ');}' + resumeStart() + 'print(\'';
+				compiledCode += '__parentPause(); } )(pause, __store); } ); } catch(e) { __errorHandler(e, ' + savedLine + ', ' + savedColumn + '); }';
+				
+				addResumeStart();
+				
+				compiledCode += 'print(\'';
 				
 				i += 3;
 				continue;
@@ -428,7 +438,7 @@ global.NSP = function(path, code) {
 		if (cch === '{{' && checkIsInCode() !== true) {
 			isPrintMode = true;
 			
-			compiledCode += '\');try{print(';
+			compiledCode += '\'); try { print(';
 			
 			savedLine = line;
 			savedColumn = column;
@@ -441,7 +451,11 @@ global.NSP = function(path, code) {
 		if (cch === '}}' && checkIsInString() !== true && isPrintMode === true) {
 			isPrintMode = false;
 			
-			compiledCode += ');}catch(e){__errorHandler(e,' + savedLine + ',' + savedColumn + ');}' + resumeStart() + 'print(\'';
+			compiledCode += '); } catch(e) { __errorHandler(e, ' + savedLine + ', ' + savedColumn + '); }';
+			
+			addResumeStart();
+			
+			compiledCode += 'print(\'';
 			
 			i += 1;
 			continue;
@@ -562,10 +576,10 @@ global.NSP = function(path, code) {
 		}
 	}
 	
-	compiledCode += '\');__handler({html:__html,cookies:__newCookieInfo,redirectURL:__redirectURL});';
+	compiledCode += '\'); __handler({ html: __html, cookies: __newCookieInfo, redirectURL: __redirectURL });';
 	
 	REPEAT(resumeCountStack[0], function() {
-		compiledCode += '}};resume();';
+		compiledCode += '} }; resume();';
 	});
 	
 	return compiledCode;

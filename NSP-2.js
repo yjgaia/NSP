@@ -15,7 +15,8 @@ INIT_OBJECTS();
 // import NSP-EMBED.
 require('./NSP-2-EMBED.js');
 
-RUN(function() {
+// 멀티코어 CPU 지원
+CPU_CLUSTERING(function() {
 	
 	var
 	//IMPORT: Path
