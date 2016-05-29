@@ -15,7 +15,7 @@ INIT_OBJECTS();
 // import NSP-EMBED.
 require('./NSP-2-EMBED.js');
 
-var beautify = require('js-beautify').js_beautify;
+/* var beautify = require('js-beautify').js_beautify;
 
 var NSP_ORIGIN = NSP
 global.NSP = function(path, code) {
@@ -25,41 +25,39 @@ global.NSP = function(path, code) {
 	});
 	//console.log(c);
 	return c;
-};
+}; */
 
-RUN(function() {
-	
-	var
-	//IMPORT: Path
-	Path = require('path'),
+var
+//IMPORT: Path
+Path = require('path'),
 
-	// config
-	config = PARSE_STR(READ_FILE({
-		path : 'config.json',
-		isSync : true
-	}).toString()),
+// config
+config = PARSE_STR(READ_FILE({
+	path : 'config.json',
+	isSync : true
+}).toString()),
+
+// port
+port = config.port,
+
+// root path
+rootPath = config.rootPath,
+
+// rest uri
+restURI = config.restURI;
+
+// if dev mode is true, no resource caching.
+CONFIG.isDevMode = config.isDevMode;
+
+(CONFIG.isNotUsingCPUClustering === true ? RUN : CPU_CLUSTERING)(function() {
 	
-	// port
-	port = config.port,
-	
-	// root path
-	rootPath = config.rootPath,
-	
-	// rest uri
-	restURI = config.restURI;
-	
-	// if dev mode is true, no resource caching.
-	CONFIG.isDevMode = config.isDevMode;
-	
-	function responseError(path, e, code, line, column, response) {
+	function responseError(response, e, path, startLine, startColumn, endLine, endColumn, startIndex, endIndex) {
 		
 		response({
 			statusCode : 500,
 			content : 
 	'<!doctype html><html><head><meta charset="UTF-8"><title>' + e + '</title></head><body>' +
-	'<p><b>' + e + '</b></p>' +
-	'<b>path: </b>' + path + ' (' + line + ':' + column + ')' +
-	(code === undefined ? '' : '<br><b>code: </b>' + code) +
+	'<p><b>' + e + '</b></p><p><b>path: </b>' + path + ' (' + startLine + ':' + startColumn + '~' + endLine + ':' + endColumn + ')</p><pre>' + __NSP_SAVED_CODES[path].substring(startIndex, endIndex) + '</pre>' +
 	'</body></html>',
 			contentType : 'text/html'
 		});
@@ -114,8 +112,8 @@ RUN(function() {
 					subURI : subURI
 				}, function() {
 					responseNotFound(response);
-				}, function(e, path, line, column) {
-					responseError(path, e, undefined, line, column, response);
+				}, function(e, path, startLine, startColumn, endLine, endColumn, startIndex, endIndex) {
+					responseError(response, e, path, startLine, startColumn, endLine, endColumn, startIndex, endIndex);
 				}, function(result) {
 					
 					if (result.redirectURL !== undefined) {
