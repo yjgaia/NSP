@@ -1,74 +1,74 @@
+//TODO: NSP 오류 출력 부분 만들기
+
+var cachedFileInfos = {};
+
 var
-//IMPORT: path
-__path = require('path'),
+//IMPORT: Path
+Path = require('path');
 
-// shared store
-__sharedStore = SHARED_STORE('__NSP_SHARED_STORE'),
+global.__NSP_SHARED_STORE = SHARED_STORE('__NSP_SHARED_STORE');
 
-// parse func str
-__parseFuncStr = function __parse(__requestInfo, __sourcePath, __source, __response, self, __isNotUsingDCBN) {
+global.LOAD_NSP = function(requestInfo, path, self, notExistsHandler, errorHandler, handler) {
+	//REQUIRED: path
 	
-	var
-	// html
-	__html = '',
+	GET_FILE_INFO(path, {
+		notExists : notExistsHandler,
+		success : function(fileInfo) {
+			
+			var cachedFileInfo = cachedFileInfos[path];
+			
+			if (cachedFileInfo !== undefined
+				&& (
+					(fileInfo.lastUpdateTime !== undefined && cachedFileInfo.lastUpdateTime.getTime() === fileInfo.lastUpdateTime.getTime())
+					|| (fileInfo.createTime !== undefined && cachedFileInfo.lastUpdateTime.getTime() === fileInfo.createTime.getTime())
+				)
+			) {
+				cachedFileInfo.run(requestInfo, self, errorHandler, handler);
+			}
+			
+			else {
+				
+				READ_FILE(path, {
+					notExists : notExistsHandler,
+					error : errorHandler,
+					success : function(buffer) {
+						
+						var
+						// run.
+						run = new Function('__requestInfo', 'self', '__errorHandler', '__handler', NSP(path, buffer.toString()));
+						
+						cachedFileInfos[path] = {
+							lastUpdateTime : fileInfo.lastUpdateTime === undefined ? fileInfo.createTime : fileInfo.lastUpdateTime,
+							run : run
+						};
+						
+						run(requestInfo, self, errorHandler, handler);
+					}
+				});
+			}
+		}
+	});
+};
+
+global.__NSP_SAVED_CODES = {};
+
+global.NSP = function(path, code) {
+	//REQUIRED: code
 	
-	// redirect url
-	__redirectURL,
+	__NSP_SAVED_CODES[path] = code;
 	
-	// last index
-	__lastIndex = 0,
+	// init
+	var compiledCode = '';
 	
-	// start code index
-	__startCodeIndex = -1,
+	compiledCode += 'var __html = \'\';';
+	compiledCode += 'var __redirectURL;';
+	compiledCode += 'var __cookieInfo = __requestInfo.cookies;';
+	compiledCode += 'var __newCookieInfo = {};';
+	compiledCode += 'var __path = \'' + path + '\';';
+	compiledCode += 'var __basePath = \'' + Path.dirname(path) + '\';';
 	
-	// start pstr index
-	__startPstrIndex = -1,
-	
-	// start pstr2 index
-	__startPstr2Index = -1,
-	
-	// start conditional index
-	__startCondIndex = -1,
-	
-	// start each index
-	__startEachIndex = -1,
-	
-	// pause count
-	__pauseCount = 1,
-	
-	// last cond
-	__lastCond,
-	
-	// last cond stack
-	__lastCondStack = [],
-	
-	// is ignored
-	__isIgnored,
-	
-	// is ignore stack
-	__isIgnoreStack = [],
-	
-	// is repeat stack
-	__isRepeatStack = [],
-	
-	// repeat info
-	__repeatInfo,
-	
-	// for repeat
-	__repeatSplits,
-	__repeatTarget, __repeatTargetName, __repeatTargetNowKey, __repeatTargetBeforeKey, __repeatTargetFirstKey,
-	__repeatItemStr, __repeatItemSplits, __repeatItemName, __repeatItemValue,
-	
-	// cookie info
-	__cookieInfo = __requestInfo.cookies,
-	
-	// new cookie info
-	__newCookieInfo = {},
-	
-	// ohters
-	__i, __ch, __line = 1, __column = 1, __lastLine = 1, __lastColumn = 1;
-	
-	function print(content) {
+	// print
+	compiledCode += 'var print = ' + function(content) {
 		
 		if (content !== undefined) {
 			if (typeof content === 'string') {
@@ -77,28 +77,34 @@ __parseFuncStr = function __parse(__requestInfo, __sourcePath, __source, __respo
 				__html += JSON.stringify(content);
 			}
 		}
-	}
-	
-	function save(name, value) {
 		
-		// 변수 삭제
+	}.toString() + ';';
+	
+	// save
+	compiledCode += 'var save = ' + function(name, value) {
+		
 		if (value === undefined) {
-			__sharedStore.remove(name);
+			__NSP_SHARED_STORE.remove(name);
 		}
 		
 		else {
-			__sharedStore.save({
+			__NSP_SHARED_STORE.save({
 				name : name,
 				value : value
 			});
 		}
-	}
+		
+	}.toString() + ';';
 	
-	function load(name) {
-		return __sharedStore.get(name);
-	}
+	// load
+	compiledCode += 'var load = ' + function(name) {
+		
+		return __NSP_SHARED_STORE.get(name);
+		
+	}.toString() + ';';
 	
-	function cookie(name, value, expireSeconds, path, domain) {
+	// cookie
+	compiledCode += 'var cookie = ' + function(name, value, expireSeconds, path, domain) {
 		
 		if (value === undefined) {
 			value = __cookieInfo[name];
@@ -121,9 +127,11 @@ __parseFuncStr = function __parse(__requestInfo, __sourcePath, __source, __respo
 			
 			return value;
 		}
-	}
+		
+	}.toString() + ';';
 	
-	function upload(uploadPath, callbackOrHandlers) {
+	// upload
+	compiledCode += 'var upload = ' + function(uploadPath, callbackOrHandlers) {
 		
 		var
 		// callback
@@ -145,972 +153,486 @@ __parseFuncStr = function __parse(__requestInfo, __sourcePath, __source, __respo
 		
 		UPLOAD_REQUEST({
 			requestInfo : __requestInfo,
-			uploadPath : __path.dirname(__sourcePath) + '/' + uploadPath
+			uploadPath : __basePath + '/' + uploadPath
 		}, {
 			error : errorHandler,
 			overFileSize : overFileSizeHandler,
 			success : callback
 		});
-	}
+		
+	}.toString() + ';';
 	
-	function redirect(url) {
+	// redirect
+	compiledCode += 'var redirect = ' + function(url) {
+		
 		__redirectURL = url;
-	}
-	
-	function pause() {
-		__pauseCount += 1;
-	}
-	
-	eval(__resumeFuncStr);
-	
-	resume();
-	
-}.toString(),
-
-// resume func str
-__resumeFuncStr = function resume() {
-	
-	DELAY(function() {
 		
-		__pauseCount -= 1;
+	}.toString() + ';';
+	
+	// each
+	compiledCode += 'var __each = ' + function(target, func) {
 		
-		if (__pauseCount === 0) {
+		if (isNaN(target) === true) {
+			EACH(target, function(value, name) {
+				func(name, value);
+			});
+		} else {
+			REPEAT(target, func);
+		}
+		
+	}.toString() + ';';
+	
+	var i = 0;
+	var savedIndex = 0;
+	
+	var resumeCountStack = [0];
+	
+	var addResumeStart = function() {
+		
+		resumeCountStack[resumeCountStack.length - 1] += 1;
+		
+		compiledCode += '__pauseCount += 1;';
+		compiledCode += '__store.resume = resume = function() { __pauseCount -= 1; if (__pauseCount === 0 && __store.doneResumeIndexes[' + i + '] !== true) { __store.doneResumeIndexes[' + i + '] = true;';
+	};
+	
+	var addBlockStart = RAR(function() {
+		compiledCode += 'var __pauseCount = 0;';
+		compiledCode += 'var __lastCondition;';
+		compiledCode += 'var __store = { doneResumeIndexes: {} };';
+		compiledCode += 'var resume;';
+		
+		// pause
+		compiledCode += 'var pause = ' + function() {
 			
-			eval(__parseFuncStr);
-			eval(__resumeFuncStr);
+			__pauseCount += 1;
 			
-			function include(__uri, __callback) {
-				
-				var
-				// fullPath
-				__fullPath = __path.dirname(__sourcePath) + '/' + __uri,
-				
-				// saved last index
-				savedLastIndex = __lastIndex;
-				
-				pause();
-				
-				READ_FILE(__fullPath, {
-					
-					notExists : function() {
-						__responseError(__fullPath, 'File not exists.', __source.substring(savedLastIndex, __i - 1), __lastLine, __lastColumn, __response);
-					},
-					
-					success : function(__buffer) {
-						
-						var
-						// ext
-						ext = __path.extname(__uri).toLowerCase();
-						
-						if (ext === '.nsp') {
-							__parse(__requestInfo, __fullPath, __buffer.toString(), function(res) {
-								print(res.content);
-								if (__callback !== undefined) {
-									__callback();
-								}
-								resume();
-							}, self, __isNotUsingDCBN);
-						}
-						
-						else if (ext === '.js') {
-							
-							try {
-								eval(__buffer.toString());
-							} catch (e) {
-								__responseError(__fullPath, e, __buffer.toString(), 1, 1, __response);
-								return;
-							}
-							
-							if (__callback !== undefined) {
-								__callback();
-							}
-							resume();
-						}
-						
-						else {
-							print(__buffer.toString());
-							resume();
-						}
-					}
-				});
-			}
+		}.toString() + ';';
+		
+		// include
+		compiledCode += 'var include = ' + function(path) {
 			
-			for (__i = __lastIndex; __i <= __source.length; __i += 1) {
-				__ch = __source[__i];
-				
-				if (__i > 0) {
-					
-					// Node.js용 코드 시작
-					if (__ch === '%' && __source[__i - 1] === '<') {
-						
-						if (
-						__isIgnored !== true &&
-						(__repeatInfo === undefined || __repeatInfo.key !== undefined) &&
-						__startCodeIndex === -1 &&
-						__startPstrIndex === -1 &&
-						__startPstr2Index === -1 &&
-						__startCondIndex === -1 &&
-						__startEachIndex === -1) {
-							
-							if (__source[__i + 1] === '=') {
-								
-								if (__i > 2 && __source[__i - 3] === '\\' && __source[__i - 2] === '\\') {
-									print(__source.substring(__lastIndex, __i - 2));
-									__startPstr2Index = __i + 2;
-								} else if (__i > 1 && __source[__i - 2] === '\\') {
-									// Node.js용 코드 아님, 무시
-									print(__source.substring(__lastIndex, __i - 2));
-									print(__source.substring(__i - 1, __i + 2));
-								} else {
-									print(__source.substring(__lastIndex, __i - 1));
-									__startPstr2Index = __i + 2;
-								}
-								__lastIndex = __i + 2;
-								__lastLine = __line;
-								__lastColumn = __column - 1;
-								
-							} else {
-						
-								if (__i > 2 && __source[__i - 3] === '\\' && __source[__i - 2] === '\\') {
-									print(__source.substring(__lastIndex, __i - 2));
-									__startCodeIndex = __i + 1;
-								} else if (__i > 1 && __source[__i - 2] === '\\') {
-									// Node.js용 코드 아님, 무시
-									print(__source.substring(__lastIndex, __i - 2));
-									print(__source.substring(__i - 1, __i + 1));
-								} else {
-									print(__source.substring(__lastIndex, __i - 1));
-									__startCodeIndex = __i + 1;
-								}
-								__lastIndex = __i + 1;
-								__lastLine = __line;
-								__lastColumn = __column - 1;
-							}
-						}
-					}
-					
-					// Node.js용 코드 끝
-					else if (__ch === '>' && __source[__i - 1] === '%') {
-						
-						if (
-						__isIgnored !== true &&
-						(__repeatInfo === undefined || __repeatInfo.key !== undefined) &&
-						__startPstrIndex === -1 &&
-						__startCondIndex === -1 &&
-						__startEachIndex === -1) {
-							
-							if (
-							__startCodeIndex !== -1 &&
-							__startPstr2Index === -1) {
-								
-								try {
-									eval(__source.substring(__lastIndex, __i - 1));
-								} catch (e) {
-									__responseError(__sourcePath, e, __source.substring(__lastIndex, __i - 1), __lastLine, __lastColumn, __response);
-									return;
-								}
-								
-								__startCodeIndex = -1;
-								__lastIndex = __i + 1;
-								
-								if (__pauseCount !== 0) {
-									__column += 1;
-									return;
-								}
-							}
-							
-							else if (
-							__startCodeIndex === -1 &&
-							__startPstr2Index !== -1) {
-								
-								try {
-									print(eval(__source.substring(__lastIndex, __i - 1)));
-								} catch (e) {
-									__responseError(__sourcePath, e, __source.substring(__lastIndex, __i - 1), __lastLine, __lastColumn, __response);
-									return;
-								}
-								
-								__startPstr2Index = -1;
-								__lastIndex = __i + 1;
-								
-								if (__pauseCount !== 0) {
-									__column += 1;
-									return;
-								}
-							}
-						}
-					}
-					
-					// 출력 코드 시작
-					else if (__isNotUsingDCBN !== true && __ch === '{' && __source[__i - 1] === '{') {
-						
-						if (
-						__isIgnored !== true &&
-						(__repeatInfo === undefined || __repeatInfo.key !== undefined) &&
-						__startCodeIndex === -1 &&
-						__startPstrIndex === -1 &&
-						__startPstr2Index === -1 &&
-						__startCondIndex === -1 &&
-						__startEachIndex === -1) {
-							
-							if (__i > 2 && __source[__i - 3] === '\\' && __source[__i - 2] === '\\') {
-								print(__source.substring(__lastIndex, __i - 2));
-								__startPstrIndex = __i + 1;
-							} else if (__i > 1 && __source[__i - 2] === '\\') {
-								// Node.js용 코드 아님, 무시
-								print(__source.substring(__lastIndex, __i - 2));
-								print(__source.substring(__i - 1, __i + 1));
-							} else {
-								print(__source.substring(__lastIndex, __i - 1));
-								__startPstrIndex = __i + 1;
-							}
-							__lastIndex = __i + 1;
-							__lastLine = __line;
-							__lastColumn = __column - 1;
-						}
-					}
-					
-					// 출력 코드 끝
-					else if (__ch === '}' && __source[__i - 1] === '}') {
-						
-						if (
-						__isIgnored !== true &&
-						(__repeatInfo === undefined || __repeatInfo.key !== undefined) &&
-						__startCodeIndex === -1 &&
-						__startPstrIndex !== -1 &&
-						__startPstr2Index === -1 &&
-						__startCondIndex === -1 &&
-						__startEachIndex === -1) {
-							
-							try {
-								print(eval(__source.substring(__lastIndex, __i - 1)));
-							} catch (e) {
-								__responseError(__sourcePath, e, __source.substring(__lastIndex, __i - 1), __lastLine, __lastColumn, __response);
-								return;
-							}
-							
-							__startPstrIndex = -1;
-							__lastIndex = __i + 1;
-							
-							if (__pauseCount !== 0) {
-								__column += 1;
-								return;
-							}
-						}
-					}
-					
-					// 조건 코드 시작
-					else if (__ch === '?' && __source[__i - 1] === '<') {
-						
-						if (
-						(__repeatInfo === undefined || __repeatInfo.key !== undefined) &&
-						__startCodeIndex === -1 &&
-						__startPstrIndex === -1 &&
-						__startPstr2Index === -1 &&
-						__startCondIndex === -1 &&
-						__startEachIndex === -1) {
-							
-							if (__isIgnored !== true) {
-								if (__i > 2 && __source[__i - 3] === '\\' && __source[__i - 2] === '\\') {
-									print(__source.substring(__lastIndex, __i - 2));
-									__startCondIndex = __i + 1;
-								} else if (__i > 1 && __source[__i - 2] === '\\') {
-									// Node.js용 코드 아님, 무시
-									print(__source.substring(__lastIndex, __i - 2));
-									print(__source.substring(__i - 1, __i + 1));
-								} else {
-									print(__source.substring(__lastIndex, __i - 1));
-									__startCondIndex = __i + 1;
-								}
-								__lastIndex = __i + 1;
-								__lastLine = __line;
-								__lastColumn = __column - 1;
-							} else {
-								__isIgnoreStack.push(true);
-							}
-						}
-					}
-					
-					// 조건 코드 끝
-					else if (__i > 3 && __ch === '>' && __source[__i - 1] === '?' && __source[__i - 2] === '/' && __source[__i - 3] === '<') {
-						
-						if (
-						(__repeatInfo === undefined || __repeatInfo.key !== undefined) &&
-						__startCodeIndex === -1 &&
-						__startPstrIndex === -1 &&
-						__startPstr2Index === -1 &&
-						__startCondIndex === -1 &&
-						__startEachIndex === -1) {
-							
-							if (__i > 5 && __source[__i - 5] === '\\' && __source[__i - 4] === '\\') {
-								if (__isIgnored !== true) {
-									print(__source.substring(__lastIndex, __i - 4));
-								}
-								__isIgnoreStack.pop();
-								__isIgnored = __isIgnoreStack[__isIgnoreStack.length - 1];
-								if (__isIgnored !== true) {
-									__lastCond = __lastCondStack.pop();
-								}
-							} else if (__i > 3 && __source[__i - 4] === '\\') {
-								// Node.js용 코드 아님, 무시
-								print(__source.substring(__lastIndex, __i - 4));
-								print(__source.substring(__i - 3, __i + 1));
-							} else {
-								if (__isIgnored !== true) {
-									print(__source.substring(__lastIndex, __i - 3));
-								}
-								__isIgnoreStack.pop();
-								__isIgnored = __isIgnoreStack[__isIgnoreStack.length - 1];
-								if (__isIgnored !== true) {
-									__lastCond = __lastCondStack.pop();
-								}
-							}
-							__lastIndex = __i + 1;
-						}
-					}
-					
-					// 반복 코드 시작
-					else if (__ch === '~' && __source[__i - 1] === '<') {
-						
-						if (
-						__isIgnored !== true &&
-						__startCodeIndex === -1 &&
-						__startPstrIndex === -1 &&
-						__startPstr2Index === -1 &&
-						__startCondIndex === -1 &&
-						__startEachIndex === -1) {
-							
-							if (__i > 2 && __source[__i - 3] === '\\' && __source[__i - 2] === '\\') {
-								if (__repeatInfo === undefined || __repeatInfo.key !== undefined) {
-									print(__source.substring(__lastIndex, __i - 2));
-								}
-								__startEachIndex = __i + 1;
-							} else if (__i > 1 && __source[__i - 2] === '\\') {
-								// Node.js용 코드 아님, 무시
-								if (__repeatInfo === undefined || __repeatInfo.key !== undefined) {
-									print(__source.substring(__lastIndex, __i - 2));
-									print(__source.substring(__i - 1, __i + 1));
-								}
-							} else {
-								if (__repeatInfo === undefined || __repeatInfo.key !== undefined) {
-									print(__source.substring(__lastIndex, __i - 1));
-								}
-								__startEachIndex = __i + 1;
-							}
-							__lastIndex = __i + 1;
-							__lastLine = __line;
-							__lastColumn = __column - 1;
-						}
-					}
-					
-					// 반복 코드 끝
-					else if (__i > 3 && __ch === '>' && __source[__i - 1] === '~' && __source[__i - 2] === '/' && __source[__i - 3] === '<') {
-						
-						if (
-						__isIgnored !== true &&
-						__startCodeIndex === -1 &&
-						__startPstrIndex === -1 &&
-						__startPstr2Index === -1 &&
-						__startCondIndex === -1 &&
-						__startEachIndex === -1) {
-							
-							if (__i > 5 && __source[__i - 5] === '\\' && __source[__i - 4] === '\\') {
-								
-								if (__repeatInfo !== undefined && __repeatInfo.key !== undefined) {
-									
-									__repeatTarget = __repeatInfo.target;
-									__repeatTargetName = __repeatInfo.targetName;
-									__repeatTargetFirstKey = __repeatInfo.key;
-									__repeatItemName = __repeatInfo.name;
-									__repeatItemValue = __repeatInfo.value;
-									
-									print(__source.substring(__lastIndex, __i - 4));
-									
-									// find next key
-									__repeatTargetBeforeKey = undefined;
-									for (__repeatTargetNowKey in __repeatTarget) {
-										if (__repeatTarget.hasOwnProperty(__repeatTargetNowKey) === true) {
-											if (__repeatTargetBeforeKey === __repeatTargetFirstKey) {
-												__repeatInfo.key = __repeatTargetNowKey;
-												break;
-											}
-											__repeatTargetBeforeKey = __repeatTargetNowKey;
-										}
-									}
-									
-									if (__repeatTargetFirstKey !== undefined && __repeatTargetNowKey !== __repeatTargetFirstKey) {
-										
-										__i = __repeatInfo.startIndex - 1;
-										__line = __repeatInfo.line;
-										__column = __repeatInfo.column;
-										
-										if (__repeatItemName === undefined) {
-											eval(__repeatItemValue + ' = ' + __repeatTargetName + '[\'' + __repeatTargetNowKey + '\'];');
-										} else {
-											eval(
-												__repeatItemName + ' = \'' + __repeatTargetNowKey + '\';' +
-												__repeatItemValue + ' = ' + __repeatTargetName + '[\'' + __repeatTargetNowKey + '\'];'
-											);
-										}
-									}
-									
-									else {
-										__isRepeatStack.pop();
-										__repeatInfo = __isRepeatStack[__isRepeatStack.length - 1];
-									}
-								}
-								
-								else {
-									__isRepeatStack.pop();
-									__repeatInfo = __isRepeatStack[__isRepeatStack.length - 1];
-								}
-							}
-							
-							else if (__i > 3 && __source[__i - 4] === '\\') {
-								// Node.js용 코드 아님, 무시
-								print(__source.substring(__lastIndex, __i - 4));
-								print(__source.substring(__i - 3, __i + 1));
-							}
-							
-							else {
-								
-								if (__repeatInfo !== undefined && __repeatInfo.key !== undefined) {
-									
-									__repeatTarget = __repeatInfo.target;
-									__repeatTargetName = __repeatInfo.targetName;
-									__repeatTargetFirstKey = __repeatInfo.key;
-									__repeatItemName = __repeatInfo.name;
-									__repeatItemValue = __repeatInfo.value;
-									
-									print(__source.substring(__lastIndex, __i - 3));
-									
-									// find next key
-									__repeatTargetBeforeKey = undefined;
-									for (__repeatTargetNowKey in __repeatTarget) {
-										if (__repeatTarget.hasOwnProperty(__repeatTargetNowKey) === true) {
-											if (__repeatTargetBeforeKey === __repeatTargetFirstKey) {
-												__repeatInfo.key = __repeatTargetNowKey;
-												break;
-											}
-											__repeatTargetBeforeKey = __repeatTargetNowKey;
-										}
-									}
-									
-									if (__repeatTargetNowKey !== __repeatTargetFirstKey) {
-										
-										__i = __repeatInfo.startIndex - 1;
-										__line = __repeatInfo.line;
-										__column = __repeatInfo.column;
-										
-										if (__repeatItemName === undefined) {
-											eval(__repeatItemValue + ' = ' + __repeatTargetName + '[\'' + __repeatTargetNowKey + '\'];');
-										} else {
-											eval(
-												__repeatItemName + ' = \'' + __repeatTargetNowKey + '\';' +
-												__repeatItemValue + ' = ' + __repeatTargetName + '[\'' + __repeatTargetNowKey + '\'];'
-											);
-										}
-									}
-									
-									else {
-										__isRepeatStack.pop();
-										__repeatInfo = __isRepeatStack[__isRepeatStack.length - 1];
-									}
-								}
-								
-								else {
-									__isRepeatStack.pop();
-									__repeatInfo = __isRepeatStack[__isRepeatStack.length - 1];
-								}
-							}
-							
-							__lastIndex = __i + 1;
-						}
-					}
-					
-					// 조건 코드나 반복 코드 시작의 끝
-					else if (__i > 2 && __ch === '>' && __source[__i - 1] !== '\\') {
-						
-						if (
-						__isIgnored !== true &&
-						__startCodeIndex === -1 &&
-						__startPstrIndex === -1 &&
-						__startPstr2Index === -1) {
-							
-							// 조건 코드
-							if (
-							(__repeatInfo === undefined || __repeatInfo.key !== undefined) &&
-							__startCondIndex !== -1 &&
-							__startEachIndex === -1) {
-								
-								try {
-									if (__source.substring(__lastIndex, __i).trim() === 'else') {
-										if (__lastCond === true) {
-											__isIgnored = true;
-											__isIgnoreStack.push(true);
-										} else {
-											__isIgnoreStack.push(false);
-										}
-										__lastCondStack.push(true);
-									} else if (eval(__source.substring(__lastIndex, __i).replace(/\\>/g, '>')) === false) {
-										__isIgnored = true;
-										__isIgnoreStack.push(true);
-										__lastCondStack.push(false);
-									} else {
-										__isIgnoreStack.push(false);
-										__lastCondStack.push(true);
-									}
-								} catch (e) {
-									__responseError(__sourcePath, e, __source.substring(__lastIndex, __i), __lastLine, __lastColumn, __response);
-									return;
-								}
-								
-								__startCondIndex = -1;
-								__lastIndex = __i + 1;
-								
-								if (__pauseCount !== 0) {
-									__column += 1;
-									return;
-								}
-							}
-							
-							// 반복 코드
-							else if (
-							__startCondIndex === -1 &&
-							__startEachIndex !== -1 &&
-							__source[__i - 1] !== '-') {
-								
-								try {
-									__repeatSplits = __source.substring(__lastIndex, __i).split('->');
-									
-									if (__repeatInfo === undefined || __repeatInfo.key !== undefined) {
-										__repeatTargetName = __repeatSplits[0];
-										__repeatTarget = eval(__repeatTargetName);
-									} else {
-										__repeatTargetName = undefined;
-										__repeatTarget = undefined;
-									}
-									
-									__repeatItemStr = __repeatSplits[1];
-									
-									if (__repeatTarget === undefined) {
-										__isRepeatStack.push(__repeatInfo = {
-											targetName : __repeatTargetName,
-											value : __repeatItemStr,
-											startIndex : __i + 1,
-											line : __line,
-											column : __column
-										});
-									}
-									
-									else {
-										
-										if (isNaN(__repeatTarget) !== true) {
-											
-											__repeatTargetName = '__VALUE_ARRAY_' + __VALUE_ARRAY_INDEX;
-											__VALUE_ARRAY_INDEX += 1;
-											
-											__repeatTarget = eval(__repeatTargetName + '=' + RUN(function() {
-												
-												var
-												// script
-												script = '[';
-												
-												REPEAT(__repeatTarget, function(i) {
-													if (i > 0) {
-														script += ',';
-													}
-													script += i;
-												});
-												
-												script += ']';
-												
-												return script;
-											}));
-										}
-										
-										// name이 없을 때
-										if (__repeatItemStr.indexOf(':') === -1) {
-											
-											// find first key
-											__repeatTargetFirstKey = undefined;
-											for (__repeatTargetFirstKey in __repeatTarget) {
-												if (__repeatTarget.hasOwnProperty(__repeatTargetFirstKey) === true) {
-													break;
-												}
-											}
-											
-											__isRepeatStack.push(__repeatInfo = {
-												target : __repeatTarget,
-												targetName : __repeatTargetName,
-												key : __repeatTargetFirstKey,
-												value : __repeatItemStr,
-												startIndex : __i + 1,
-												line : __line,
-												column : __column
-											});
-											
-											eval('var ' + __repeatItemStr + ' = ' + __repeatTargetName + '[\'' + __repeatTargetFirstKey + '\'];');
-										}
-										
-										// name이 있을 때
-										else {
-											__repeatItemSplits = __repeatItemStr.split(':');
-											__repeatItemName = __repeatItemSplits[0];
-											__repeatItemValue = __repeatItemSplits[1];
-											
-											// find first key
-											__repeatTargetFirstKey = undefined;
-											for (__repeatTargetFirstKey in __repeatTarget) {
-												if (__repeatTarget.hasOwnProperty(__repeatTargetFirstKey) === true) {
-													break;
-												}
-											}
-											
-											__isRepeatStack.push(__repeatInfo = {
-												target : __repeatTarget,
-												targetName : __repeatTargetName,
-												key : __repeatTargetFirstKey,
-												name : __repeatItemName,
-												value : __repeatItemValue,
-												startIndex : __i + 1,
-												line : __line,
-												column : __column
-											});
-											
-											eval(
-												'var ' + __repeatItemName + ' = \'' + __repeatTargetFirstKey + '\';' +
-												'var ' + __repeatItemValue + ' = ' + __repeatTargetName + '[\'' + __repeatTargetFirstKey + '\'];'
-											);
-										}
-									}
-								} catch (e) {
-									__responseError(__sourcePath, e, __source.substring(__lastIndex, __i), __lastLine, __lastColumn, __response);
-									return;
-								}
-								
-								__startEachIndex = -1;
-								__lastIndex = __i + 1;
-								
-								if (__pauseCount !== 0) {
-									__column += 1;
-									return;
-								}
-							}
-						}
-					}
-				}
-				
-				if (__ch === '\n') {
-					__line += 1;
-					__column = 1;
-				} else {
-					__column += 1;
-				}
-			}
+			LOAD_NSP(__requestInfo, __basePath + '/' + path, self, function() {
+				print(path + ': File not exists.');
+				resume();
+			}, function(e, path, startLine, startColumn, endLine, endColumn, startIndex, endIndex) {
+				print('<p><b>' + e + '</b></p><p><b>path: </b>' + path + ' (' + startLine + ':' + startColumn + '~' + endLine + ':' + endColumn + ')</p><pre>' + __NSP_SAVED_CODES[path].substring(startIndex, endIndex) + '</pre>');
+			}, function(result) {
+				print(result.html);
+				resume();
+			});
 			
-			if (__startCodeIndex !== -1 || __startPstrIndex !== -1) {
-				print(__source.substring(__lastIndex - 2));
-			} else {
-				print(__source.substring(__lastIndex));
-			}
+			pause();
 			
-			if (__redirectURL !== undefined) {
-				__response({
-					statusCode : 302,
-					headers : {
-						'Set-Cookie' : CREATE_COOKIE_STR_ARRAY(__newCookieInfo),
-						'Location' : __redirectURL
-					}
-				});
+		}.toString() + ';';
+		
+		addResumeStart();
+	});
+	
+	compiledCode += 'print(\'';
+	
+	// <%...%>
+	var isCodeMode = false;
+	var isCodePrintMode = false;
+	
+	// <?...>
+	var isQuestionMode = false;
+	
+	// <~...>
+	var isRepeatMode = false;
+	
+	// {{...}}
+	var isPrintMode = false;
+	
+	// '...'
+	var isString1Mode = false;
+	
+	// "..."
+	var isString2Mode = false;
+	
+	// //...
+	var isComment1Mode = false;
+	
+	// /*...*/
+	var isComment2Mode = false;
+	
+	function checkIsInCode() {
+		return isCodeMode === true ||
+			isQuestionMode === true ||
+			isRepeatMode === true ||
+			isPrintMode === true;
+	};
+	
+	function checkIsInString() {
+		return isString1Mode === true ||
+			isString2Mode === true ||
+			isComment1Mode === true ||
+			isComment2Mode === true;
+	};
+	
+	var line = 1, savedLine = 1;
+	var column = 0, savedColumn = 0;
+	
+	for (; i < code.length; i += 1) {
+		
+		column += 1;
+		
+		var ch = code[i];
+		var cch = ch + code[i + 1];
+		
+		// start code mode
+		if (cch === '<%' && checkIsInCode() !== true) {
+			isCodeMode = true;
+			
+			compiledCode += '\'); try {';
+			
+			savedLine = line;
+			savedColumn = column;
+			savedIndex = i;
+			
+			if (code[i + 2] === '=') {
+				isCodePrintMode = true;
+				
+				compiledCode += 'print(';
+				
+				i += 2;
+				column += 2;
 			}
 			
 			else {
-				__response({
-					headers : {
-						'Set-Cookie' : CREATE_COOKIE_STR_ARRAY(__newCookieInfo)
-					},
-					content : __html,
-					contentType : 'text/html'
-				});
+				i += 1;
+				column += 1;
+			}
+			continue;
+		}
+		
+		// end code mode
+		if (cch === '%>' && checkIsInString() !== true && isCodeMode === true) {
+			isCodeMode = false;
+			
+			if (isCodePrintMode === true) {
+				isCodePrintMode = false;
+				
+				compiledCode += ');';
+			}
+			
+			compiledCode += '} catch(e) { __errorHandler(e, __path, ' + savedLine + ', ' + savedColumn + ', ' + line + ', ' + (column + 1) + ', ' + savedIndex + ', ' + (i + 2) + '); }';
+			
+			addResumeStart();
+			
+			compiledCode += 'print(\'';
+			
+			i += 1;
+			column += 1;
+			continue;
+		}
+			
+		// start question mode
+		if (cch === '<?' && checkIsInCode() !== true) {
+			isQuestionMode = true;
+			
+			compiledCode += '\'); try { if (__lastCondition = (';
+			
+			savedLine = line;
+			savedColumn = column;
+			savedIndex = i;
+			
+			i += 1;
+			column += 1;
+			continue;
+		}
+			
+		// start repeat mode
+		if (cch === '<~' && checkIsInCode() !== true) {
+			isRepeatMode = true;
+			
+			compiledCode += '\'); try { __each(';
+			
+			savedLine = line;
+			savedColumn = column;
+			savedIndex = i;
+			
+			i += 1;
+			column += 1;
+			continue;
+		}
+		
+		// split repeat
+		if (cch === '->' && checkIsInString() !== true && isRepeatMode === true) {
+			
+			compiledCode += ', function(';
+			
+			i += 1;
+			column += 1;
+			
+			for (var j = i + 1; j < code.length; j += 1) {
+				if (code[j] === '>') {
+					compiledCode += '__name, ';
+					break;
+				}
+				if (code[j] === ':') {
+					break;
+				}
+			}
+			
+			continue;
+		}
+		
+		// split repeat
+		if (ch === ':' && checkIsInString() !== true && isRepeatMode === true) {
+			
+			compiledCode += ', ';
+			
+			continue;
+		}
+		
+		// else
+		if (cch === 'el' && code[i + 2] === 's' && code[i + 3] === 'e' && (code[i + 4] === ' ' || code[i + 4] === '\t' || code[i + 4] === '>' || code[i + 4] === '\r' || code[i + 4] === '\n') && checkIsInString() !== true && isQuestionMode === true) {
+			
+			compiledCode += '__lastCondition !== true';
+			
+			i += 3;
+			column += 3;
+			continue;
+		}
+		
+		if (ch === '>' && checkIsInString() !== true) {
+			
+			// end question mode
+			if (isQuestionMode === true) {
+				isQuestionMode = false;
+				
+				resumeCountStack.push(0);
+				
+				compiledCode += ') === true) { (function(__parentPause, __parentStore) {';
+				
+				addBlockStart();
+				
+				compiledCode += 'print(\'';
+				
+				continue;
+			}
+			
+			// end repeat mode
+			if (isRepeatMode === true) {
+				isRepeatMode = false;
+				
+				resumeCountStack.push(0);
+				
+				compiledCode += ') { (function(__parentPause, __parentStore) {';
+				
+				addBlockStart();
+				
+				compiledCode += 'print(\'';
+				
+				continue;
 			}
 		}
-	});
-	
-}.toString();
-
-function __responseError(path, e, code, line, column, response) {
-	
-	response({
-		statusCode : 500,
-		content : 
-'<!doctype html><html><head><meta charset="UTF-8"><title>' + e + '</title></head><body>' +
-'<p><b>' + e + '</b></p>' +
-'<b>path: </b>' + path + ' (' + line + ':' + column + ')' +
-(code === undefined ? '' : '<br><b>code: </b>' + code) +
-'</body></html>',
-		contentType : 'text/html'
-	});
-}
-
-function __responseNotFound(response) {
-	
-	response({
-		statusCode : 404,
-		content : 
-'<!doctype html><html><head><meta charset="UTF-8"><title>Page not found.</title></head><body>' +
-'<p><b>Page not found.</b></p>' +
-'</body></html>',
-		contentType : 'text/html'
-	});
-}
-
-global.NSP = function(config) {
-	
-	var
-	// __VALUE_ARRAY_INDEX
-	__VALUE_ARRAY_INDEX = 0,
-	
-	// root path
-	rootPath = config.rootPath,
-	
-	// rest uri
-	restURI = config.restURI,
-	
-	// is not using double curly brace notation
-	isNotUsingDCBN = config.isNotUsingDCBN,
-	
-	// cached file infos
-	cachedFileInfos = {};
-	
-	eval(__parseFuncStr);
-	
-	return {
 		
-		notExistsResource : function(resourcePath, requestInfo, response) {
-			__responseNotFound(response);
-		},
-		
-		requestListener : function(requestInfo, response, onDisconnected, setRootPath, next) {
+		// end block
+		if (cch === '</' && code[i + 3] === '>' && checkIsInCode() !== true) {
 			
-			var
-			// uri
-			uri = requestInfo.uri,
-			
-			// sub uri
-			subURI = '',
-			
-			// path
-			path,
-			
-			// ext
-			ext,
-			
-			// run.
-			run = function() {
+			// end question block
+			if (code[i + 2] === '?') {
 				
-				GET_FILE_INFO(path, {
-					
-					notExists : function() {
-						__responseNotFound(response);
-					},
-					
-					success : function(fileInfo) {
-						
-						var
-						// cached file info
-						cachedFileInfo = cachedFileInfos[path],
-						
-						// self
-						self = {
-							headers : requestInfo.headers,
-							method : requestInfo.method,
-							params : requestInfo.params,
-							ip : requestInfo.ip,
-							subURI : subURI
-						};
-						
-						// 캐시된 파일 제공
-						if (cachedFileInfo !== undefined
-							&& (
-								(fileInfo.lastUpdateTime !== undefined && cachedFileInfo.lastUpdateTime.getTime() === fileInfo.lastUpdateTime.getTime())
-								|| (fileInfo.createTime !== undefined && cachedFileInfo.lastUpdateTime.getTime() === fileInfo.createTime.getTime())
-							)
-						) {
-							__parse(requestInfo, path, cachedFileInfo.content, response, self, isNotUsingDCBN);
-						}
-						
-						else {
-							
-							READ_FILE(path, {
-								notExists : function() {
-									__responseNotFound(response);
-								},
-								error : function(e) {
-									__responseError(path, e, undefined, 1, 1, response);
-								},
-								success : function(buffer) {
-									
-									var
-									// content
-									content = buffer.toString();
-									
-									cachedFileInfos[path] = {
-										content : content,
-										lastUpdateTime : fileInfo.lastUpdateTime === undefined ? fileInfo.createTime : fileInfo.lastUpdateTime
-									};
-									
-									__parse(requestInfo, path, content, response, self, isNotUsingDCBN);
-								}
-							});
-						}
+				compiledCode += '\');';
+				
+				REPEAT(resumeCountStack[resumeCountStack.length - 1], function(i) {
+					if (i === 0) {
+						compiledCode += '__parentStore.resume();'
 					}
+					compiledCode += '} }; resume();';
 				});
-			};
-			
-			NEXT([
-			function(next) {
+				resumeCountStack.pop();
 				
-				if (uri === '') {
-					
-					CHECK_IS_EXISTS_FILE(rootPath + '/index.nsp', function(isExists) {
-						if (isExists === true) {
-							uri = 'index.nsp';
-						} else {
-							uri = 'index.html';
-						}
-						next();
-					});
-					
-				} else {
-					next();
-				}
-			},
+				compiledCode += '__parentPause(); } )(pause, __store); } } catch(e) { __errorHandler(e, __path, ' + savedLine + ', ' + savedColumn + ', ' + line + ', ' + (column + 3) + ', ' + savedIndex + ', ' + (i + 4) + '); }';
+				
+				addResumeStart();
+				
+				compiledCode += 'print(\'';
+				
+				i += 3;
+				column += 3;
+				continue;
+			}
 			
-			function() {
-				return function() {
-					
-					path = rootPath + '/' + uri;
-			
-					ext = __path.extname(uri).toLowerCase();
-					
-					if (ext === '.nsp') {
-						run();
+			// end repeat block
+			if (code[i + 2] === '~') {
+				
+				compiledCode += '\');';
+				
+				REPEAT(resumeCountStack[resumeCountStack.length - 1], function(i) {
+					if (i === 0) {
+						compiledCode += '__parentStore.resume();'
 					}
-					
-					else if (ext === '') {
-						
-						NEXT([
-						function(next) {
-							
-							CHECK_IS_EXISTS_FILE(path + '.nsp', function(isExists) {
-								
-								if (isExists === true) {
-									
-									CHECK_IS_FOLDER(path + '.nsp', function(isFolder) {
-										
-										if (isFolder === true) {
-											next();
-										} else {
-											path += '.nsp';
-											run();
-										}
-									});
-								}
-								
-								else {
-									next();
-								}
-							});
-						},
-						
-						function(next) {
-							return function() {
-								
-								if (restURI !== undefined) {
-									
-									if (CHECK_IS_ARRAY(restURI) === true) {
-										
-										if (CHECK_IS_IN({
-											array : restURI,
-											value : uri
-										}) === true) {
-											uri = restURI + '.nsp';
-										}
-										
-										else {
-											
-											EACH(restURI, function(restURI) {
-												if (restURI + '/' === uri.substring(0, restURI.length + 1)) {
-													subURI = uri.substring(restURI.length + 1);
-													uri = restURI + '.nsp';
-													return false;
-												}
-											});
-										}
-									}
-									
-									else {
-										if (restURI === uri) {
-											uri = restURI + '.nsp';
-										} else if (restURI + '/' === uri.substring(0, restURI.length + 1)) {
-											subURI = uri.substring(restURI.length + 1);
-											uri = restURI + '.nsp';
-										}
-									}
-									
-									CHECK_IS_EXISTS_FILE(rootPath + '/' + uri, function(isExists) {
-										
-										if (isExists === true) {
-											path = rootPath + '/' + uri;
-											run();
-										}
-										
-										else {
-											next();
-										}
-									});
-								}
-								
-								else {
-									next();
-								}
-							};
-						},
-						
-						function() {
-							return function() {
-								
-								CHECK_IS_EXISTS_FILE(path, function(isExists) {
-									
-									if (isExists === true) {
-									
-										CHECK_IS_FOLDER(path, function(isFolder) {
-											
-											if (isFolder === true) {
-												path += '/index.nsp';
-												run();
-											} else {
-												next();
-											}
-										});
-									}
-									
-									else {
-										next();
-									}
-								});
-							};
-						}]);
-					}
-					
-					else {
-						next();
-					}
-				};
-			}]);
-			
-			return false;
+					compiledCode += '} }; resume();';
+				});
+				resumeCountStack.pop();
+				
+				compiledCode += '__parentPause(); } )(pause, __store); } ); } catch(e) { __errorHandler(e, __path, ' + savedLine + ', ' + savedColumn + ', ' + line + ', ' + (column + 3) + ', ' + savedIndex + ', ' + (i + 4) + '); }';
+				
+				addResumeStart();
+				
+				compiledCode += 'print(\'';
+				
+				i += 3;
+				column += 3;
+				continue;
+			}
 		}
-	};
+		
+		// start print mode
+		if (cch === '{{' && checkIsInCode() !== true) {
+			isPrintMode = true;
+			
+			compiledCode += '\'); try { print(';
+			
+			savedLine = line;
+			savedColumn = column;
+			savedIndex = i;
+			
+			i += 1;
+			column += 1;
+			continue;
+		}
+		
+		// end print mode
+		if (cch === '}}' && checkIsInString() !== true && isPrintMode === true) {
+			isPrintMode = false;
+			
+			compiledCode += '); } catch(e) { __errorHandler(e, __path, ' + savedLine + ', ' + savedColumn + ', ' + line + ', ' + (column + 1) + ', ' + savedIndex + ', ' + (i + 2) + '); }';
+			
+			addResumeStart();
+			
+			compiledCode += 'print(\'';
+			
+			i += 1;
+			column += 1;
+			continue;
+		}
+		
+		if (ch === '\'') {
+			
+			if (checkIsInCode() === true) {
+				
+				// start string1 mode
+				if (checkIsInString() !== true) {
+					isString1Mode = true;
+					
+					compiledCode += '\'';
+					
+					continue;
+				}
+				
+				// end strting1 mode
+				if (isString1Mode === true) {
+					isString1Mode = false;
+					
+					compiledCode += '\'';
+					
+					continue;
+				}
+			}
+			
+			else {
+				compiledCode += '\\\'';
+				
+				continue;
+			}
+		}
+		
+		if (ch === '"' && checkIsInCode() === true) {
+			
+			// start string2 mode
+			if (checkIsInString() !== true) {
+				isString2Mode = true;
+				
+				compiledCode += '\'';
+				
+				continue;
+			}
+			
+			// end strting2 mode
+			if (isString2Mode === true) {
+				isString2Mode = false;
+				
+				compiledCode += '\'';
+				
+				continue;
+			}
+		}
+		
+		// start comment1 mode
+		if (cch === '//' && checkIsInCode() === true && checkIsInString() !== true) {
+			isComment1Mode = true;
+			
+			compiledCode += '//';
+			
+			i += 1;
+			column += 1;
+			continue;
+		}
+		
+		// start comment2 mode
+		if (cch === '/*' && checkIsInCode() === true && checkIsInString() !== true) {
+			isComment2Mode = true;
+			
+			compiledCode += '/*';
+			
+			i += 1;
+			column += 1;
+			continue;
+		}
+		
+		// end comment2 mode
+		if (cch === '*/' && checkIsInCode() === true && isComment2Mode === true) {
+			isComment2Mode = false;
+			
+			compiledCode += '*/';
+			
+			i += 1;
+			column += 1;
+			continue;
+		}
+		
+		if (ch === '\n') {
+			
+			line += 1;
+			column = 0;
+			
+			// end comment1 mode
+			if (checkIsInCode() === true && isComment1Mode === true) {
+				isComment1Mode = false;
+				
+				compiledCode += '\n';
+				
+				continue;
+			}
+			
+			if (checkIsInCode() !== true) {
+				
+				compiledCode += '\\n';
+				
+				continue;
+			}
+		}
+		
+		if (ch === '\\' && checkIsInCode() !== true) {
+			
+			compiledCode += '\\\\';
+			
+			continue;
+		}
+		
+		if (ch !== '\r') {
+			compiledCode += ch;
+		}
+	}
+	
+	compiledCode += '\'); __handler({ html: __html, cookies: __newCookieInfo, redirectURL: __redirectURL });';
+	
+	REPEAT(resumeCountStack[0], function() {
+		compiledCode += '} }; resume();';
+	});
+	
+	return compiledCode;
 };
