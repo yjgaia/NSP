@@ -24,7 +24,7 @@ Node Server Pages is a server-side script to create dynamic web pages based on N
     "uploadURI": ["examples/upload_result.nsp"],
 	"restURI": ["examples/restful"],
     "isNotUsingDCBN" : false,
-		"isNotUsingCPUClustering" : false
+    "isNotUsingCPUClustering" : false
 }
 ```
 - `port` is the port of the web server.
@@ -34,7 +34,6 @@ Node Server Pages is a server-side script to create dynamic web pages based on N
 - `restURI` specifies the root URI of `REST URI`.
 - `isNotUsingDCBN` if set to `true`, {{, }} (double curly braces notation) is not allowed.
 - `isNotUsingCPUClustering` if set to `true`, multi-core is disabled; instead, NSP is run with single-core.
-
 
 ## Running NSP server
 ```

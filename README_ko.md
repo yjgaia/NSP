@@ -37,7 +37,7 @@ Node Server Pages는 Node.js를 기반으로 동적 웹페이지를 생성하기
 
 ## NSP 서버 실행
 ```
-node NSP-Server.js
+node NSP-server.js
 ```
 이제 `http://localhost:8123`이나 `http://localhost:8123/index.nsp` 혹은 `http://localhost:8123/index`로 접속해보세요. `.nsp` 확장자를 생략할 수 있습니다.
 
