@@ -50,12 +50,13 @@
 </ol>
 
 <div class="highlight highlight-source-json"><pre>{
-    <span class="pl-s"><span class="pl-pds">"</span>port<span class="pl-pds">"</span></span>: <span class="pl-c1">8080</span>,
+    <span class="pl-s"><span class="pl-pds">"</span>port<span class="pl-pds">"</span></span>: <span class="pl-c1">8123</span>,
     <span class="pl-s"><span class="pl-pds">"</span>isDevMode<span class="pl-pds">"</span></span>: <span class="pl-c1">true</span>,
     <span class="pl-s"><span class="pl-pds">"</span>rootPath<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>./<span class="pl-pds">"</span></span>,
     <span class="pl-s"><span class="pl-pds">"</span>uploadURI<span class="pl-pds">"</span></span>: [<span class="pl-s"><span class="pl-pds">"</span>examples/upload_result.nsp<span class="pl-pds">"</span></span>],
     <span class="pl-s"><span class="pl-pds">"</span>restURI<span class="pl-pds">"</span></span>: [<span class="pl-s"><span class="pl-pds">"</span>examples/restful<span class="pl-pds">"</span></span>],
-    <span class="pl-s"><span class="pl-pds">"</span>isNotUsingDCBN<span class="pl-pds">"</span></span> : <span class="pl-c1">false</span>
+    <span class="pl-s"><span class="pl-pds">"</span>isNotUsingDCBN<span class="pl-pds">"</span></span> : <span class="pl-c1">false</span>,
+    <span class="pl-s"><span class="pl-pds">"</span>isNotUsingCPUClustering<span class="pl-pds">"</span></span> : <span class="pl-c1">false</span>
 }</pre></div>
 
 <ul>
@@ -72,11 +73,14 @@
 <li>
 <code>isNotUsingDCBN</code> if set to <code>true</code>, {{, }} (double curly braces notation) is not allowed.</li>
 </ul>
+<li>
+<code>isNotUsingCPUClustering</code> if set to <code>true</code>, multi-core is disabled; instead, NSP is run with single-core.</li>
+</ul>
 
 <h2>
-<a id="run" class="anchor" href="#run" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Run</h2>
+<a id="run" class="anchor" href="#run" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Running NSP server</h2>
 
-<pre><code>node NSP.js
+<pre><code>node NSP-server.js
 </code></pre>
 
 <p>Now type <code>http://localhost:8123</code>, <code>http://localhost:8123/index.nsp</code> or <code>http://localhost:8123/index</code> in your browser. It's okay to omit <code>.nsp</code>.</p>
