@@ -18,12 +18,13 @@ Node Server Pages is a server-side script to create dynamic web pages based on N
 2. Modify `config.json`.
 ```json
 {
-	"port": 8080,
+	"port": 8123,
 	"isDevMode": true,
 	"rootPath": "./",
     "uploadURI": ["examples/upload_result.nsp"],
 	"restURI": ["examples/restful"],
-    "isNotUsingDCBN" : false
+    "isNotUsingDCBN" : false,
+		"isNotUsingCPUClustering" : false
 }
 ```
 - `port` is the port of the web server.
@@ -32,10 +33,12 @@ Node Server Pages is a server-side script to create dynamic web pages based on N
 - `uploadURI` points to the `URI` to upload to.
 - `restURI` specifies the root URI of `REST URI`.
 - `isNotUsingDCBN` if set to `true`, {{, }} (double curly braces notation) is not allowed.
+- `isNotUsingCPUClustering` if set to `true`, multi-core is disabled; instead, NSP is run with single-core.
 
-## Run
+
+## Running NSP server
 ```
-node NSP.js
+node NSP-server.js
 ```
 Now type `http://localhost:8123`, `http://localhost:8123/index.nsp` or `http://localhost:8123/index` in your browser. It's okay to omit `.nsp`.
 
@@ -148,7 +151,7 @@ You can also print out JSON objects to make JSON-based APIs.
 		b : 2,
 		c : 3
 	};
-	
+
 	print(data); // or {{data}}
 %>
 ```
@@ -182,7 +185,7 @@ You can have another `.nsp` file in the page using `include` function.
 ```nsp
 <%
 	var local = 'Welcome!';
-	
+
 	self.msg = 'Hello World! ' + local;
 %>
 ```
@@ -202,7 +205,7 @@ If you give another function as the second argument of `include` function, you c
     		include('include/top.nsp', function() {
     		    console.log(self.msg); // Hello World! Welcome!
     		});
-    		
+
     		console.log(self.msg); // undefined
 		%>
 		<%
@@ -242,12 +245,12 @@ Document processing is paused for a while in `callback`s with `pause` function w
 start
 <%
 	setTimeout(function() {
-	
+
 		print('ok');
-		
+
 		resume();
 	}, 1000);
-	
+
 	pause();
 %>
 end
@@ -264,7 +267,7 @@ Saves or loads a cookie.
 	cookie('sample-cookie', 'this is example.', 10); // Expired in 10 seconds
 	cookie('sample-cookie', 'this is example.', 10, '/'); // Sets path to '/'
 	cookie('sample-cookie', 'this is example.', 10, '/', 'www.example'); // Sets domain to www.example
-	
+
 	// Loads a cookie
 	cookie('sample-cookie');
 %>
@@ -276,13 +279,13 @@ An example to implement sessions using `cookie` and `save/load`.
 ```nsp
 <%
 	var sessionKey = cookie('session-key');
-	
+
 	print(sessionKey);
-	
+
 	if (sessionKey === undefined) {
 		sessionKey = RANDOM_STR(20);
 	}
-	
+
 	cookie('session-key', sessionKey, 3600);
 %>
 <p>{{load(sessionKey)}}</p>
@@ -301,13 +304,13 @@ Uploads a file to the `URI` that's specified by `uploadURI` in `config.json`.
 ```nsp
 <%
     var paramsList;
-    
+
     // Uploaded file is saved in 'upload_temp_files' folder.
 	upload('upload_temp_files', function(_paramsList) {
 		paramsList = _paramsList;
 		resume();
 	});
-	
+
 	pause();
 %>
 <~ paramsList -> params>
@@ -336,13 +339,13 @@ A statement with backslash(\\) in front of `<%` or `{{` is NOT interpreted. Howe
 <html>
 	<body>
 		<h1>My first NSP page</h1>
-		
+
 		\<%
 			// This statement is NOT interpreted.
 			var msg = 'Hello World!';
 		%>
 		\{{msg}}
-		
+
 		\\<%
 			// This statement is interpreted.
 			var msg = 'Hello World!';
@@ -418,7 +421,7 @@ Install [php.js](https://github.com/kvz/phpjs) and use it together with NSP.
 		<h1>NSP + php.js</h1>
 		<%
 			var php = require('phpjs');
-			
+
 			print(php.sprintf('Hey, %s : )', 'you'));
 			print(php.parse_url('mysql://kevin:abcd1234@example.com/databasename')['pass']);
 			print(php.strtotime('2 januari 2012, 11:12:13 GMT'));
