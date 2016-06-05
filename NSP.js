@@ -9,9 +9,6 @@ global.NSP = METHOD(function(m) {
 	//IMPORT: Path
 	Path = require('path'),
 	
-	//IMPORT: Beautify
-	Beautify = require('./import/node_modules/js-beautify').js_beautify,
-
 	// saved codes
 	savedCodes = {},
 	
@@ -64,7 +61,6 @@ global.NSP = METHOD(function(m) {
 			//REQUIRED: params.path
 			//REQUIRED: params.code
 			//OPTIONAL: params.isNotUsingDCBN
-			//OPTIONAL: params.isToBeautify
 			
 			var
 			// path
@@ -75,9 +71,6 @@ global.NSP = METHOD(function(m) {
 			
 			// is not using dcbn
 			isNotUsingDCBN = params.isNotUsingDCBN,
-			
-			// is to beautify
-			isToBeautify = params.isToBeautify,
 			
 			// compiled code
 			compiledCode = '',
@@ -176,7 +169,7 @@ global.NSP = METHOD(function(m) {
 						},
 						error : function(error, path, startLine, startColumn, endLine, endColumn, startIndex, endIndex) {
 							
-							print(generateErrorDisplay({
+							print(NSP.generateErrorDisplay({
 								path : path,
 								startIndex : startIndex,
 								endIndex : endIndex,
@@ -699,14 +692,6 @@ global.NSP = METHOD(function(m) {
 			REPEAT(resumeCountStack[0], function() {
 				compiledCode += '} }; resume();';
 			});
-			
-			// beautify.
-			if (isToBeautify === true) {
-				compiledCode = beautify(compiledCode, {
-					indent_size : 1,
-					indent_char : '\t'
-				});
-			}
 			
 			return compiledCode;
 		}
