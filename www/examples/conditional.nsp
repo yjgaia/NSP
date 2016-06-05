@@ -13,17 +13,6 @@
 		</?>
 		<? else>
 		    <p>I'm printed.</p>
-		    <%
-				setTimeout(function() {
-				
-					print('ok');
-					
-					resume();
-				}, 1000);
-				
-				pause();
-			%>
-			test
 		</?>
 		<a href="/">Home</a>
 	</body>

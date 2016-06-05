@@ -3,5 +3,6 @@
 	"isDevMode": true,
 	"rootPath": "./www",
 	"uploadURI": ["examples/upload_result.nsp"],
-	"restURI" : ["examples/restful"]
+	"restURI" : ["examples/restful"],
+	"isNotUsingCPUClustering" : true
 }

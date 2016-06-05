@@ -17,12 +17,13 @@ Node Server Pages는 Node.js를 기반으로 동적 웹페이지를 생성하기
 
 ```json
 {
-	"port": 8080,
+	"port": 8123,
 	"isDevMode": true,
 	"rootPath": "./",
 	"uploadURI": ["examples/upload_result.nsp"],
 	"restURI": ["examples/restful"],
-    "isNotUsingDCBN" : false
+    "isNotUsingDCBN" : false,
+    "isNotUsingCPUClustering" : false
 }
 ```
 
@@ -32,10 +33,11 @@ Node Server Pages는 Node.js를 기반으로 동적 웹페이지를 생성하기
 - `uploadURI` 업로드 처리를 할 `URI`를 입력합니다.
 - `restURI` `REST URI` 디자인을 적용할 `URI`를 입력합니다.
 - `isNotUsingDCBN` `true`인 경우 이중 중괄호 표기법 `{{`, `}}`을 사용하지 않습니다.
+- `isNotUsingCPUClustering` `true`인 경우 멀티코어 CPU를 지원하지 않고, 싱글코어 모드로 실행됩니다.
 
-## 실행
+## NSP 서버 실행
 ```
-node NSP.js
+node NSP-Server.js
 ```
 이제 `http://localhost:8123`이나 `http://localhost:8123/index.nsp` 혹은 `http://localhost:8123/index`로 접속해보세요. `.nsp` 확장자를 생략할 수 있습니다.
 

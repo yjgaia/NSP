@@ -1,288 +1,714 @@
-// import UJS.
-require('./import/UJS-NODE.js');
-
-// import UPPERCASE-TRANSPORT.
-require('./import/UPPERCASE-TRANSPORT/NODE.js');
-
-// import UPPERCASE-UTIL.
-require('./import/UPPERCASE-UTIL/NODE.js');
-
-// import UPPERCASE-UPLOAD.
-require('./import/UPPERCASE-UPLOAD/NODE.js');
-
-INIT_OBJECTS();
-
-// import NSP-EMBED.
-require('./NSP-2-EMBED.js');
-
-/* var beautify = require('js-beautify').js_beautify;
-
-var NSP_ORIGIN = NSP
-global.NSP = function(path, code) {
-	var c = beautify(NSP_ORIGIN(path, code), {
-		indent_size : 1,
-		indent_char : '\t'
-	});
-	//console.log(c);
-	return c;
-}; */
-
-var
-//IMPORT: Path
-Path = require('path'),
-
-// config
-config = PARSE_STR(READ_FILE({
-	path : 'config.json',
-	isSync : true
-}).toString()),
-
-// port
-port = config.port,
-
-// root path
-rootPath = config.rootPath,
-
-// rest uri
-restURI = config.restURI;
-
-// if dev mode is true, no resource caching.
-CONFIG.isDevMode = config.isDevMode;
-
-(CONFIG.isNotUsingCPUClustering === true ? RUN : CPU_CLUSTERING)(function() {
+/**
+ * Node Server Pages
+ * 
+ * transpile NSP code to JavaScript code .
+ */
+global.NSP = METHOD(function(m) {
 	
-	function responseError(response, e, path, startLine, startColumn, endLine, endColumn, startIndex, endIndex) {
-		
-		response({
-			statusCode : 500,
-			content : 
-	'<!doctype html><html><head><meta charset="UTF-8"><title>' + e + '</title></head><body>' +
-	'<p><b>' + e + '</b></p><p><b>path: </b>' + path + ' (' + startLine + ':' + startColumn + '~' + endLine + ':' + endColumn + ')</p><pre>' + __NSP_SAVED_CODES[path].substring(startIndex, endIndex) + '</pre>' +
-	'</body></html>',
-			contentType : 'text/html'
-		});
-	}
+	var
+	//IMPORT: Path
+	Path = require('path'),
 	
-	function responseNotFound(response) {
-		
-		response({
-			statusCode : 404,
-			content : 
-	'<!doctype html><html><head><meta charset="UTF-8"><title>Page not found.</title></head><body>' +
-	'<p><b>Page not found.</b></p>' +
-	'</body></html>',
-			contentType : 'text/html'
-		});
-	}
+	//IMPORT: Beautify
+	Beautify = require('./import/node_modules/js-beautify').js_beautify,
+
+	// saved codes
+	savedCodes = {},
 	
-	// run web server
-	RESOURCE_SERVER({
-		port : port,
-		rootPath : rootPath,
-		version : Date.now(),
-		noParsingParamsURI : config.uploadURI
-	}, {
-		notExistsHandler : function(resourcePath, requestInfo, response) {
-			responseNotFound(response);
-		},
+	// shared store
+	sharedStore = SHARED_STORE('__NSP_SHARED_STORE'),
+	
+	// get saved codes.
+	getSavedCodes,
+	
+	// get shared store.
+	getSharedStore,
+	
+	// generate error display.
+	generateErrorDisplay;
+	
+	m.getSavedCodes = getSavedCodes = function() {
+		return savedCodes;
+	};
+	
+	m.getSharedStore = getSharedStore = function() {
+		return sharedStore;
+	};
+	
+	m.generateErrorDisplay = generateErrorDisplay = function(params) {
+		//REQUIRED: params
+		//REQUIRED: params.path
+		//REQUIRED: params.startIndex
+		//REQUIRED: params.endIndex
+		//REQUIRED: params.startLine
+		//REQUIRED: params.startColumn
+		//REQUIRED: params.endLine
+		//REQUIRED: params.endColumn
+		//REQUIRED: params.error
 		
-		requestListener : function(requestInfo, response, onDisconnected, setRootPath, next) {
+		var
+		// error display
+		errorDisplay = '';
+		
+		errorDisplay += '<p><b>' + params.error + '</b></p>';
+		errorDisplay += '<p><b>path: </b>' + params.path + ' (' + params.startLine + ':' + params.startColumn + '~' + params.endLine + ':' + params.endColumn + ')</p>';
+		errorDisplay += '<pre>' + savedCodes[params.path].substring(params.startIndex, params.endIndex) + '</pre>';
+		
+		return errorDisplay;
+	};
+	
+	return {
+		
+		run : function(params) {
+			//REQUIRED: params
+			//REQUIRED: params.path
+			//REQUIRED: params.code
+			//OPTIONAL: params.isNotUsingDCBN
+			//OPTIONAL: params.isToBeautify
 			
 			var
-			// uri
-			uri = requestInfo.uri,
-			
-			// sub uri
-			subURI = '',
-			
 			// path
-			path,
+			path = params.path,
 			
-			// ext
-			ext,
+			// code
+			code = params.code,
 			
-			// run.
-			run = function() {
-				
-				LOAD_NSP(requestInfo, path, {
-					headers : requestInfo.headers,
-					method : requestInfo.method,
-					params : requestInfo.params,
-					ip : requestInfo.ip,
-					subURI : subURI
-				}, function() {
-					responseNotFound(response);
-				}, function(e, path, startLine, startColumn, endLine, endColumn, startIndex, endIndex) {
-					responseError(response, e, path, startLine, startColumn, endLine, endColumn, startIndex, endIndex);
-				}, function(result) {
-					
-					if (result.redirectURL !== undefined) {
-						response({
-							statusCode : 302,
-							headers : {
-								'Set-Cookie' : CREATE_COOKIE_STR_ARRAY(result.cookies),
-								'Location' : result.redirectURL
-							}
-						});
-					}
-					
-					else {
-						response({
-							headers : {
-								'Set-Cookie' : CREATE_COOKIE_STR_ARRAY(result.cookies)
-							},
-							content : result.html,
-							contentType : 'text/html'
-						});
-					}
-				});
-			};
+			// is not using dcbn
+			isNotUsingDCBN = params.isNotUsingDCBN,
 			
-			NEXT([
-			function(next) {
-				
-				if (uri === '') {
-					
-					CHECK_IS_EXISTS_FILE(rootPath + '/index.nsp', function(isExists) {
-						if (isExists === true) {
-							uri = 'index.nsp';
-						} else {
-							uri = 'index.html';
-						}
-						next();
-					});
-					
-				} else {
-					next();
-				}
+			// is to beautify
+			isToBeautify = params.isToBeautify,
+			
+			// compiled code
+			compiledCode = '',
+			
+			// index
+			i = 0, savedIndex = 0, j,
+			
+			// character
+			ch, cch,
+			
+			// line
+			line = 1, savedLine = 1,
+			
+			// line
+			column = 0, savedColumn = 0,
+			
+			// resume count stack
+			resumeCountStack = [0],
+			
+			// <%...%>
+			isCodeMode = false, isCodePrintMode = false,
+			
+			// <?...>
+			isQuestionMode = false,
+			
+			// <~...>
+			isRepeatMode = false,
+			
+			// {{...}}
+			isPrintMode = false,
+			
+			// '...'
+			isString1Mode = false,
+			
+			// "..."
+			isString2Mode = false,
+			
+			// //...
+			isComment1Mode = false,
+			
+			// /*...*/
+			isComment2Mode = false,
+			
+			// check is in code.
+			checkIsInCode = function() {
+				return isCodeMode === true ||
+					isQuestionMode === true ||
+					isRepeatMode === true ||
+					isPrintMode === true;
 			},
 			
-			function() {
-				return function() {
-					
-					path = rootPath + '/' + uri;
+			// check is in string.
+			checkIsInString = function() {
+				return isString1Mode === true ||
+					isString2Mode === true ||
+					isComment1Mode === true ||
+					isComment2Mode === true;
+			},
 			
-					ext = Path.extname(uri).toLowerCase();
+			// add resume start.
+			addResumeStart = function() {
+				
+				resumeCountStack[resumeCountStack.length - 1] += 1;
+				
+				compiledCode += '__pauseCount += 1;';
+				compiledCode += '__store.resume = resume = function() { __pauseCount -= 1; if (__pauseCount === 0 && __store.doneResumeIndexes[' + i + '] !== true) { __store.doneResumeIndexes[' + i + '] = true;';
+			},
+			
+			// add block start.
+			addBlockStart = function() {
+				
+				// init vars for block.
+				compiledCode += 'var __pauseCount = 0;';
+				compiledCode += 'var __lastCondition;';
+				compiledCode += 'var __store = { doneResumeIndexes: {} };';
+				compiledCode += 'var resume;';
+				
+				// pause func
+				compiledCode += 'var pause = ' + function() {
 					
-					if (ext === '.nsp') {
-						run();
+					__pauseCount += 1;
+					
+				}.toString() + ';';
+				
+				// include func
+				compiledCode += 'var include = ' + function(path) {
+					
+					LOAD_NSP({
+						requestInfo : __requestInfo,
+						path : __basePath + '/' + path,
+						self : self
+					}, {
+						notExists : function() {
+							print(path + ': File not exists.');
+							resume();
+						},
+						error : function(error, path, startLine, startColumn, endLine, endColumn, startIndex, endIndex) {
+							
+							print(generateErrorDisplay({
+								path : path,
+								startIndex : startIndex,
+								endIndex : endIndex,
+								startLine : startLine,
+								startColumn : startColumn,
+								endLine : endLine,
+								endColumn : endColumn,
+								error : error
+							}));
+						},
+						success : function(result) {
+							print(result.html);
+							resume();
+						}
+					});
+					
+					pause();
+					
+				}.toString() + ';';
+				
+				addResumeStart();
+			};
+			
+			// save origin code.
+			savedCodes[path] = code;
+			
+			// init compiled code.
+			RUN(function() {
+				
+				// init vars.
+				compiledCode += 'var __html = \'\';';
+				compiledCode += 'var __redirectURL;';
+				compiledCode += 'var __cookieInfo = __requestInfo.cookies;';
+				compiledCode += 'var __newCookieInfo = {};';
+				compiledCode += 'var __path = \'' + path + '\';';
+				compiledCode += 'var __basePath = \'' + Path.dirname(path) + '\';';
+				
+				// print func
+				compiledCode += 'var print = ' + function(content) {
+					
+					if (content !== undefined) {
+						if (typeof content === 'string') {
+							__html += content;
+						} else {
+							__html += JSON.stringify(content);
+						}
 					}
 					
-					else if (ext === '') {
-						
-						NEXT([
-						function(next) {
-							
-							CHECK_IS_EXISTS_FILE(path + '.nsp', function(isExists) {
-								
-								if (isExists === true) {
-									
-									CHECK_IS_FOLDER(path + '.nsp', function(isFolder) {
-										
-										if (isFolder === true) {
-											next();
-										} else {
-											path += '.nsp';
-											run();
-										}
-									});
-								}
-								
-								else {
-									next();
-								}
-							});
-						},
-						
-						function(next) {
-							return function() {
-								
-								if (restURI !== undefined) {
-									
-									if (CHECK_IS_ARRAY(restURI) === true) {
-										
-										if (CHECK_IS_IN({
-											array : restURI,
-											value : uri
-										}) === true) {
-											uri = restURI + '.nsp';
-										}
-										
-										else {
-											
-											EACH(restURI, function(restURI) {
-												if (restURI + '/' === uri.substring(0, restURI.length + 1)) {
-													subURI = uri.substring(restURI.length + 1);
-													uri = restURI + '.nsp';
-													return false;
-												}
-											});
-										}
-									}
-									
-									else {
-										if (restURI === uri) {
-											uri = restURI + '.nsp';
-										} else if (restURI + '/' === uri.substring(0, restURI.length + 1)) {
-											subURI = uri.substring(restURI.length + 1);
-											uri = restURI + '.nsp';
-										}
-									}
-									
-									CHECK_IS_EXISTS_FILE(rootPath + '/' + uri, function(isExists) {
-										
-										if (isExists === true) {
-											path = rootPath + '/' + uri;
-											run();
-										}
-										
-										else {
-											next();
-										}
-									});
-								}
-								
-								else {
-									next();
-								}
-							};
-						},
-						
-						function() {
-							return function() {
-								
-								CHECK_IS_EXISTS_FILE(path, function(isExists) {
-									
-									if (isExists === true) {
-									
-										CHECK_IS_FOLDER(path, function(isFolder) {
-											
-											if (isFolder === true) {
-												path += '/index.nsp';
-												run();
-											} else {
-												next();
-											}
-										});
-									}
-									
-									else {
-										next();
-									}
-								});
-							};
-						}]);
+				}.toString() + ';';
+				
+				// save func
+				compiledCode += 'var save = ' + function(name, value) {
+					
+					if (value === undefined) {
+						NSP.getSharedStore().remove(name);
 					}
 					
 					else {
-						next();
+						NSP.getSharedStore().save({
+							name : name,
+							value : value
+						});
 					}
-				};
-			}]);
+					
+				}.toString() + ';';
+				
+				// load func
+				compiledCode += 'var load = ' + function(name) {
+					
+					return NSP.getSharedStore().get(name);
+					
+				}.toString() + ';';
+				
+				// cookie func
+				compiledCode += 'var cookie = ' + function(name, value, expireSeconds, path, domain) {
+					
+					if (value === undefined) {
+						value = __cookieInfo[name];
+						
+						if (CHECK_IS_DATA(value) === true) {
+							return value.value;
+						} else {
+							return value;
+						}
+					}
+					
+					else {
+						
+						__newCookieInfo[name] = __cookieInfo[name] = {
+							value : value,
+							expireSeconds : expireSeconds,
+							path : path,
+							domain : domain
+						};
+						
+						return value;
+					}
+					
+				}.toString() + ';';
+				
+				// upload func
+				compiledCode += 'var upload = ' + function(uploadPath, callbackOrHandlers) {
+					
+					var
+					// callback
+					callback,
 			
-			return false;
+					// error handler
+					errorHandler,
+			
+					// over file size handler
+					overFileSizeHandler;
+			
+					if (CHECK_IS_DATA(callbackOrHandlers) !== true) {
+						callback = callbackOrHandlers;
+					} else {
+						callback = callbackOrHandlers.success;
+						errorHandler = callbackOrHandlers.error;
+						overFileSizeHandler = callbackOrHandlers.overFileSize;
+					}
+					
+					UPLOAD_REQUEST({
+						requestInfo : __requestInfo,
+						uploadPath : __basePath + '/' + uploadPath
+					}, {
+						error : errorHandler,
+						overFileSize : overFileSizeHandler,
+						success : callback
+					});
+					
+				}.toString() + ';';
+				
+				// redirect func
+				compiledCode += 'var redirect = ' + function(url) {
+					
+					__redirectURL = url;
+					
+				}.toString() + ';';
+				
+				// __each func
+				compiledCode += 'var __each = ' + function(target, func) {
+					
+					if (isNaN(target) === true) {
+						EACH(target, function(value, name) {
+							func(name, value);
+						});
+					} else {
+						REPEAT(target, function(i) {
+							func(undefined, i);
+						});
+					}
+					
+				}.toString() + ';';
+				
+				addBlockStart();
+				
+				compiledCode += 'print(\'';
+			});
+			
+			// parse code.
+			for (; i < code.length; i += 1) {
+				
+				column += 1;
+				
+				ch = code[i];
+				cch = ch + code[i + 1];
+				
+				// start code mode.
+				if (cch === '<%' && checkIsInCode() !== true) {
+					isCodeMode = true;
+					
+					compiledCode += '\'); try {';
+					
+					savedLine = line;
+					savedColumn = column;
+					savedIndex = i;
+					
+					if (code[i + 2] === '=') {
+						isCodePrintMode = true;
+						
+						compiledCode += 'print(';
+						
+						i += 2;
+						column += 2;
+					}
+					
+					else {
+						i += 1;
+						column += 1;
+					}
+					continue;
+				}
+				
+				// end code mode.
+				if (cch === '%>' && checkIsInString() !== true && isCodeMode === true) {
+					isCodeMode = false;
+					
+					if (isCodePrintMode === true) {
+						isCodePrintMode = false;
+						
+						compiledCode += ');';
+					}
+					
+					compiledCode += '} catch(e) { __errorHandler(e, __path, ' + savedLine + ', ' + savedColumn + ', ' + line + ', ' + (column + 1) + ', ' + savedIndex + ', ' + (i + 2) + '); }';
+					
+					addResumeStart();
+					
+					compiledCode += 'print(\'';
+					
+					i += 1;
+					column += 1;
+					continue;
+				}
+					
+				// start question mode.
+				if (cch === '<?' && checkIsInCode() !== true) {
+					isQuestionMode = true;
+					
+					compiledCode += '\'); try { if (__lastCondition = (';
+					
+					savedLine = line;
+					savedColumn = column;
+					savedIndex = i;
+					
+					i += 1;
+					column += 1;
+					continue;
+				}
+					
+				// start repeat mode.
+				if (cch === '<~' && checkIsInCode() !== true) {
+					isRepeatMode = true;
+					
+					compiledCode += '\'); try { __each(';
+					
+					savedLine = line;
+					savedColumn = column;
+					savedIndex = i;
+					
+					i += 1;
+					column += 1;
+					continue;
+				}
+				
+				// split repeat.
+				if (cch === '->' && checkIsInString() !== true && isRepeatMode === true) {
+					
+					compiledCode += ', function(';
+					
+					i += 1;
+					column += 1;
+					
+					for (j = i + 1; j < code.length; j += 1) {
+						if (code[j] === '>') {
+							compiledCode += '__name, ';
+							break;
+						}
+						if (code[j] === ':') {
+							break;
+						}
+					}
+					
+					continue;
+				}
+				
+				// split repeat.
+				if (ch === ':' && checkIsInString() !== true && isRepeatMode === true) {
+					
+					compiledCode += ', ';
+					
+					continue;
+				}
+				
+				// else
+				if (cch === 'el' && code[i + 2] === 's' && code[i + 3] === 'e' && (code[i + 4] === ' ' || code[i + 4] === '\t' || code[i + 4] === '>' || code[i + 4] === '\r' || code[i + 4] === '\n') && checkIsInString() !== true && isQuestionMode === true) {
+					
+					compiledCode += '__lastCondition !== true';
+					
+					i += 3;
+					column += 3;
+					continue;
+				}
+				
+				if (ch === '>' && checkIsInString() !== true) {
+					
+					// end question mode.
+					if (isQuestionMode === true) {
+						isQuestionMode = false;
+						
+						resumeCountStack.push(0);
+						
+						compiledCode += ') === true) { (function(__parentPause, __parentStore) {';
+						
+						addBlockStart();
+						
+						compiledCode += 'print(\'';
+						
+						continue;
+					}
+					
+					// end repeat mode.
+					if (isRepeatMode === true) {
+						isRepeatMode = false;
+						
+						resumeCountStack.push(0);
+						
+						compiledCode += ') { (function(__parentPause, __parentStore) {';
+						
+						addBlockStart();
+						
+						compiledCode += 'print(\'';
+						
+						continue;
+					}
+				}
+				
+				// end block.
+				if (cch === '</' && code[i + 3] === '>' && checkIsInCode() !== true) {
+					
+					// end question block.
+					if (code[i + 2] === '?') {
+						
+						compiledCode += '\');';
+						
+						REPEAT(resumeCountStack[resumeCountStack.length - 1], function(i) {
+							if (i === 0) {
+								compiledCode += '__parentStore.resume();'
+							}
+							compiledCode += '} }; resume();';
+						});
+						resumeCountStack.pop();
+						
+						compiledCode += '__parentPause(); } )(pause, __store); } } catch(e) { __errorHandler(e, __path, ' + savedLine + ', ' + savedColumn + ', ' + line + ', ' + (column + 3) + ', ' + savedIndex + ', ' + (i + 4) + '); }';
+						
+						addResumeStart();
+						
+						compiledCode += 'print(\'';
+						
+						i += 3;
+						column += 3;
+						continue;
+					}
+					
+					// end repeat block.
+					if (code[i + 2] === '~') {
+						
+						compiledCode += '\');';
+						
+						REPEAT(resumeCountStack[resumeCountStack.length - 1], function(i) {
+							if (i === 0) {
+								compiledCode += '__parentStore.resume();'
+							}
+							compiledCode += '} }; resume();';
+						});
+						resumeCountStack.pop();
+						
+						compiledCode += '__parentPause(); } )(pause, __store); } ); } catch(e) { __errorHandler(e, __path, ' + savedLine + ', ' + savedColumn + ', ' + line + ', ' + (column + 3) + ', ' + savedIndex + ', ' + (i + 4) + '); }';
+						
+						addResumeStart();
+						
+						compiledCode += 'print(\'';
+						
+						i += 3;
+						column += 3;
+						continue;
+					}
+				}
+				
+				// start print mode.
+				if (isNotUsingDCBN !== true && cch === '{{' && checkIsInCode() !== true) {
+					isPrintMode = true;
+					
+					compiledCode += '\'); try { print(';
+					
+					savedLine = line;
+					savedColumn = column;
+					savedIndex = i;
+					
+					i += 1;
+					column += 1;
+					continue;
+				}
+				
+				// end print mode.
+				if (isNotUsingDCBN !== true && cch === '}}' && checkIsInString() !== true && isPrintMode === true) {
+					isPrintMode = false;
+					
+					compiledCode += '); } catch(e) { __errorHandler(e, __path, ' + savedLine + ', ' + savedColumn + ', ' + line + ', ' + (column + 1) + ', ' + savedIndex + ', ' + (i + 2) + '); }';
+					
+					addResumeStart();
+					
+					compiledCode += 'print(\'';
+					
+					i += 1;
+					column += 1;
+					continue;
+				}
+				
+				if (ch === '\'') {
+					
+					if (checkIsInCode() === true) {
+						
+						// start string1 mode.
+						if (checkIsInString() !== true) {
+							isString1Mode = true;
+							
+							compiledCode += '\'';
+							
+							continue;
+						}
+						
+						// end string1 mode.
+						if (isString1Mode === true) {
+							isString1Mode = false;
+							
+							compiledCode += '\'';
+							
+							continue;
+						}
+					}
+					
+					else {
+						compiledCode += '\\\'';
+						
+						continue;
+					}
+				}
+				
+				if (ch === '"' && checkIsInCode() === true) {
+					
+					// start string2 mode.
+					if (checkIsInString() !== true) {
+						isString2Mode = true;
+						
+						compiledCode += '\'';
+						
+						continue;
+					}
+					
+					// end string2 mode.
+					if (isString2Mode === true) {
+						isString2Mode = false;
+						
+						compiledCode += '\'';
+						
+						continue;
+					}
+				}
+				
+				// start comment1 mode.
+				if (cch === '//' && checkIsInCode() === true && checkIsInString() !== true) {
+					isComment1Mode = true;
+					
+					compiledCode += '//';
+					
+					i += 1;
+					column += 1;
+					continue;
+				}
+				
+				// start comment2 mode.
+				if (cch === '/*' && checkIsInCode() === true && checkIsInString() !== true) {
+					isComment2Mode = true;
+					
+					compiledCode += '/*';
+					
+					i += 1;
+					column += 1;
+					continue;
+				}
+				
+				// end comment2 mode.
+				if (cch === '*/' && checkIsInCode() === true && isComment2Mode === true) {
+					isComment2Mode = false;
+					
+					compiledCode += '*/';
+					
+					i += 1;
+					column += 1;
+					continue;
+				}
+				
+				if (ch === '\n') {
+					
+					line += 1;
+					column = 0;
+					
+					// end comment1 mode.
+					if (checkIsInCode() === true && isComment1Mode === true) {
+						isComment1Mode = false;
+						
+						compiledCode += '\n';
+						
+						continue;
+					}
+					
+					if (checkIsInCode() !== true) {
+						
+						compiledCode += '\\n';
+						
+						continue;
+					}
+				}
+				
+				if (ch === '\\' && checkIsInCode() !== true) {
+					
+					compiledCode += '\\\\';
+					
+					continue;
+				}
+				
+				// ignore return character.
+				if (ch !== '\r') {
+					compiledCode += ch;
+				}
+			}
+			
+			compiledCode += '\'); __handler({ html: __html, cookies: __newCookieInfo, redirectURL: __redirectURL });';
+			
+			REPEAT(resumeCountStack[0], function() {
+				compiledCode += '} }; resume();';
+			});
+			
+			// beautify.
+			if (isToBeautify === true) {
+				compiledCode = beautify(compiledCode, {
+					indent_size : 1,
+					indent_char : '\t'
+				});
+			}
+			
+			return compiledCode;
 		}
-	});
-
-	console.log('NSP server started. - http://localhost:' + port);
+	}
 });

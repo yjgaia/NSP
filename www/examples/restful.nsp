@@ -2,7 +2,7 @@
 	var id = self.subURI;
 	var data;
 	
-	var order = self.subURI.substring(self.subURI.lastIndexOf('/'));	
+	var order = self.subURI.substring(self.subURI.lastIndexOf('/') + 1);
 	if (order === 'edit') {
 		id = self.subURI.substring(0, self.subURI.lastIndexOf('/'));
 	}
@@ -13,7 +13,17 @@
 	
 	else {
 		
-		if (id === '1') {
+		if (id === '') {
+			data = [{
+				name : 'YJ Sim',
+				age : 28
+			}, {
+				name : 'DS Hwang',
+				age : 26
+			}];
+		}
+		
+		else if (id === '1') {
 			data = {
 				name : 'YJ Sim',
 				age : 28
@@ -26,6 +36,10 @@
 				age : 26
 			};
 		}
+		
+		else {
+			data = {};
+		}
 	}
 %>
 
@@ -33,10 +47,10 @@
 <!DOCTYPE html>
 <html>
 	<body>
-		<h1>RESTful Example</h1>
+		<h1>RESTful Form Sample</h1>
 		<form action="restful" method="POST">
-			name: <input type="text" name="name"><br>
-			age: <input type="text" name="age"><br>
+			name: <input type="text" name="name" value="{{data.name}}"><br>
+			age: <input type="text" name="age" value="{{data.age}}"><br>
 			<input type="submit" value="Submit">
 		</form>
 		<a href="/">Home</a>

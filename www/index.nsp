@@ -37,6 +37,10 @@
 		<div>
 			<h2>RESTful Example</h2>
 			<a href="examples/restful">List</a>
+			<a href="examples/restful/new">new</a>
+			<a href="examples/restful/1">1</a>
+			<a href="examples/restful/2">2</a>
+			<a href="examples/restful/2/edit">2/edit</a>
 		</div>
 	</body>
 </html>
