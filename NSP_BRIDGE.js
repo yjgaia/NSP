@@ -54,7 +54,10 @@ global.NSP_BRIDGE = METHOD(function(m) {
 			restURI = config.restURI,
 			
 			// is not using dcbn
-			isNotUsingDCBN = config.isNotUsingDCBN;
+			isNotUsingDCBN = config.isNotUsingDCBN,
+			
+			// preprocessor
+			preprocessor = config.preprocessor;
 			
 			return {
 				
@@ -90,7 +93,8 @@ global.NSP_BRIDGE = METHOD(function(m) {
 								ip : requestInfo.ip,
 								subURI : subURI
 							},
-							isNotUsingDCBN : isNotUsingDCBN
+							isNotUsingDCBN : isNotUsingDCBN,
+							preprocessor : preprocessor
 						}, {
 							notExists : function() {
 								responseNotFound(response);

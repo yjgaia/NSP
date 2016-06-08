@@ -15,6 +15,7 @@ global.LOAD_NSP = METHOD(function(m) {
 			//REQUIRED: params.path
 			//REQUIRED: params.self
 			//OPTIONAL: params.isNotUsingDCBN
+			//OPTIONAL: params.preprocessor
 			//REQUIRED: handlers
 			//REQUIRED: handlers.notExists
 			//REQUIRED: handlers.error
@@ -32,6 +33,9 @@ global.LOAD_NSP = METHOD(function(m) {
 			
 			// is not using dcbn
 			isNotUsingDCBN = params.isNotUsingDCBN,
+			
+			// preprocessor
+			preprocessor = params.preprocessor,
 			
 			// not exists handler.
 			notExistsHandler = handlers.notExists,
@@ -70,7 +74,8 @@ global.LOAD_NSP = METHOD(function(m) {
 								run = new Function('__requestInfo', 'self', '__errorHandler', '__handler', NSP({
 									path : path,
 									code : buffer.toString(),
-									isNotUsingDCBN : isNotUsingDCBN
+									isNotUsingDCBN : isNotUsingDCBN,
+									preprocessor : preprocessor
 								}));
 								
 								cachedFileInfos[path] = {

@@ -32,6 +32,7 @@
 				<li><a href="examples/cookies.nsp">Cookies</a></li>
 				<li><a href="examples/session.nsp">Session</a></li>
 				<li><a href="examples/error.nsp">Error</a></li>
+				<li><a href="examples/es6.nsp">ES6</a></li>
 			</ul>
 		</div>
 		<div>

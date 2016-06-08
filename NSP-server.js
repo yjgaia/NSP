@@ -29,13 +29,30 @@ CONFIG.isDevMode = config.isDevMode;
 
 (config.isNotUsingCPUClustering === true ? RUN : CPU_CLUSTERING)(function() {
 	
+	var
+	//IMPORT: Babel
+	Babel = require('./import/node_modules/babel-core');
+	
 	// run web server.
 	RESOURCE_SERVER({
 		port : config.port,
 		rootPath : config.rootPath,
 		version : Date.now(),
 		noParsingParamsURI : config.uploadURI
-	}, NSP_BRIDGE(config));
+	}, NSP_BRIDGE(COMBINE([config, {
+		
+		// babel
+		preprocessor : function(code) {
+			return Babel.transform(code, {
+				presets : [
+					'./import/node_modules/babel-preset-es2015',
+					'./import/node_modules/babel-polyfill'
+				],
+				babelrc : false,
+				ast : false
+			}).code;
+		}
+	}])));
 
 	console.log('NSP Server started! - http://localhost:' + config.port);
 });

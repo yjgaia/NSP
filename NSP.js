@@ -9,9 +9,6 @@ global.NSP = METHOD(function(m) {
 	//IMPORT: Path
 	Path = require('path'),
 	
-	//IMPORT: Babel
-	Babel = require('./import/node_modules/babel-core'),
-	
 	// saved codes
 	savedCodes = {},
 	
@@ -67,6 +64,7 @@ global.NSP = METHOD(function(m) {
 			//REQUIRED: params.path
 			//REQUIRED: params.code
 			//OPTIONAL: params.isNotUsingDCBN
+			//OPTIONAL: params.preprocessor
 			
 			var
 			// path
@@ -77,6 +75,9 @@ global.NSP = METHOD(function(m) {
 			
 			// is not using dcbn
 			isNotUsingDCBN = params.isNotUsingDCBN,
+			
+			// preprocessor
+			preprocessor = params.preprocessor,
 			
 			// compiled code
 			compiledCode = '',
@@ -714,11 +715,9 @@ global.NSP = METHOD(function(m) {
 				compiledCode += '} }; resume();';
 			});
 			
-			compiledCode = Babel.transform(compiledCode, {
-				presets : ['./import/node_modules/babel-preset-es2015'],
-				babelrc : false,
-				ast : false
-			}).code;
+			if (preprocessor !== undefined) {
+				compiledCode = preprocessor(compiledCode);
+			}
 			
 			if (firstBlockStartIndex !== undefined) {
 				compiledCode = 'try {' + compiledCode + '} catch(e) { __errorHandler(e, __path, ' + firstBlockStartLine + ', ' + firstBlockStartColumn + ', ' + firstBlockEndLine + ', ' + firstBlockEndColumn + ', ' + firstBlockStartIndex + ', ' + firstBlockEndIndex + '); }';
