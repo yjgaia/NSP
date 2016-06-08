@@ -9,6 +9,9 @@ global.NSP = METHOD(function(m) {
 	//IMPORT: Path
 	Path = require('path'),
 	
+	//IMPORT: Babel
+	Babel = require('./import/node_modules/babel-core'),
+	
 	// saved codes
 	savedCodes = {},
 	
@@ -54,6 +57,9 @@ global.NSP = METHOD(function(m) {
 		return errorDisplay;
 	};
 	
+	// require.
+	m.require = require;
+	
 	return {
 		
 		run : function(params) {
@@ -76,16 +82,16 @@ global.NSP = METHOD(function(m) {
 			compiledCode = '',
 			
 			// index
-			i = 0, savedIndex = 0, j,
+			i = 0, savedIndex = 0, firstBlockStartIndex, firstBlockEndIndex, j,
 			
 			// character
 			ch, cch,
 			
 			// line
-			line = 1, savedLine = 1,
+			line = 1, savedLine = 1, firstBlockStartLine, firstBlockEndLine,
 			
 			// line
-			column = 0, savedColumn = 0,
+			column = 0, savedColumn = 0, firstBlockStartColumn, firstBlockEndColumn,
 			
 			// resume count stack
 			resumeCountStack = [0],
@@ -140,7 +146,7 @@ global.NSP = METHOD(function(m) {
 			},
 			
 			// add block start.
-			addBlockStart = function() {
+			addBlockStart = function(isFirst) {
 				
 				// init vars for block.
 				compiledCode += 'var __pauseCount = 0;';
@@ -190,7 +196,9 @@ global.NSP = METHOD(function(m) {
 					
 				}.toString() + ';';
 				
-				addResumeStart();
+				if (isFirst !== true) {
+					addResumeStart();
+				}
 			};
 			
 			// save origin code.
@@ -204,7 +212,6 @@ global.NSP = METHOD(function(m) {
 				compiledCode += 'var __redirectURL;';
 				compiledCode += 'var __cookieInfo = __requestInfo.cookies;';
 				compiledCode += 'var __newCookieInfo = {};';
-				compiledCode += 'var __path = \'' + path + '\';';
 				compiledCode += 'var __basePath = \'' + Path.dirname(path) + '\';';
 				
 				// print func
@@ -324,7 +331,7 @@ global.NSP = METHOD(function(m) {
 					
 				}.toString() + ';';
 				
-				addBlockStart();
+				addBlockStart(true);
 				
 				compiledCode += 'print(\'';
 			});
@@ -341,11 +348,19 @@ global.NSP = METHOD(function(m) {
 				if (cch === '<%' && checkIsInCode() !== true) {
 					isCodeMode = true;
 					
-					compiledCode += '\'); try {';
-					
 					savedLine = line;
 					savedColumn = column;
 					savedIndex = i;
+					
+					if (firstBlockStartIndex === undefined) {
+						firstBlockStartIndex = i;
+						firstBlockStartLine = line;
+						firstBlockStartColumn = column;
+						
+						compiledCode += '\');';
+					} else {
+						compiledCode += '\'); try {';
+					}
 					
 					if (code[i + 2] === '=') {
 						isCodePrintMode = true;
@@ -373,7 +388,13 @@ global.NSP = METHOD(function(m) {
 						compiledCode += ');';
 					}
 					
-					compiledCode += '} catch(e) { __errorHandler(e, __path, ' + savedLine + ', ' + savedColumn + ', ' + line + ', ' + (column + 1) + ', ' + savedIndex + ', ' + (i + 2) + '); }';
+					if (firstBlockEndIndex === undefined) {
+						firstBlockEndIndex = i + 2;
+						firstBlockEndLine = line;
+						firstBlockEndColumn = column + 1;
+					} else {
+						compiledCode += '} catch(e) { __errorHandler(e, __path, ' + savedLine + ', ' + savedColumn + ', ' + line + ', ' + (column + 1) + ', ' + savedIndex + ', ' + (i + 2) + '); }';
+					}
 					
 					addResumeStart();
 					
@@ -692,6 +713,19 @@ global.NSP = METHOD(function(m) {
 			REPEAT(resumeCountStack[0], function() {
 				compiledCode += '} }; resume();';
 			});
+			
+			compiledCode = Babel.transform(compiledCode, {
+				presets : ['./import/node_modules/babel-preset-es2015'],
+				babelrc : false,
+				ast : false
+			}).code;
+			
+			if (firstBlockStartIndex !== undefined) {
+				compiledCode = 'try {' + compiledCode + '} catch(e) { __errorHandler(e, __path, ' + firstBlockStartLine + ', ' + firstBlockStartColumn + ', ' + firstBlockEndLine + ', ' + firstBlockEndColumn + ', ' + firstBlockStartIndex + ', ' + firstBlockEndIndex + '); }';
+			}
+			
+			compiledCode = 'var __path = \'' + path + '\';' + compiledCode;
+			compiledCode = 'var require = NSP.require;' + compiledCode;
 			
 			return compiledCode;
 		}
