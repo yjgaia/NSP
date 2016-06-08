@@ -197,7 +197,9 @@ global.NSP = METHOD(function(m) {
 					
 				}.toString() + ';';
 				
-				if (isFirst !== true) {
+				if (isFirst === true) {
+					compiledCode += '__store.resume = resume = function() { __pauseCount -= 1; };';
+				} else {
 					addResumeStart();
 				}
 			};
