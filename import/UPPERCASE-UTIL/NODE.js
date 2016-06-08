@@ -56,7 +56,7 @@ global.DISK_USAGE = METHOD(function() {
 				} else if (errorHandler !== undefined) {
 					errorHandler(status);
 				} else {
-					console.log(CONSOLE_RED('[UPPERCASE-DISK_USAGE] ERROR: ' + status));
+					SHOW_ERROR('[UPPERCASE-DISK_USAGE] ERROR: ' + status);
 				}
 			});
 		}
@@ -108,7 +108,7 @@ global.IMAGEMAGICK_CONVERT = METHOD(function() {
 					if (errorHandler !== undefined) {
 						errorHandler(errorMsg);
 					} else {
-						console.log(CONSOLE_RED('[UPPERCASE-IMAGEMAGICK_CONVERT] ERROR: ' + errorMsg));
+						SHOW_ERROR('[UPPERCASE-IMAGEMAGICK_CONVERT] ERROR: ' + errorMsg);
 					}
 
 				} else {
@@ -165,7 +165,7 @@ global.IMAGEMAGICK_IDENTIFY = METHOD(function() {
 					if (errorHandler !== undefined) {
 						errorHandler(errorMsg);
 					} else {
-						console.log(CONSOLE_RED('[UPPERCASE-IMAGEMAGICK_IDENTIFY] ERROR: ' + errorMsg));
+						SHOW_ERROR('[UPPERCASE-IMAGEMAGICK_IDENTIFY] ERROR: ' + errorMsg);
 					}
 
 				} else {
@@ -219,7 +219,7 @@ global.IMAGEMAGICK_READ_METADATA = METHOD(function() {
 					if (errorHandler !== undefined) {
 						errorHandler(errorMsg);
 					} else {
-						console.log(CONSOLE_RED('[UPPERCASE-IMAGEMAGICK_READ_METADATA] ERROR: ' + errorMsg));
+						SHOW_ERROR('[UPPERCASE-IMAGEMAGICK_READ_METADATA] ERROR: ' + errorMsg);
 					}
 
 				} else {
@@ -472,7 +472,7 @@ global.REDIS_STORE = CLASS(function(cls) {
 						if (errorHandler !== undefined) {
 							errorHandler(errorInfo.toString());
 						} else {
-							console.log(CONSOLE_RED('[UPPERCASE-UTIL] REDIS_STORE `' + storeName + '` ERROR:'), errorInfo);
+							SHOW_ERROR('[UPPERCASE-UTIL] REDIS_STORE `' + storeName + '` ERROR:', errorInfo);
 						}
 					} else if (callback !== undefined) {
 						callback();
@@ -506,7 +506,7 @@ global.REDIS_STORE = CLASS(function(cls) {
 						if (errorHandler !== undefined) {
 							errorHandler(errorInfo.toString());
 						} else {
-							console.log(CONSOLE_RED('[UPPERCASE-UTIL] REDIS_STORE `' + storeName + '` ERROR:'), errorInfo);
+							SHOW_ERROR('[UPPERCASE-UTIL] REDIS_STORE `' + storeName + '` ERROR:', errorInfo);
 						}
 					} else if (value === TO_DELETE) {
 						callback();
@@ -543,7 +543,7 @@ global.REDIS_STORE = CLASS(function(cls) {
 						if (errorHandler !== undefined) {
 							errorHandler(errorInfo.toString());
 						} else {
-							console.log(CONSOLE_RED('[UPPERCASE-UTIL] REDIS_STORE `' + storeName + '` ERROR:'), errorInfo);
+							SHOW_ERROR('[UPPERCASE-UTIL] REDIS_STORE `' + storeName + '` ERROR:', errorInfo);
 						}
 					} else if (callback !== undefined) {
 						callback();
@@ -576,7 +576,7 @@ global.REDIS_STORE = CLASS(function(cls) {
 						if (errorHandler !== undefined) {
 							errorHandler(errorInfo.toString());
 						} else {
-							console.log(CONSOLE_RED('[UPPERCASE-UTIL] REDIS_STORE `' + storeName + '` ERROR:'), errorInfo);
+							SHOW_ERROR('[UPPERCASE-UTIL] REDIS_STORE `' + storeName + '` ERROR:', errorInfo);
 						}
 					} else if (all === TO_DELETE) {
 						callback({});
@@ -616,7 +616,7 @@ global.REDIS_STORE = CLASS(function(cls) {
 						if (errorHandler !== undefined) {
 							errorHandler(errorInfo.toString());
 						} else {
-							console.log(CONSOLE_RED('[UPPERCASE-UTIL] REDIS_STORE `' + storeName + '` ERROR:'), errorInfo);
+							SHOW_ERROR('[UPPERCASE-UTIL] REDIS_STORE `' + storeName + '` ERROR:', errorInfo);
 						}
 					} else {
 						callback(count);
@@ -651,7 +651,7 @@ global.REDIS_STORE = CLASS(function(cls) {
 						if (errorHandler !== undefined) {
 							errorHandler(errorInfo.toString());
 						} else {
-							console.log(CONSOLE_RED('[UPPERCASE-UTIL] REDIS_STORE `' + storeName + '` ERROR:'), errorInfo);
+							SHOW_ERROR('[UPPERCASE-UTIL] REDIS_STORE `' + storeName + '` ERROR:', errorInfo);
 						}
 					} else if (callback !== undefined) {
 						callback();

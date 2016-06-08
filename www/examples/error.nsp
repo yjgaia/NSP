@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 	<body>
-		<% error %>
+		<%
+			not_defined_func();
+		%>
 	</body>
 </html>

@@ -332,15 +332,26 @@ OVERRIDE(CONNECT_TO_WEB_SOCKET_SERVER, function(origin) {
 						},
 
 						// send to server.
-						send = function(params, callback) {
-							//REQUIRED: params
-							//REQUIRED: params.methodName
-							//REQUIRED: params.data
+						send = function(methodNameOrParams, callback) {
+							//REQUIRED: methodNameOrParams
+							//REQUIRED: methodNameOrParams.methodName
+							//OPTIONAL: methodNameOrParams.data
 							//OPTIONAL: callback
 
 							var
+							// params
+							params,
+							
 							// callback name
 							callbackName = '__CALLBACK_' + sendKey;
+							
+							if (CHECK_IS_DATA(methodNameOrParams) !== true) {
+								params = {
+									methodName : methodNameOrParams
+								}
+							} else {
+								params = methodNameOrParams;
+							}
 
 							params.sendKey = sendKey;
 
