@@ -7,6 +7,7 @@ Node Server Pages는 Node.js를 기반으로 동적 웹페이지를 생성하기
 - JavaScript만 알면 서버 프로그래밍에 익숙하지 않아도 즉시 서버 개발이 가능합니다.
 - [Node.js의 API](https://nodejs.org/api/)를 모두 사용할 수 있습니다.
 - 수많은 [npm 모듈들](https://www.npmjs.com/)을 즉시 사용할 수 있습니다.
+- [Babel](https://babeljs.io/)이 포함되어 ECMAScript 6을 지원합니다.
 - [UJS](https://github.com/Hanul/UJS)의 [COMMON](https://github.com/Hanul/UJS/blob/master/DOC/UJS-COMMON.md)과 [NODE](https://github.com/Hanul/UJS/blob/master/DOC/UJS-NODE.md)를 사용할 수 있습니다.
 - `.nsp` 페이지가 수정 즉시 반영됩니다.
 - 멀티코어 CPU 지원을 내장하고 있습니다.
@@ -28,7 +29,7 @@ Node Server Pages는 Node.js를 기반으로 동적 웹페이지를 생성하기
 ```
 
 - `port` 웹 서버의 포트입니다.
-- `idDevMode` `true`로 지정하면 개발 모드가 활성화됩니다. 개발 모드에서는 이미지 등의 리소스를 캐싱하지 않습니다.
+- `isDevMode` `true`로 지정하면 개발 모드가 활성화됩니다. 개발 모드에서는 이미지 등의 리소스를 캐싱하지 않습니다.
 - `rootPath` `.nsp` 파일 혹은 리소스 등이 저장된 경로를 지정합니다.
 - `uploadURI` 업로드 처리를 할 `URI`를 입력합니다.
 - `restURI` `REST URI` 디자인을 적용할 `URI`를 입력합니다.

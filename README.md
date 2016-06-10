@@ -9,6 +9,7 @@ Node Server Pages is a server-side script to create dynamic web pages based on N
 - You can instantly start developing server programming with basic knowledge of JavaScript.
 - You can use all the [APIs of Node.js](https://nodejs.org/api/).
 - You can use hundreds of [npm modules](https://www.npmjs.com/) out-of-box.
+- ECMAScript 6 support. (with [Babel](https://babeljs.io/))
 - You can use [COMMON](https://github.com/Hanul/UJS/blob/master/DOC/UJS-COMMON.md) and [NODE](https://github.com/Hanul/UJS/blob/master/DOC/UJS-NODE.md) of [UJS](https://github.com/Hanul/UJS).
 - Pages change instantly once you modify `.nsp` pages.
 - Built-in support for multi-core CPUs.
@@ -28,7 +29,7 @@ Node Server Pages is a server-side script to create dynamic web pages based on N
 }
 ```
 - `port` is the port of the web server.
-- `idDevMode` `true` means development mode. In development mode, resources such as images are not cached.
+- `isDevMode` `true` means development mode. In development mode, resources such as images are not cached.
 - `rootPath` specified the root path where `.nsp` files or resources are saved.
 - `uploadURI` points to the `URI` to upload to.
 - `restURI` specifies the root URI of `REST URI`.
