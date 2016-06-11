@@ -434,6 +434,7 @@ global.NSP = METHOD(function(m) {
 					savedIndex = i;
 					
 					i += 1;
+					j = -1;
 					column += 1;
 					continue;
 				}
@@ -499,6 +500,10 @@ global.NSP = METHOD(function(m) {
 						isRepeatMode = false;
 						
 						resumeCountStack.push(0);
+						
+						if (j === -1) {
+							compiledCode += ', function(__name, __value';
+						}
 						
 						compiledCode += ') { (function(__parentPause, __parentStore) {';
 						
