@@ -317,6 +317,11 @@ global.NSP = METHOD(function(m) {
 					
 					__redirectURL = url;
 					
+					__handler({
+						cookies : __newCookieInfo,
+						redirectURL : __redirectURL
+					});
+					
 				}.toString() + ';';
 				
 				// __each func
@@ -716,7 +721,7 @@ global.NSP = METHOD(function(m) {
 				}
 			}
 			
-			compiledCode += '\'); __handler({ html: __html, cookies: __newCookieInfo, redirectURL: __redirectURL });';
+			compiledCode += '\'); __handler({ html: __html, cookies: __newCookieInfo });';
 			
 			REPEAT(resumeCountStack[0], function() {
 				compiledCode += '} }; resume();';
