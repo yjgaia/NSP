@@ -57,7 +57,10 @@ global.NSP_BRIDGE = METHOD(function(m) {
 			isNotUsingDCBN = config.isNotUsingDCBN,
 			
 			// preprocessor
-			preprocessor = config.preprocessor;
+			preprocessor = config.preprocessor,
+			
+			// template engine
+			templateEngine = config.templateEngine;
 			
 			return {
 				
@@ -120,7 +123,7 @@ global.NSP_BRIDGE = METHOD(function(m) {
 										headers : {
 											'Set-Cookie' : CREATE_COOKIE_STR_ARRAY(result.cookies)
 										},
-										content : result.html,
+										content : templateEngine === undefined ? result.html : templateEngine(result.html),
 										contentType : 'text/html'
 									});
 								}

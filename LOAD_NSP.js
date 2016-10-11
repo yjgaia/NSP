@@ -51,7 +51,9 @@ global.LOAD_NSP = METHOD(function(m) {
 				notExists : notExistsHandler,
 				success : function(fileInfo) {
 					
-					var cachedFileInfo = cachedFileInfos[path];
+					var
+					// cached file info
+					cachedFileInfo = cachedFileInfos[path];
 					
 					if (cachedFileInfo !== undefined
 						&& (
