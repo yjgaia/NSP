@@ -1,3 +1,6 @@
+<%
+	var sessionStore = SHARED_STORE('sessionStore');
+%>
 <!DOCTYPE html>
 <html>
 	<body>
@@ -13,12 +16,26 @@
 			}
 			
 			cookie('session-key', sessionKey, 3600);
+			
+			var savedData;
+			sessionStore.get(sessionKey, {
+				notExists : resume,
+				success : function(_savedData) {
+					savedData = _savedData;
+					resume();
+				}
+			});
+			
+			pause();
 		%></p>
-		<p>{{load(sessionKey)}}</p>
+		<p>{{savedData}}</p>
 		<%
-			save(sessionKey, {
-				name : 'YJ Sim',
-				age : 28
+			sessionStore.save({
+				id : sessionKey,
+				data : {
+					name : 'YJ Sim',
+					age : 30
+				}
 			});
 		%>
 		<a href="/">Home</a>

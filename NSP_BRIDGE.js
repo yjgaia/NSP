@@ -45,6 +45,12 @@ global.NSP_BRIDGE = METHOD(function(m) {
 	return {
 		
 		run : function(config) {
+			//REQUIRED: config
+			//REQUIRED: config.rootPath
+			//OPTIONAL: config.restURI
+			//OPTIONAL: config.isNotUsingDCBN
+			//OPTIONAL: config.preprocessor
+			//OPTIONAL: config.templateEngine
 			
 			var
 			// root path
@@ -60,225 +66,239 @@ global.NSP_BRIDGE = METHOD(function(m) {
 			preprocessor = config.preprocessor,
 			
 			// template engine
-			templateEngine = config.templateEngine;
+			templateEngine = config.templateEngine,
 			
-			return {
+			// listener.
+			listener = function(requestInfo, fileDataSet, response, next) {
+									
+				var
+				// uri
+				uri = requestInfo.uri,
 				
-				notExistsHandler : function(resourcePath, requestInfo, response) {
-					responseNotFound(response);
+				// sub uri
+				subURI = '',
+				
+				// path
+				path,
+				
+				// ext
+				ext,
+				
+				// run.
+				run = function() {
+					
+					LOAD_NSP({
+						requestInfo : requestInfo,
+						path : path,
+						self : {
+							headers : requestInfo.headers,
+							method : requestInfo.method,
+							params : requestInfo.params,
+							ip : requestInfo.ip,
+							subURI : subURI,
+							fileDataSet : fileDataSet
+						},
+						isNotUsingDCBN : isNotUsingDCBN,
+						preprocessor : preprocessor
+					}, {
+						notExists : function() {
+							responseNotFound(response);
+						},
+						error : function(e, path, startLine, startColumn, endLine, endColumn, startIndex, endIndex) {
+							responseError(response, e, path, startLine, startColumn, endLine, endColumn, startIndex, endIndex);
+						},
+						success : function(result) {
+							
+							// redirect.
+							if (result.redirectURL !== undefined) {
+								response({
+									statusCode : 302,
+									cookies : result.cookies,
+									headers : {
+										'Location' : result.redirectURL
+									}
+								});
+							}
+							
+							else {
+								response({
+									cookies : result.cookies,
+									content : templateEngine === undefined ? result.html : templateEngine(result.html),
+									contentType : 'text/html'
+								});
+							}
+						}
+					});
+				};
+				
+				NEXT([
+				function(next) {
+					
+					// server root path. (index)
+					if (uri === '') {
+						
+						CHECK_FILE_EXISTS(rootPath + '/index.nsp', function(isExists) {
+							if (isExists === true) {
+								uri = 'index.nsp';
+							} else {
+								uri = 'index.html';
+							}
+							next();
+						});
+						
+					} else {
+						next();
+					}
 				},
 				
-				requestListener : function(requestInfo, response, onDisconnected, setRootPath, next) {
-					
-					var
-					// uri
-					uri = requestInfo.uri,
-					
-					// sub uri
-					subURI = '',
-					
-					// path
-					path,
-					
-					// ext
-					ext,
-					
-					// run.
-					run = function() {
+				function() {
+					return function() {
 						
-						LOAD_NSP({
-							requestInfo : requestInfo,
-							path : path,
-							self : {
-								headers : requestInfo.headers,
-								method : requestInfo.method,
-								params : requestInfo.params,
-								ip : requestInfo.ip,
-								subURI : subURI
-							},
-							isNotUsingDCBN : isNotUsingDCBN,
-							preprocessor : preprocessor
-						}, {
-							notExists : function() {
-								responseNotFound(response);
-							},
-							error : function(e, path, startLine, startColumn, endLine, endColumn, startIndex, endIndex) {
-								responseError(response, e, path, startLine, startColumn, endLine, endColumn, startIndex, endIndex);
-							},
-							success : function(result) {
-								
-								// redirect.
-								if (result.redirectURL !== undefined) {
-									response({
-										statusCode : 302,
-										headers : {
-											'Set-Cookie' : CREATE_COOKIE_STR_ARRAY(result.cookies),
-											'Location' : result.redirectURL
-										}
-									});
-								}
-								
-								else {
-									response({
-										headers : {
-											'Set-Cookie' : CREATE_COOKIE_STR_ARRAY(result.cookies)
-										},
-										content : templateEngine === undefined ? result.html : templateEngine(result.html),
-										contentType : 'text/html'
-									});
-								}
-							}
-						});
-					};
-					
-					NEXT([
-					function(next) {
+						path = rootPath + '/' + uri;
+				
+						ext = Path.extname(uri).toLowerCase();
 						
-						// server root path. (index)
-						if (uri === '') {
-							
-							CHECK_IS_EXISTS_FILE(rootPath + '/index.nsp', function(isExists) {
-								if (isExists === true) {
-									uri = 'index.nsp';
-								} else {
-									uri = 'index.html';
-								}
-								next();
-							});
-							
-						} else {
-							next();
+						// serve .nsp file.
+						if (ext === '.nsp') {
+							run();
 						}
-					},
-					
-					function() {
-						return function() {
+						
+						else if (ext === '') {
 							
-							path = rootPath + '/' + uri;
-					
-							ext = Path.extname(uri).toLowerCase();
-							
-							// serve .nsp file.
-							if (ext === '.nsp') {
-								run();
-							}
-							
-							else if (ext === '') {
+							NEXT([
+							function(next) {
 								
-								NEXT([
-								function(next) {
+								// serve .nsp file.
+								CHECK_FILE_EXISTS(path + '.nsp', function(isExists) {
 									
-									// serve .nsp file.
-									CHECK_IS_EXISTS_FILE(path + '.nsp', function(isExists) {
+									if (isExists === true) {
 										
-										if (isExists === true) {
+										CHECK_IS_FOLDER(path + '.nsp', function(isFolder) {
 											
-											CHECK_IS_FOLDER(path + '.nsp', function(isFolder) {
-												
-												if (isFolder === true) {
-													next();
-												} else {
-													path += '.nsp';
-													run();
-												}
-											});
-										}
+											if (isFolder === true) {
+												next();
+											} else {
+												path += '.nsp';
+												run();
+											}
+										});
+									}
+									
+									else {
+										next();
+									}
+								});
+							},
+							
+							function(next) {
+								return function() {
+									
+									// server rest uri.
+									if (restURI !== undefined) {
 										
-										else {
-											next();
-										}
-									});
-								},
-								
-								function(next) {
-									return function() {
-										
-										// server rest uri.
-										if (restURI !== undefined) {
+										if (CHECK_IS_ARRAY(restURI) === true) {
 											
-											if (CHECK_IS_ARRAY(restURI) === true) {
-												
-												if (CHECK_IS_IN({
-													array : restURI,
-													value : uri
-												}) === true) {
-													uri = restURI + '.nsp';
-												}
-												
-												else {
-													
-													EACH(restURI, function(restURI) {
-														if (restURI + '/' === uri.substring(0, restURI.length + 1)) {
-															subURI = uri.substring(restURI.length + 1);
-															uri = restURI + '.nsp';
-															return false;
-														}
-													});
-												}
+											if (CHECK_IS_IN({
+												array : restURI,
+												value : uri
+											}) === true) {
+												uri = restURI + '.nsp';
 											}
 											
 											else {
-												if (restURI === uri) {
-													uri = restURI + '.nsp';
-												} else if (restURI + '/' === uri.substring(0, restURI.length + 1)) {
-													subURI = uri.substring(restURI.length + 1);
-													uri = restURI + '.nsp';
-												}
+												
+												EACH(restURI, function(restURI) {
+													if (restURI + '/' === uri.substring(0, restURI.length + 1)) {
+														subURI = uri.substring(restURI.length + 1);
+														uri = restURI + '.nsp';
+														return false;
+													}
+												});
 											}
-											
-											CHECK_IS_EXISTS_FILE(rootPath + '/' + uri, function(isExists) {
-												
-												if (isExists === true) {
-													path = rootPath + '/' + uri;
-													run();
-												}
-												
-												else {
-													next();
-												}
-											});
 										}
 										
 										else {
-											next();
+											if (restURI === uri) {
+												uri = restURI + '.nsp';
+											} else if (restURI + '/' === uri.substring(0, restURI.length + 1)) {
+												subURI = uri.substring(restURI.length + 1);
+												uri = restURI + '.nsp';
+											}
 										}
-									};
-								},
-								
-								function() {
-									return function() {
 										
-										// serve static file.
-										CHECK_IS_EXISTS_FILE(path, function(isExists) {
+										CHECK_FILE_EXISTS(rootPath + '/' + uri, function(isExists) {
 											
 											if (isExists === true) {
-											
-												// but when path is folder, run NSP.
-												CHECK_IS_FOLDER(path, function(isFolder) {
-													
-													if (isFolder === true) {
-														path += '/index.nsp';
-														run();
-													} else {
-														next();
-													}
-												});
+												path = rootPath + '/' + uri;
+												run();
 											}
 											
 											else {
 												next();
 											}
 										});
-									};
-								}]);
-							}
+									}
+									
+									else {
+										next();
+									}
+								};
+							},
 							
-							else {
-								next();
-							}
-						};
-					}]);
-					
+							function() {
+								return function() {
+									
+									// serve static file.
+									CHECK_FILE_EXISTS(path, function(isExists) {
+										
+										if (isExists === true) {
+										
+											// but when path is folder, run NSP.
+											CHECK_IS_FOLDER(path, function(isFolder) {
+												
+												if (isFolder === true) {
+													path += '/index.nsp';
+													run();
+												} else {
+													next();
+												}
+											});
+										}
+										
+										else {
+											next();
+										}
+									});
+								};
+							}]);
+						}
+						
+						else {
+							next();
+						}
+					};
+				}]);
+			};
+			
+			return {
+				
+				uploadOverFileSize : function(params, maxUploadFileMB, requestInfo, response) {
+					listener(requestInfo, undefined, response, function() {
+						// ignore.
+					});
+				},
+				uploadSuccess : function(params, fileDataSet, requestInfo, response) {
+					listener(requestInfo, fileDataSet, response, function() {
+						// ignore.
+					});
+				},
+				
+				notExistsHandler : function(resourcePath, requestInfo, response) {
+					responseNotFound(response);
+				},
+				
+				requestListener : function(requestInfo, response, setRootPath, next) {
+					listener(requestInfo, undefined, response, next);
 					return false;
 				}
 			};

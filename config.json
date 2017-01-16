@@ -3,6 +3,8 @@
 	"isDevMode": true,
 	"rootPath": "./www",
 	"uploadURI": ["examples/upload_result.nsp"],
+	"maxUploadFileMB": 10,
+	"uploadPath" : "./upload_files",
 	"restURI" : ["examples/restful"],
 	"isNotUsingCPUClustering" : true
 }

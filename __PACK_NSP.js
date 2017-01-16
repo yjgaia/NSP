@@ -1,8 +1,5 @@
 // load UJS.
-require(process.env.UPPERCASE_PATH + '/UJS-NODE.js');
-
-// load UPPERCASE-UTIL.
-require(process.env.UPPERCASE_PATH + '/UPPERCASE-UTIL/NODE.js');
+require(process.env.UPPERCASE_PATH + '/UPPERCASE-CORE/NODE.js');
 
 /*
  * pack UPPERCASE BOX.
@@ -88,6 +85,24 @@ RUN(function() {
 
 		log('SAVED NODE SCRIPT!');
 	}
+	
+	WRITE_FILE({
+		path : '__PACK/' + boxName + '/VERSION',
+		buffer : READ_FILE({
+			path : rootPath + '/VERSION',
+			isSync : true
+		}),
+		isSync : true
+	});
+	
+	WRITE_FILE({
+		path : '__PACK/' + boxName + '/README.md',
+		buffer : READ_FILE({
+			path : rootPath + '/README.md',
+			isSync : true
+		}),
+		isSync : true
+	});
 
 	log('SAVED BOX!');
 

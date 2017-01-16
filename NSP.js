@@ -12,24 +12,14 @@ global.NSP = METHOD(function(m) {
 	// saved codes
 	savedCodes = {},
 	
-	// shared store
-	sharedStore = SHARED_STORE('__NSP_SHARED_STORE'),
-	
 	// get saved codes.
 	getSavedCodes,
-	
-	// get shared store.
-	getSharedStore,
 	
 	// generate error display.
 	generateErrorDisplay;
 	
 	m.getSavedCodes = getSavedCodes = function() {
 		return savedCodes;
-	};
-	
-	m.getSharedStore = getSharedStore = function() {
-		return sharedStore;
 	};
 	
 	m.generateErrorDisplay = generateErrorDisplay = function(params) {
@@ -121,6 +111,9 @@ global.NSP = METHOD(function(m) {
 			// /*...*/
 			isComment2Mode = false,
 			
+			// /.../
+			isRegexMode = false,
+			
 			// check is in code.
 			checkIsInCode = function() {
 				return isCodeMode === true ||
@@ -134,7 +127,8 @@ global.NSP = METHOD(function(m) {
 				return isString1Mode === true ||
 					isString2Mode === true ||
 					isComment1Mode === true ||
-					isComment2Mode === true;
+					isComment2Mode === true ||
+					isRegexMode === true;
 			},
 			
 			// add resume start.
@@ -230,29 +224,6 @@ global.NSP = METHOD(function(m) {
 					
 				}.toString() + ';';
 				
-				// save func
-				compiledCode += 'var save = ' + function(name, value) {
-					
-					if (value === undefined) {
-						NSP.getSharedStore().remove(name);
-					}
-					
-					else {
-						NSP.getSharedStore().save({
-							name : name,
-							value : value
-						});
-					}
-					
-				}.toString() + ';';
-				
-				// load func
-				compiledCode += 'var load = ' + function(name) {
-					
-					return NSP.getSharedStore().get(name);
-					
-				}.toString() + ';';
-				
 				// cookie func
 				compiledCode += 'var cookie = ' + function(name, value, expireSeconds, path, domain) {
 					
@@ -277,38 +248,6 @@ global.NSP = METHOD(function(m) {
 						
 						return value;
 					}
-					
-				}.toString() + ';';
-				
-				// upload func
-				compiledCode += 'var upload = ' + function(uploadPath, callbackOrHandlers) {
-					
-					var
-					// callback
-					callback,
-			
-					// error handler
-					errorHandler,
-			
-					// over file size handler
-					overFileSizeHandler;
-			
-					if (CHECK_IS_DATA(callbackOrHandlers) !== true) {
-						callback = callbackOrHandlers;
-					} else {
-						callback = callbackOrHandlers.success;
-						errorHandler = callbackOrHandlers.error;
-						overFileSizeHandler = callbackOrHandlers.overFileSize;
-					}
-					
-					UPLOAD_REQUEST({
-						requestInfo : __requestInfo,
-						uploadPath : __basePath + '/' + uploadPath
-					}, {
-						error : errorHandler,
-						overFileSize : overFileSizeHandler,
-						success : callback
-					});
 					
 				}.toString() + ';';
 				
@@ -638,7 +577,7 @@ global.NSP = METHOD(function(m) {
 					if (checkIsInString() !== true) {
 						isString2Mode = true;
 						
-						compiledCode += '\'';
+						compiledCode += '"';
 						
 						continue;
 					}
@@ -647,7 +586,7 @@ global.NSP = METHOD(function(m) {
 					if (isString2Mode === true) {
 						isString2Mode = false;
 						
-						compiledCode += '\'';
+						compiledCode += '"';
 						
 						continue;
 					}
@@ -684,6 +623,27 @@ global.NSP = METHOD(function(m) {
 					i += 1;
 					column += 1;
 					continue;
+				}
+				
+				if (ch === '/' && checkIsInCode() === true) {
+					
+					// start regex mode.
+					if (checkIsInString() !== true) {
+						isRegexMode = true;
+						
+						compiledCode += '/';
+						
+						continue;
+					}
+					
+					// end regex mode.
+					if (isRegexMode === true) {
+						isRegexMode = false;
+						
+						compiledCode += '/';
+						
+						continue;
+					}
 				}
 				
 				if (ch === '\n') {

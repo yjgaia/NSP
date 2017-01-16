@@ -12,7 +12,6 @@
 			<ul>
 				<li><a href="examples/include.nsp">include .nsp</a></li>
 				<li><a href="examples/include_js.nsp">include .js</a></li>
-				<li><a href="examples/saveload.nsp">save/load</a></li>
 				<li><a href="examples/callback.nsp">pause/resume</a></li>
 				<li><a href="examples/upload.nsp">upload</a></li>
 				<li><a href="examples/redirect.nsp">redirect</a></li>
@@ -32,7 +31,6 @@
 				<li><a href="examples/cookies.nsp">Cookies</a></li>
 				<li><a href="examples/session.nsp">Session</a></li>
 				<li><a href="examples/error.nsp">Error</a></li>
-				<li><a href="examples/es6.nsp">ES6</a></li>
 			</ul>
 		</div>
 		<div>

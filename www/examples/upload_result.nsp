@@ -2,19 +2,8 @@
 <html>
 	<body>
 		<h1>Upload Example</h1>
-		<p><%
-			var paramsList;
-			
-			// Uploaded file is saved in 'upload_temp_files' folder.
-			upload('upload_temp_files', function(_paramsList) {
-				paramsList = _paramsList;
-				resume();
-			});
-			
-			pause();
-		%></p>
-		<~ paramsList -> params>
-			<p>{{params}}</p>
+		<~ self.fileDataSet -> fileData>
+			<p>{{fileData}}</p>
 		</~>
 		<a href="upload.nsp">Back</a>
 	</body>
