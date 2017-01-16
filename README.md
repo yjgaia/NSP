@@ -23,7 +23,7 @@ Node Server Pages는 Node.js를 기반으로 동적 웹페이지를 생성하기
 	"rootPath": "./",
 	"uploadURI": ["examples/upload_result.nsp"],
 	"maxUploadFileMB": 10,
-	"uploadPath": "./upload_files"
+	"uploadPath": "./upload_files",
 	"restURI": ["examples/restful"],
     "isNotUsingDCBN": false,
     "isNotUsingCPUClustering": false

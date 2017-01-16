@@ -12,4 +12,4 @@ module.exports = {
 	sqrt : sqrt,
 	square : square,
 	diag : diag,
-}; 
+};
