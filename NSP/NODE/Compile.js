@@ -68,9 +68,6 @@ NSP.Compile = METHOD((m) => {
 			// /*...*/
 			let isComment2Mode = false;
 			
-			// /.../
-			let isRegexMode = false;
-			
 			checkIsInCode = () => {
 				return isCodeMode === true ||
 					isQuestionMode === true ||
@@ -82,8 +79,7 @@ NSP.Compile = METHOD((m) => {
 				return isString1Mode === true ||
 					isString2Mode === true ||
 					isComment1Mode === true ||
-					isComment2Mode === true ||
-					isRegexMode === true;
+					isComment2Mode === true;
 			};
 			
 			addResumeStart = () => {
@@ -574,36 +570,6 @@ NSP.Compile = METHOD((m) => {
 					i += 1;
 					column += 1;
 					continue;
-				}
-				
-				if (ch === '/' && checkIsInCode() === true) {
-					
-					// start regex mode.
-					if (checkIsInString() !== true) {
-						
-						for (let k = i + 1; k < code.length; k += 1) {
-							if (code[k] === '\n') {
-								break;
-							}
-							if (k > i + 1 && code[k] === '/') {
-								isRegexMode = true;
-								break;
-							}
-						}
-						
-						compiledCode += '/';
-						
-						continue;
-					}
-					
-					// end regex mode.
-					if (isRegexMode === true) {
-						isRegexMode = false;
-						
-						compiledCode += '/';
-						
-						continue;
-					}
 				}
 				
 				if (ch === '\n') {
