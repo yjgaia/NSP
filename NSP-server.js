@@ -1,16 +1,8 @@
-// import UPPERCASE-CORE.
-require('./import/UPPERCASE-CORE/NODE.js');
-
-// import NSP.
-require('./NSP.js');
-require('./LOAD_NSP.js');
-require('./NSP_BRIDGE.js');
+let NSP = require('./index.js');
 
 INIT_OBJECTS();
 
-var
-// config
-config = PARSE_STR(READ_FILE({
+let config = PARSE_STR(READ_FILE({
 	path : 'config.json',
 	isSync : true
 }).toString());
@@ -18,7 +10,7 @@ config = PARSE_STR(READ_FILE({
 // if dev mode is true, no resource caching.
 CONFIG.isDevMode = config.isDevMode;
 
-(config.isNotUsingCPUClustering === true ? RUN : CPU_CLUSTERING)(function() {
+(config.isNotUsingCPUClustering === true ? RUN : CPU_CLUSTERING)(() => {
 	
 	// run web server.
 	WEB_SERVER({
@@ -28,7 +20,7 @@ CONFIG.isDevMode = config.isDevMode;
 		uploadURI : config.uploadURI,
 		maxUploadFileMB : config.maxUploadFileMB,
 		uploadPath : config.uploadPath
-	}, NSP_BRIDGE(config));
+	}, NSP.Bridge(config));
 
 	console.log('NSP Server started! - http://localhost:' + config.port);
 });

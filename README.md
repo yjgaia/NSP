@@ -48,7 +48,7 @@ Node Server Pages는 Node.js를 기반으로 동적 웹페이지를 생성하기
     ```
 3. `NODE/MAIN.js`의 `MAIN` 함수에 다음 내용을 추가합니다.
 	```javascript
-	addRequestListener(NSP_BRIDGE({
+	addRequestListener(NSP.Bridge({
 		rootPath : './'
 		restURI : 'examples/restful'
 	}).requestListener);
