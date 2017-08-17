@@ -68,21 +68,21 @@ NSP.Compile = METHOD((m) => {
 			// /*...*/
 			let isComment2Mode = false;
 			
-			checkIsInCode = () => {
+			let checkIsInCode = () => {
 				return isCodeMode === true ||
 					isQuestionMode === true ||
 					isRepeatMode === true ||
 					isPrintMode === true;
 			};
 			
-			checkIsInString = () => {
+			let checkIsInString = () => {
 				return isString1Mode === true ||
 					isString2Mode === true ||
 					isComment1Mode === true ||
 					isComment2Mode === true;
 			};
 			
-			addResumeStart = () => {
+			let addResumeStart = () => {
 				
 				resumeCountStack[resumeCountStack.length - 1] += 1;
 				
@@ -90,7 +90,7 @@ NSP.Compile = METHOD((m) => {
 				compiledCode += '__store.resume = resume = () => { __pauseCount -= 1; if (__pauseCount === 0 && __store.doneResumeIndexes[' + i + '] !== true) { __store.doneResumeIndexes[' + i + '] = true;';
 			};
 			
-			addBlockStart = (isFirst) => {
+			let addBlockStart = (isFirst) => {
 				
 				// init vars for block.
 				compiledCode += 'let __pauseCount = 0;';
