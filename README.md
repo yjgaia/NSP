@@ -428,6 +428,9 @@ HTML `form` 등에서 넘어온 데이터를 갖고 있습니다.
 ## 작성자
 [Young Jae Sim](https://github.com/Hanul)
 
+## IDE 지원
+[Dasom Editor](https://github.com/Hanul/DasomEditor)에서 NSP를 지원합니다.
+
 ## 문의하기
 * [GitHub Issues](https://github.com/Hanul/NSP/issues)
 * [페이스북 유저 그룹](https://www.facebook.com/groups/nodeserverpages/)
