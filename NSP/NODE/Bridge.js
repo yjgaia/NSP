@@ -70,6 +70,7 @@ NSP.Bridge = METHOD((m) => {
 							headers : requestInfo.headers,
 							method : requestInfo.method,
 							params : requestInfo.params,
+							data : requestInfo.data,
 							ip : requestInfo.ip,
 							subURI : subURI,
 							fileDataSet : fileDataSet
