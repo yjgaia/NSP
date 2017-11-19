@@ -132,6 +132,17 @@ NSP.Compile = METHOD((m) => {
 						},
 						success : (result) => {
 							print(result.html);
+							
+							EXTEND({
+								origin : __newCookieInfo,
+								extend : result.cookies
+							});
+							
+							EXTEND({
+								origin : __cookieInfo,
+								extend : result.cookies
+							});
+							
 							resume();
 						}
 					});
